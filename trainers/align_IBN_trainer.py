@@ -96,8 +96,8 @@ class align_IBNtrainer(SourcebaselineTrainer):
         if extracted_layer == 'Deconv_1x1':
             with self.switch_bn(self.model, 1):
                 pred_T = self.model(T_img).softmax(1)
-            clusters_S = pred_S
-            clusters_T = pred_T
+            clusters_S = [pred_S]
+            clusters_T = [pred_T]
 
         else:
             with self.switch_bn(self.model, 1), self.extractor.enable_register(True):

@@ -17,12 +17,12 @@ if not os.path.exists(TEMP_DIR):
     os.mkdir(TEMP_DIR)
 
 seed = 10
-clusters_zoom = 20
+clusters_zoom = 5
 align_layer="Up_conv2" #"['Up_conv4', 'Up_conv3', 'Up_conv2']
-weights = [0.01, 1, 10, 100, 1000, 10000]
-cluster_weight = [0, 0.01, 0.1, 0.5, 1]
-map_x = [-3, 3] # -2, -3, -4, -5, -6 ....
-map_y = [-3, 3]
+weights = [0, 0.01, 1, 10, 100]
+cluster_weight = [0, 0.01, 0.1, 0.5]
+map_x = [-3, -1, 0, 1, 3] # -2, -3, -4, -5, -6 ....
+map_y = [-3, -1, 0, 1, 3]
 
 class alignScriptGenerator(BaselineGenerator):
 
@@ -122,5 +122,5 @@ if __name__ == '__main__':
                                            weight=weights, cluster_weight=cluster_weight, align_layer=align_layer, map_x=map_x, map_y=map_y)
 
     for j in jobs:
-        submittor.submit(j, account=accounts, force_show=force_show, time=4)
+        submittor.submit(j, account=accounts, force_show=force_show, time=6)
 
