@@ -28,7 +28,7 @@ Scheduler:
     max_value: 0
 
 Trainer:
-  name: align_IndividualBN
+  name: align_IndividualBN # baseline  supervised  align_IndividualBN
   device: cuda
   save_dir: runs
   checkpoint_path: runs

@@ -11,11 +11,15 @@ account=def-chdesa
 save_dir=baseline_test
 
 declare -a StringArray=(
-#  "python main.py Optim.lr=0.00001 Trainer.name=baseline Trainer.save_dir=${save_dir}/CT2MRI_401lr"
-#  "python main.py Optim.lr=0.000005 Trainer.name=baseline Trainer.save_dir=${save_dir}/CT2MRI_505lr"
-#  "python main.py Optim.lr=0.000001 Trainer.name=baseline Trainer.save_dir=${save_dir}/CT2MRI_501lr"
-  "python main.py Optim.lr=0.0000005 Trainer.name=baseline Trainer.save_dir=${save_dir}/CT2MRI_605lr"
-  "python main.py Optim.lr=0.0000001 Trainer.name=baseline Trainer.save_dir=${save_dir}/CT2MRI_601lr"
+  "python main.py Optim.lr=0.0001 Trainer.name=baseline    DataLoader.shuffle=True Trainer.save_dir=${save_dir}/CT2MRI_301lr_shufleT"
+  "python main.py Optim.lr=0.00001 Trainer.name=baseline   DataLoader.shuffle=True Trainer.save_dir=${save_dir}/CT2MRI_401lr_shufleT"
+  "python main.py Optim.lr=0.000001 Trainer.name=baseline  DataLoader.shuffle=True Trainer.save_dir=${save_dir}/CT2MRI_501lr_shufleT"
+  "python main.py Optim.lr=0.0000001 Trainer.name=baseline DataLoader.shuffle=True Trainer.save_dir=${save_dir}/CT2MRI_601lr_shufleT"
+
+  "python main.py Optim.lr=0.0001 Trainer.name=baseline    DataLoader.shuffle=False Trainer.save_dir=${save_dir}/CT2MRI_301lr_shufleF"
+  "python main.py Optim.lr=0.00001 Trainer.name=baseline   DataLoader.shuffle=False Trainer.save_dir=${save_dir}/CT2MRI_401lr_shufleF"
+  "python main.py Optim.lr=0.000001 Trainer.name=baseline  DataLoader.shuffle=False Trainer.save_dir=${save_dir}/CT2MRI_501lr_shufleF"
+  "python main.py Optim.lr=0.0000001 Trainer.name=baseline DataLoader.shuffle=False Trainer.save_dir=${save_dir}/CT2MRI_601lr_shufleF"
 
 
 )
