@@ -63,6 +63,7 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
         )
 
     def run_step(self, s_data, t_data, cur_batch: int):
+        extracted_layer = self.extractor.feature_names[0]
         C = int(self._config['Data_input']['num_class'])
         S_img, S_target, S_filename = (
             s_data[0][0].to(self.device),
@@ -82,6 +83,7 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
 
 
         with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
+            self.extractor.clear()
             pred_S = self.model(S_img).softmax(1)
 
         onehot_targetS = class2one_hot(S_target.squeeze(1), C)
@@ -89,6 +91,7 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
 
 
         with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
+            self.extractor.clear()
             pred_T = self.model(T_img).softmax(1)
 
         onehot_targetT = class2one_hot(T_target.squeeze(1), C)
