@@ -563,6 +563,8 @@ def meters_register(c):
     # train dice
     meters.register_meter(
         f"train_dice", UniversalDice(C=c, report_axis=report_axis))
+    meters.register_meter(
+        f"trainT_dice", UniversalDice(C=c, report_axis=report_axis))
 
     # loss
     meters.register_meter(

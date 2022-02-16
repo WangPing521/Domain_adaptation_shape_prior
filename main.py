@@ -6,7 +6,7 @@ from dataset.mmwhs import mmWHSMRInterface, mmWHSCTInterface
 from demo.criterions import nullcontext
 from scheduler.customized_scheduler import RampScheduler
 from scheduler.warmup_scheduler import GradualWarmupScheduler
-from trainers import align_SBN_Trainer
+from trainers import Domain_supervised_Trainer
 from trainers.SourceTrainer import SourcebaselineTrainer
 from trainers.align_IBN_trainer import align_IBNtrainer
 from utils.radam import RAdam
@@ -74,7 +74,7 @@ weight_cluster = RampScheduler(**config['Scheduler']["ClusterScheduler"])
 
 Trainer_container = {
     "baseline": SourcebaselineTrainer,
-    "align_sharedBN": align_SBN_Trainer,
+    "supervised": Domain_supervised_Trainer,
     "align_IndividualBN": align_IBNtrainer,
 }
 trainer_name = Trainer_container.get(config['Trainer'].get('name'))
