@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
 
 from arch.projectors import DenseClusterHead
+from arch.utils import FeatureExtractor
 from loss.IIDSegmentations import compute_joint_distribution, IIDSegmentationLoss
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
@@ -38,6 +39,8 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
             input_dim=self.model.get_channel_dim(self._config['DA']['align_layer']['name']),
             num_clusters=self._config['DA']['align_layer']['clusters'])
 
+        self.extractor = FeatureExtractor(self.model, feature_names=self._config['DA']['align_layer']['name'])
+        self.extractor.bind()
         self.saver = FeatureMapSaver(save_dir=self._save_dir)
         self.IICLoss = IIDSegmentationLoss()
 
