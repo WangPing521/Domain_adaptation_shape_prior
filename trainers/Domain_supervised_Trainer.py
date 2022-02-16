@@ -117,7 +117,7 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
             return align_loss, cluster_loss, p_joint_S, p_joint_T
 
         align_losses, cluster_losses, p_joint_Ss, p_joint_Ts = \
-            zip(*[single_head_loss(clusters, clustert) for clusters, clustert in zip(clusters_S, clusters_T)])
+            zip(*[single_head_loss(clusters, clustert) for clusters, clustert in zip([clusters_S], [clusters_T])])
 
         # for visualization
         p_joint_S = p_joint_Ss[-1]
