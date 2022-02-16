@@ -1,0 +1,35 @@
+DA:
+  align_layer:
+    clusters: 5
+    name: Up_conv5
+  displacement:
+    map_x: -9
+    map_y: -9
+  double_bn: false
+  source: CT
+  target: MRI
+Data:
+  seed: 12
+DataLoader:
+  batch_size: 4
+  num_workers: 0
+  pin_memory: false
+  shuffle: true
+  val_batch_size: 1
+Data_input:
+  dataset: mmwhs
+  num_class: 5
+Optim:
+  lr: 1.0e-06
+Scheduler:
+  RegScheduler:
+    begin_epoch: 5
+    max_epoch: 50
+    max_value: 0.001
+    min_value: 0
+Trainer:
+  checkpoint_path: runs
+  device: cuda
+  name: align_IndividualBN
+  save_dir: runs
+seed: 123

@@ -1,0 +1,10 @@
+2022-01-24 17:33:06.167 | TRACE    | loss.KL_divergence:__init__:42 - Initialized KL_div with weight=None and reduction=mean.
+2022-01-24 19:08:35.063 | TRACE    | loss.KL_divergence:__init__:42 - Initialized KL_div with weight=None and reduction=mean.
+2022-01-24 19:09:14.786 | TRACE    | loss.KL_divergence:__init__:42 - Initialized KL_div with weight=None and reduction=mean.
+2022-01-24 19:11:00.701 | TRACE    | loss.KL_divergence:__init__:42 - Initialized KL_div with weight=None and reduction=mean.
+2022-01-24 20:10:44.578 | TRACE    | loss.KL_divergence:__init__:42 - Initialized KL_div with weight=None and reduction=mean.
+2022-02-07 20:19:57.126 | TRACE    | loss.KL_divergence:__init__:42 - Initialized KL_div with weight=None and reduction=mean.
+2022-02-07 20:20:52.879 | INFO     | __main__:<module>:142 - training epoch 0: tra:[s_sup_loss:0.501, s_c_loss:-2.35e-04, s_acc:0.899, t_acc:0.291, t_c_loss:-1.26e-04, align_loss:2.52e-08, total_loss:0.501]
+2022-02-07 20:20:52.880 | TRACE    | loss.KL_divergence:__init__:42 - Initialized KL_div with weight=None and reduction=mean.
+2022-02-07 20:20:56.685 | INFO     | __main__:<module>:148 - val epoch 0  on target: tra:[sup_loss:6.627, acc:0.098]
+2022-02-07 20:20:56.694 | TRACE    | loss.KL_divergence:__init__:42 - Initialized KL_div with weight=None and reduction=mean.
