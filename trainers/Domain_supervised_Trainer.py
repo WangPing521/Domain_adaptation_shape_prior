@@ -104,8 +104,8 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
         assert len(clusters_S) == len(clusters_T)
 
         def single_head_loss(clusters, clustert):
-            cluster_loss = 0.5 * self.IICLoss(clusters, clusters) + 0.5 * self.IICLoss(clustert, clustert)
-
+            # cluster_loss = 0.5 * self.IICLoss(clusters, clusters) + 0.5 * self.IICLoss(clustert, clustert)
+            cluster_loss = self.IICLoss(clustert, clustert)
             p_joint_S = compute_joint_distribution(
                 x_out=clusters,
                 displacement_map=(self._config['DA']['displacement']['map_x'],
@@ -145,8 +145,11 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
                                    close=True, )
             self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
                                    close=True, )
+            self.saver.save_map(imageS=S_img, imageT=T_img, feature_mapS=pred_S, feature_mapT=pred_T,
+                                cur_epoch=self.cur_epoch, cur_batch_num=cur_batch, save_name="cluster"
+                                )
 
         align_loss = torch.tensor(0, dtype=torch.float, device=pred_S.device)
         cluster_loss = torch.tensor(0, dtype=torch.float, device=pred_S.device)
-        s_loss = 0.5 * (t_loss + s_loss)
+        s_loss = t_loss + s_loss
         return s_loss, cluster_loss, align_loss
