@@ -11,10 +11,10 @@ account=def-chdesa
 save_dir=supervised_joint_test
 
 declare -a StringArray=(
-  "python main.py Optim.lr=0.0001 Trainer.name=supervised    Trainer.save_dir=${save_dir}/CT2MRI_301lr_supervised"
-  "python main.py Optim.lr=0.00001 Trainer.name=supervised   Trainer.save_dir=${save_dir}/CT2MRI_401lr_supervised"
-  "python main.py Optim.lr=0.000001 Trainer.name=supervised  Trainer.save_dir=${save_dir}/CT2MRI_501lr_supervised"
-  "python main.py Optim.lr=0.0000001 Trainer.name=supervised Trainer.save_dir=${save_dir}/CT2MRI_601lr_supervised"
+  "python main.py Optim.lr=0.0001    Trainer.name=supervised DA.source=MRI DA.target=CT Trainer.save_dir=${save_dir}/MRI2CT_301lr_supervised"
+  "python main.py Optim.lr=0.00001   Trainer.name=supervised DA.source=MRI DA.target=CT Trainer.save_dir=${save_dir}/MRI2CT_401lr_supervised"
+  "python main.py Optim.lr=0.000001  Trainer.name=supervised DA.source=MRI DA.target=CT Trainer.save_dir=${save_dir}/MRI2CT_501lr_supervised"
+  "python main.py Optim.lr=0.0000001 Trainer.name=supervised DA.source=MRI DA.target=CT Trainer.save_dir=${save_dir}/MRI2CT_601lr_supervised"
 
 )
 
