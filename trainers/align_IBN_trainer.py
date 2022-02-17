@@ -112,7 +112,8 @@ class align_IBNtrainer(SourcebaselineTrainer):
         assert len(clusters_S) == len(clusters_T)
 
         def single_head_loss(clusters, clustert):
-            cluster_loss = 0.5 * self.IICLoss(clusters, clusters) + 0.5 * self.IICLoss(clustert, clustert)
+            # cluster_loss = 0.5 * self.IICLoss(clusters, clusters) + 0.5 * self.IICLoss(clustert, clustert)
+            cluster_loss = self.IICLoss(clustert, clustert)
 
             p_joint_S = compute_joint_distribution(
                 x_out=clusters,
