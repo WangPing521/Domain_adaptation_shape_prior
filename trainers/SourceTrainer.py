@@ -6,12 +6,14 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
 
+from loss.IIDSegmentations import compute_joint_distribution
 from loss.entropy import SimplexCrossEntropyLoss
 from meters import Storage
 from meters.SummaryWriter import SummaryWriter
 from scheduler.customized_scheduler import RampScheduler
 from utils import tqdm
 from utils.general import path2Path, class2one_hot
+from utils.image_save_utils import plot_joint_matrix
 from utils.utils import set_environment, write_yaml, meters_register
 
 
@@ -97,6 +99,15 @@ class SourcebaselineTrainer:
 
         align_loss = torch.tensor(0, dtype=torch.float, device=pred_S.device)
         cluster_loss = torch.tensor(0, dtype=torch.float, device=pred_S.device)
+
+        p_joint_S = compute_joint_distribution(
+            x_out=pred_S,
+            displacement_map=(self._config['DA']['displacement']['map_x'],
+                              self._config['DA']['displacement']['map_y']))
+        if cur_batch == 0:
+            source_joint_fig = plot_joint_matrix(p_joint_S)
+            self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,
+                                   close=True, )
         return s_loss, cluster_loss, align_loss
 
     def train_loop(
