@@ -28,7 +28,7 @@ Scheduler:
     max_value: 0
 
 Trainer:
-  name: baseline # baseline  supervised  align_IndividualBN
+  name: align_IndividualBN # baseline  supervised  align_IndividualBN
   device: cuda
   save_dir: runs
   checkpoint_path: runs
@@ -37,9 +37,7 @@ DA:
   double_bn: True
   source: CT
   target: MRI
-  displacement:
-    map_x: 0
-    map_y: 0
+  displacement: False
   align_layer:
     name: Up_conv2 # Up_conv5, Up_conv4, Up_conv3, Up_conv2, Deconv_1x1
     clusters: 10

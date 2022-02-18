@@ -16,7 +16,7 @@ from scheduler.customized_scheduler import RampScheduler
 from utils import tqdm
 from utils.general import path2Path, class2one_hot
 from utils.image_save_utils import plot_joint_matrix
-from utils.utils import set_environment, write_yaml, meters_register
+from utils.utils import set_environment, write_yaml, meters_register, fix_all_seed_within_context
 
 
 class SourcebaselineTrainer:
@@ -76,6 +76,13 @@ class SourcebaselineTrainer:
         self.writer = SummaryWriter(str(self._save_dir))
         c = self._config['Data_input']['num_class']
         self.meters = meters_register(c)
+        self.displacement = self._config['DA']['displacement']
+        if self.displacement:
+            with fix_all_seed_within_context(self._config['Data']['seed']):
+                self.displacement_map_list = [(torch.randint(0, 9, (1,)), torch.randint(0, 9, (1,))) for i in range(5)]
+        else:
+            self.displacement_map_list = [(0,0)]
+
         geometric_transform = rt.Compose(
             rt.BaseAffine(
                 scale=rr.UniformParameter(0.5, 1.5),
@@ -124,8 +131,7 @@ class SourcebaselineTrainer:
 
         p_joint_S = compute_joint_distribution(
             x_out=pred_S,
-            displacement_map=(self._config['DA']['displacement']['map_x'],
-                              self._config['DA']['displacement']['map_y']))
+            displacement_map=(0,0))
         if cur_batch == 0:
             source_joint_fig = plot_joint_matrix(p_joint_S)
             self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,

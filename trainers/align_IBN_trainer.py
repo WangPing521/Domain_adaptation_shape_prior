@@ -9,12 +9,13 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 
 from arch.projectors import DenseClusterHead
 from arch.utils import FeatureExtractor
-from loss.IIDSegmentations import compute_joint_distribution, IIDSegmentationLoss
+from loss.IIDSegmentations import compute_joint_distribution, IIDSegmentationLoss, single_head_loss
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot
 from utils.image_save_utils import plot_joint_matrix, FeatureMapSaver
 from utils.rising import RisingWrapper
+from utils.utils import fix_all_seed_within_context
 
 
 class align_IBNtrainer(SourcebaselineTrainer):
@@ -45,7 +46,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
         self.extractor = FeatureExtractor(self.model, feature_names=self._config['DA']['align_layer']['name'])
         self.extractor.bind()
         self.saver = FeatureMapSaver(save_dir=self._save_dir)
-        self.IICLoss = IIDSegmentationLoss()
 
     def run_step(self, s_data, t_data, cur_batch: int):
         extracted_layer = self.extractor.feature_names[0]
@@ -91,26 +91,8 @@ class align_IBNtrainer(SourcebaselineTrainer):
             clusters_T = self.projector(feature_T)
 
         assert len(clusters_S) == len(clusters_T)
-
-        def single_head_loss(clusters, clustert):
-            # cluster_loss = 0.5 * self.IICLoss(clusters, clusters) + 0.5 * self.IICLoss(clustert, clustert)
-            cluster_loss = self.IICLoss(clustert, clustert)
-
-            p_joint_S = compute_joint_distribution(
-                x_out=clusters,
-                displacement_map=(self._config['DA']['displacement']['map_x'],
-                                  self._config['DA']['displacement']['map_y']))
-            p_joint_T = compute_joint_distribution(
-                x_out=clustert,
-                displacement_map=(self._config['DA']['displacement']['map_x'],
-                                  self._config['DA']['displacement']['map_y']))
-            # cluster loss
-            # align
-            align_loss = torch.mean(torch.abs((p_joint_S - p_joint_T)))
-            return align_loss, cluster_loss, p_joint_S, p_joint_T
-
         align_losses, cluster_losses, p_joint_Ss, p_joint_Ts = \
-            zip(*[single_head_loss(clusters, clustert) for clusters, clustert in zip(clusters_S, clusters_T)])
+            zip(*[single_head_loss(clusters, clustert, self.displacement_map_list) for clusters, clustert in zip(clusters_S, clusters_T)])
         align_loss = sum(align_losses) / len(align_losses)
         cluster_loss = sum(cluster_losses) / len(cluster_losses)
         # for visualization

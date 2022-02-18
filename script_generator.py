@@ -21,8 +21,6 @@ clusters_zoom = 5
 align_layer="Up_conv2" #"['Up_conv4', 'Up_conv3', 'Up_conv2']
 weights = [0, 0.01, 1, 10, 100]
 cluster_weight = [0, 0.01, 0.1, 0.5]
-map_x = [-3, -1, 0, 1, 3] # -2, -3, -4, -5, -6 ....
-map_y = [-3, -1, 0, 1, 3]
 
 class alignScriptGenerator(BaselineGenerator):
 
@@ -31,13 +29,10 @@ class alignScriptGenerator(BaselineGenerator):
 
         self.hook_config = yaml_load(os.path.join(CONFIG_PATH, "config.yaml"))
 
-    def get_hook_params(self, map_x, map_y, align_layer, cluster, weight, cluster_weight):
+    def get_hook_params(self, align_layer, cluster, weight, cluster_weight):
         return {
             "DA":
                 {
-                 "displacement": {"map_x": map_x,
-                                  "map_y": map_y
-                                  },
                  "align_layer": {"name": align_layer,
                                  "clusters": cluster
                                  }
@@ -55,10 +50,9 @@ class alignScriptGenerator(BaselineGenerator):
                 }
         }
 
-    def generate_single_script(self, save_dir, seed, lr, align_layer, clusters, weight, cluster_weight, map_x, map_y):
+    def generate_single_script(self, save_dir, seed, lr, align_layer, clusters, weight, cluster_weight):
         return f"python main.py seed={str(seed)} Optim.lr={lr:.7f} Trainer.name=align_IndividualBN " \
                f"DA.align_layer.name={str(align_layer)} DA.align_layer.clusters={int(clusters)} " \
-               f"DA.displacement.map_x={map_x} DA.displacement.map_y={map_y} " \
                f"Scheduler.RegScheduler.max_value={float(weight)} Trainer.save_dir={save_dir} " \
                f"Scheduler.ClusterScheduler.max_value={float(cluster_weight)} " \
                f" {' '.join(self.conditions)} " \
@@ -80,8 +74,7 @@ class alignScriptGenerator(BaselineGenerator):
                                                           clusters=merged_config.get('DA').get('align_layer').get('clusters'),
                                                           weight=merged_config.get('Scheduler').get('RegScheduler').get('max_value'),
                                                           cluster_weight=merged_config.get('Scheduler').get('ClusterScheduler').get('max_value'),
-                                                          map_x=merged_config.get('DA').get('displacement').get('map_x'),
-                                                          map_y=merged_config.get('DA').get('displacement').get('map_y'))])
+                                                           )])
 
             jobs.append(job)
         return jobs
@@ -119,7 +112,7 @@ if __name__ == '__main__':
     script_generator = alignScriptGenerator(save_dir=save_dir)
 
     jobs = script_generator.grid_search_on(seed=seed, cluster=clusters_zoom,
-                                           weight=weights, cluster_weight=cluster_weight, align_layer=align_layer, map_x=map_x, map_y=map_y)
+                                           weight=weights, cluster_weight=cluster_weight, align_layer=align_layer)
 
     for j in jobs:
         submittor.submit(j, account=accounts, force_show=force_show, time=6)

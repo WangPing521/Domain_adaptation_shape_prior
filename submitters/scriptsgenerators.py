@@ -41,7 +41,7 @@ class BaselineGenerator(ScriptGenerator):
         self._model_checkpoint = model_checkpoint
         self.conditions.append(f"Trainer.checkpoint_path={self._model_checkpoint or 'null'}")
 
-    def generate_single_script(self, save_dir, seed, lr, align_layer, clusters, weight, cluster_weight, map_x, map_y):
+    def generate_single_script(self, save_dir, seed, lr, align_layer, clusters, weight, cluster_weight):
         return f"python main.py Trainer.name=baseline Trainer.save_dir={save_dir} " \
                f" Optim.lr={lr:.7f} seed={str(seed)} " \
                f" {' '.join(self.conditions)}  "

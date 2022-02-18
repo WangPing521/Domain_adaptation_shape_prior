@@ -8,6 +8,8 @@ from loguru import logger
 from torch import Tensor
 from torch.nn import functional as F
 
+from utils.general import average_list
+
 
 class RedundancyCriterion(nn.Module):
 
@@ -86,7 +88,7 @@ class IIDSegmentationLoss(nn.Module):
             raise RuntimeError()
         return self._p_i_j.detach().cpu().numpy()
 
-
+IICLoss = IIDSegmentationLoss()
 def compute_joint_2D(x_out: Tensor, x_out_disp: Tensor, *, symmetric: bool = True, padding: int = 0):
     x_out = x_out.swapaxes(0, 1).contiguous()
     x_out_disp = x_out_disp.swapaxes(0, 1).contiguous()
@@ -149,3 +151,23 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
         p_i_j = (p_i_j + p_i_j.permute(0, 1, 3, 2)) / 2.0
     p_i_j /= p_i_j.sum()  # norm
     return p_i_j.contiguous()
+
+
+def single_head_loss(clusters, clustert, displacement_maps):
+    cluster_loss = IICLoss(clustert, clustert)
+    align_loss_list = []
+    for dis_map in displacement_maps:
+        p_joint_S = compute_joint_distribution(
+            x_out=clusters,
+            displacement_map=(dis_map[0],
+                              dis_map[1]))
+        p_joint_T = compute_joint_distribution(
+            x_out=clustert,
+            displacement_map=(dis_map[0],
+                              dis_map[1]))
+        # cluster loss
+        # align
+        align_1disp_loss = torch.mean(torch.abs((p_joint_S - p_joint_T)))
+        align_loss_list.append(align_1disp_loss)
+    align_loss = average_list(align_loss_list)
+    return align_loss, cluster_loss, p_joint_S, p_joint_T
