@@ -47,7 +47,7 @@ class ContrastBatchSampler(Sampler[List[int]]):
                         )
                         batch_index.extend(sampled_slices)
                     except ValueError:
-                        continue
+                        return self.__next__()
             if self._shuffle:
                 random.shuffle(batch_index)
             return batch_index
@@ -69,7 +69,7 @@ class ContrastBatchSampler(Sampler[List[int]]):
             scan_name = _get_scan_name(filename)
             slice_num = int(re.compile(r"\d+").findall(os.path.basename(filename))[1])
             total_scan_num = total_scan_dict[scan_name]
-            return slice_num // (total_scan_num // 6)
+            return min(slice_num // (total_scan_num // 6), 6)
 
         for i, filename in enumerate(filenames):
             group = _get_scan_name(filename)  # noqa
