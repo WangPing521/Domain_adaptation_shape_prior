@@ -1,4 +1,7 @@
+import os.path
 import random
+import re
+from collections import Counter
 from collections import defaultdict
 from copy import deepcopy as dcopy
 from typing import List
@@ -52,13 +55,26 @@ class ContrastBatchSampler(Sampler[List[int]]):
     def __init__(self, dataset, scan_sample_num=4, partition_sample_num=1, shuffle=False) -> None:
         super(ContrastBatchSampler, self).__init__(data_source=dataset)
         self._dataset = dataset
-        filenames = dcopy(next(iter(dataset.get_memory_dictionary().values())))
+        filenames = dcopy(dataset.get_filenames())
         scan2index, partition2index = defaultdict(lambda: []), defaultdict(lambda: [])
 
+        def _get_scan_name(filename) -> str:
+            return re.compile(r"\d+").findall(os.path.basename(filename))[0]
+
+        # get total slice_num per scan
+        total_scan_dict = Counter([_get_scan_name(filename) for filename in filenames])
+        total_scan_dict = dict(sorted(total_scan_dict.items()))
+
+        def _get_partition(filename):
+            scan_name = _get_scan_name(filename)
+            slice_num = int(re.compile(r"\d+").findall(os.path.basename(filename))[1])
+            total_scan_num = total_scan_dict[scan_name]
+            return slice_num // (total_scan_num // 6)
+
         for i, filename in enumerate(filenames):
-            group = dataset._get_scan_name(filename)  # noqa
+            group = _get_scan_name(filename)  # noqa
             scan2index[group].append(i)  # noqa
-            partition = dataset._get_partition(filename)  # noqa
+            partition = _get_partition(filename)  # noqa
             partition2index[partition].append(i)  # noqa
 
         self._scan2index = scan2index

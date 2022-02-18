@@ -26,7 +26,6 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
                  weight_cluster: RampScheduler,
                  model: nn.Module,
                  optimizer, scheduler, *args, **kwargs) -> None:
-
         super().__init__(model, optimizer, scheduler, TrainS_loader, TrainT_loader, valS_loader, valT_loader,
                          weight_scheduler, weight_cluster, *args, **kwargs)
         self._trainS_loader = TrainS_loader
@@ -63,7 +62,7 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
         )
 
     def run_step(self, s_data, t_data, cur_batch: int):
-        extracted_layer = self.extractor.feature_names[0]
+        # extracted_layer = self.extractor.feature_names[0]
         C = int(self._config['Data_input']['num_class'])
         S_img, S_target, S_filename = (
             s_data[0][0].to(self.device),
@@ -81,14 +80,12 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
         T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
         T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
-
         with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
             self.extractor.clear()
             pred_S = self.model(S_img).softmax(1)
 
         onehot_targetS = class2one_hot(S_target.squeeze(1), C)
         s_loss = self.crossentropy(pred_S, onehot_targetS)
-
 
         with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
             self.extractor.clear()
@@ -99,7 +96,6 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
 
         clusters_S = pred_S
         clusters_T = pred_T
-
 
         assert len(clusters_S) == len(clusters_T)
 
