@@ -5,7 +5,9 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
-
+import rising.random as rr
+import rising.transforms as rt
+from utils.rising import RisingWrapper
 from loss.IIDSegmentations import compute_joint_distribution
 from loss.entropy import SimplexCrossEntropyLoss
 from meters import Storage
@@ -74,6 +76,23 @@ class SourcebaselineTrainer:
         self.writer = SummaryWriter(str(self._save_dir))
         c = self._config['Data_input']['num_class']
         self.meters = meters_register(c)
+        geometric_transform = rt.Compose(
+            rt.BaseAffine(
+                scale=rr.UniformParameter(0.5, 1.5),
+                rotation=rr.UniformParameter(-30, 30), degree=True,
+                translation=rr.UniformParameter(-0.2, 0.2), grad=True,
+                interpolation_mode="nearest"
+            ),
+            rt.Mirror(dims=[0, 1], p_sample=0.5, grad=True)
+        )
+        intensity_transform = rt.Compose(
+            rt.GammaCorrection(gamma=rr.UniformParameter(0.8, 1.2), grad=True),
+            rt.GaussianNoise(mean=0, std=0.01),
+        )
+
+        self._rising_augmentation = RisingWrapper(
+            geometry_transform=geometric_transform, intensity_transform=intensity_transform
+        )
 
     def to(self, device):
         self.model.to(device=device)
@@ -84,6 +103,9 @@ class SourcebaselineTrainer:
             s_data[0][1].to(self.device),
             s_data[1],
         )
+        S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
+        S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
+
         with self.switch_bn(self.model, 0):
             pred_S = self.model(S_img).softmax(1)
         onehot_targetS = class2one_hot(

@@ -47,24 +47,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
         self.saver = FeatureMapSaver(save_dir=self._save_dir)
         self.IICLoss = IIDSegmentationLoss()
 
-        geometric_transform = rt.Compose(
-            rt.BaseAffine(
-                scale=rr.UniformParameter(0.5, 1.5),
-                rotation=rr.UniformParameter(-30, 30), degree=True,
-                translation=rr.UniformParameter(-0.2, 0.2), grad=True,
-                interpolation_mode="nearest"
-            ),
-            rt.Mirror(dims=[0, 1], p_sample=0.5, grad=True)
-        )
-        intensity_transform = rt.Compose(
-            rt.GammaCorrection(gamma=rr.UniformParameter(0.8, 1.2), grad=True),
-            rt.GaussianNoise(mean=0, std=0.01),
-        )
-
-        self._rising_augmentation = RisingWrapper(
-            geometry_transform=geometric_transform, intensity_transform=intensity_transform
-        )
-
     def run_step(self, s_data, t_data, cur_batch: int):
         extracted_layer = self.extractor.feature_names[0]
         C = int(self._config['Data_input']['num_class'])
@@ -81,7 +63,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
         S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
         S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
         T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
-        # T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
+        T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
         # data augmentation
         with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
