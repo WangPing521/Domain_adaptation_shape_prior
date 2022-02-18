@@ -1,19 +1,19 @@
 import random
 import re
-from typing import Tuple, Type, Union, Dict, List, Optional, Callable, Pattern, Match, Sized
-
-from torch.utils.data import DataLoader, Sampler
 from copy import deepcopy as dcp
 from itertools import repeat
 from pathlib import Path
+from typing import Tuple, Type, Union, Dict, List, Callable, Pattern, Match
+
+from torch.utils.data import DataLoader, Sampler
 
 from augment.synchronize import SequentialWrapper
 from utils import DATA_PATH
 from utils.general import map_, id_
-from utils.sampler import InfiniteRandomSampler
+from utils.rearr import ContrastBatchSampler
 from utils.utils import fix_all_seed_within_context
 from ._ioutils import downloading
-from .base import DatasetBase, MedicalImageSegmentationDataset
+from .base import MedicalImageSegmentationDataset
 
 
 class MedicalDatasetInterface:
@@ -22,11 +22,11 @@ class MedicalDatasetInterface:
     """
 
     def __init__(
-        self,
-        DataClass: Type[MedicalImageSegmentationDataset],
-        root_dir: str,
-        seed: int = 0,
-        verbose: bool = True,
+            self,
+            DataClass: Type[MedicalImageSegmentationDataset],
+            root_dir: str,
+            seed: int = 0,
+            verbose: bool = True,
     ) -> None:
         super().__init__()
         self.DataClass = DataClass
@@ -35,13 +35,13 @@ class MedicalDatasetInterface:
         self.verbose = verbose
 
     def compile_dataloader_params(
-        self,
-        batch_size: int = 4,
-        val_batch_size: int = None,
-        shuffle: bool = False,
-        num_workers: int = 1,
-        pin_memory: bool = True,
-        drop_last=False,
+            self,
+            batch_size: int = 4,
+            val_batch_size: int = None,
+            shuffle: bool = False,
+            num_workers: int = 1,
+            pin_memory: bool = True,
+            drop_last=False,
     ):
         self._if_use_indiv_bz: bool = self._use_individual_batch_size(
             batch_size,
@@ -62,12 +62,12 @@ class MedicalDatasetInterface:
         }
 
     def DataLoaders(
-        self,
-        train_transform: SequentialWrapper = None,
-        val_transform: SequentialWrapper = None,
-        group_train=False,
-        group_val=True,
-        use_infinite_sampler: bool = False,
+            self,
+            train_transform: SequentialWrapper = None,
+            val_transform: SequentialWrapper = None,
+            group_train=False,
+            group_val=True,
+            use_infinite_sampler: bool = False,
     ) -> Tuple[DataLoader, DataLoader]:
 
         _dataloader_params = dcp(self.dataloader_params)
@@ -81,12 +81,13 @@ class MedicalDatasetInterface:
                 {"batch_size": self.batch_params.get("batch_size")}
             )
         if use_infinite_sampler:
+            contrastive_sampler = ContrastBatchSampler(train_set, scan_sample_num=3, partition_sample_num=1,
+                                                       shuffle=False)
+
             train_loader = (
                 DataLoader(
                     train_set,
-                    sampler=InfiniteRandomSampler(
-                        train_set, shuffle=_dataloader_params.get("shuffle", False)
-                    ),
+                    batch_sampler=contrastive_sampler,
                     **{k: v for k, v in _dataloader_params.items() if k != "shuffle"},
                 )
                 if not group_train
@@ -95,6 +96,7 @@ class MedicalDatasetInterface:
                 )
             )
         else:
+            raise RuntimeError()
             train_loader = (
                 DataLoader(train_set, **_dataloader_params)
                 if not group_train
@@ -119,14 +121,14 @@ class MedicalDatasetInterface:
 
     @staticmethod
     def _use_individual_batch_size(
-        batch_size, val_batch_size, verbose
+            batch_size, val_batch_size, verbose
     ) -> bool:
         if (
-            isinstance(batch_size, int)
-            and isinstance(val_batch_size, int)
+                isinstance(batch_size, int)
+                and isinstance(val_batch_size, int)
         ):
             assert (
-                batch_size >= 1 and val_batch_size >= 1
+                    batch_size >= 1 and val_batch_size >= 1
             ), "batch_size should be greater than 1."
             if verbose:
                 print(
@@ -144,9 +146,9 @@ class MedicalDatasetInterface:
             )
 
     def _create_datasets(
-        self,
-        train_transform: SequentialWrapper = None,
-        val_transform: SequentialWrapper = None,
+            self,
+            train_transform: SequentialWrapper = None,
+            val_transform: SequentialWrapper = None,
     ) -> Tuple[
         MedicalImageSegmentationDataset,
         MedicalImageSegmentationDataset,
@@ -154,10 +156,10 @@ class MedicalDatasetInterface:
         raise NotImplementedError
 
     def _grouped_dataloader(
-        self,
-        dataset: MedicalImageSegmentationDataset,
-        use_infinite_sampler: bool = False,
-        **dataloader_params: Dict[str, Union[int, float, bool]],
+            self,
+            dataset: MedicalImageSegmentationDataset,
+            use_infinite_sampler: bool = False,
+            **dataloader_params: Dict[str, Union[int, float, bool]],
     ) -> DataLoader:
         """
         return a dataloader that requires to be grouped based on the reg of patient's pattern.
@@ -181,7 +183,7 @@ class MedicalDatasetInterface:
 
     @staticmethod
     def override_transforms(
-        dataset: MedicalImageSegmentationDataset, transform: SequentialWrapper
+            dataset: MedicalImageSegmentationDataset, transform: SequentialWrapper
     ):
         assert isinstance(dataset, MedicalImageSegmentationDataset), dataset
         assert isinstance(transform, SequentialWrapper), transform
@@ -194,7 +196,8 @@ class mmWHSCTDataset(MedicalImageSegmentationDataset):
     zip_name = "MMWHS.zip"
     folder_name = "MMWHS"
 
-    def __init__(self, *, root_dir: str, mode: str, sub_folders:List[str], transforms: SequentialWrapper = None, patient_pattern: str) -> None:
+    def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None,
+                 patient_pattern: str) -> None:
         path = Path(root_dir, self.folder_name)
         downloading(path, self.folder_name, self.download_link, root_dir, self.zip_name)
         super().__init__(root_dir=str(path), mode="ct_" + mode, sub_folders=sub_folders,
@@ -203,10 +206,10 @@ class mmWHSCTDataset(MedicalImageSegmentationDataset):
 
 class mmWHSCTInterface(MedicalDatasetInterface):
     def __init__(
-        self,
-        root_dir=DATA_PATH,
-        seed: int = 0,
-        verbose: bool = True,
+            self,
+            root_dir=DATA_PATH,
+            seed: int = 0,
+            verbose: bool = True,
     ) -> None:
         super().__init__(
             mmWHSCTDataset,
@@ -216,9 +219,9 @@ class mmWHSCTInterface(MedicalDatasetInterface):
         )
 
     def _create_datasets(
-        self,
-        train_transform: SequentialWrapper = None,
-        val_transform: SequentialWrapper = None,
+            self,
+            train_transform: SequentialWrapper = None,
+            val_transform: SequentialWrapper = None,
     ) -> Tuple[
         MedicalImageSegmentationDataset,
         MedicalImageSegmentationDataset,
@@ -253,18 +256,20 @@ class mmWHSMRDataset(MedicalImageSegmentationDataset):
     zip_name = "MMWHS.zip"
     folder_name = "MMWHS"
 
-    def __init__(self, *, root_dir: str, mode: str, sub_folders:List[str], transforms: SequentialWrapper = None, patient_pattern: str) -> None:
+    def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None,
+                 patient_pattern: str) -> None:
         path = Path(root_dir, self.folder_name)
         downloading(path, self.folder_name, self.download_link, root_dir, self.zip_name)
         super().__init__(root_dir=str(path), mode="mr_" + mode, sub_folders=sub_folders,
                          transforms=transforms, patient_pattern=patient_pattern)
 
+
 class mmWHSMRInterface(MedicalDatasetInterface):
     def __init__(
-        self,
-        root_dir=DATA_PATH,
-        seed: int = 0,
-        verbose: bool = True,
+            self,
+            root_dir=DATA_PATH,
+            seed: int = 0,
+            verbose: bool = True,
     ) -> None:
         super().__init__(
             mmWHSMRDataset,
@@ -274,9 +279,9 @@ class mmWHSMRInterface(MedicalDatasetInterface):
         )
 
     def _create_datasets(
-        self,
-        train_transform: SequentialWrapper = None,
-        val_transform: SequentialWrapper = None,
+            self,
+            train_transform: SequentialWrapper = None,
+            val_transform: SequentialWrapper = None,
     ) -> Tuple[
         MedicalImageSegmentationDataset,
         MedicalImageSegmentationDataset,

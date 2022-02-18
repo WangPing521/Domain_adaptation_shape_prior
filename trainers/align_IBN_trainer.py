@@ -73,14 +73,13 @@ class align_IBNtrainer(SourcebaselineTrainer):
             s_data[0][1].to(self.device),
             s_data[1],
         )
-        S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
-        S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
-
         T_img, T_target, T_filename = (
             t_data[0][0].to(self.device),
             t_data[0][1].to(self.device),
             t_data[1],
         )
+        S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
+        S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
         T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
         # T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
