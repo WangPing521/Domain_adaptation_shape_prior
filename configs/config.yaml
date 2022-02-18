@@ -11,7 +11,7 @@ Data:
 DataLoader:
   batch_size: 1 # must be 1
   val_batch_size: 1
-  shuffle: True
+  shuffle: False # must be false
   num_workers: 8
   pin_memory: False
 
@@ -28,7 +28,7 @@ Scheduler:
     max_value: 0
 
 Trainer:
-  name: align_IndividualBN # baseline  supervised  align_IndividualBN
+  name: baseline # baseline  supervised  align_IndividualBN
   device: cuda
   save_dir: runs
   checkpoint_path: runs
