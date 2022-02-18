@@ -9,6 +9,7 @@ from scheduler.warmup_scheduler import GradualWarmupScheduler
 from trainers.Domain_supervised_Trainer import DomainsupervisedTrainer
 from trainers.SourceTrainer import SourcebaselineTrainer
 from trainers.align_IBN_trainer import align_IBNtrainer
+from trainers.entropy_DA_trainer import EntropyDA
 from utils.radam import RAdam
 from utils.utils import ConfigManger, fix_all_seed_within_context
 
@@ -75,6 +76,7 @@ weight_cluster = RampScheduler(**config['Scheduler']["ClusterScheduler"])
 Trainer_container = {
     "baseline": SourcebaselineTrainer,
     "supervised": DomainsupervisedTrainer,
+    "entda": EntropyDA,
     "align_IndividualBN": align_IBNtrainer,
 }
 trainer_name = Trainer_container.get(config['Trainer'].get('name'))

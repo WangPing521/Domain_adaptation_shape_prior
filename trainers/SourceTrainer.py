@@ -157,9 +157,7 @@ class SourcebaselineTrainer:
 
             s_loss, cluster_loss, align_loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
             loss = s_loss + self._weight_cluster.value * cluster_loss + self._weight_scheduler.value * align_loss
-            # if using dual Mean Teacher
-            # run_step
-            # gradient backforward
+            # for entropy DA: align_loss = entropu loss
 
             loss.backward()
             self.optimizer.step()
