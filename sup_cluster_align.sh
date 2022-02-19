@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=4
 account=rrg-ebrahimi
-save_dir=align_joint_prediction
+save_dir=cluster_align_joint
 
 declare -a StringArray=(
 # CT2MRI
