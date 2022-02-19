@@ -8,14 +8,16 @@ from functools import reduce
 from multiprocessing import Pool
 from operator import and_
 from pathlib import Path
-from typing import Iterable, Set, TypeVar, Callable, List, Any
+from typing import TypeVar, Any, Set, Callable, List, Iterable
 
+from numpy import ndarray
 import numpy as np
 import six
 import torch
 import torch.nn.functional as F
 from torch import Tensor
 from torch import nn
+from typing_extensions import Protocol
 
 T_path = TypeVar("T_path", str, Path)
 A = TypeVar("A")
@@ -261,6 +263,17 @@ def is_tuple_or_list(val):
     """
     return isinstance(val, (list, tuple))
 
+def is_map(value):
+    return isinstance(value, collections.abc.Mapping)
+
+
+def is_path(value):
+    return isinstance(value, (str, Path))
+
+
+def is_numeric(value):
+    return isinstance(value, (int, float, Tensor, ndarray))
+
 
 class Identical(nn.Module):
     def __init__(self):
@@ -484,3 +497,45 @@ def allow_extension(path: str, extensions: List[str]) -> bool:
         return Path(path).suffixes[0] in extensions
     except:
         return False
+
+def to_device(obj, device, non_blocking=True):
+    """
+    Copy an object to a specific device asynchronizedly. If the param `main_stream` is provided,
+    the copy stream will be synchronized with the main one.
+
+    Args:
+        obj (Iterable[Tensor] or Tensor): a structure (e.g., a list or a dict) containing pytorch tensors.
+        dev (int): the target device.
+        main_stream (stream): the main stream to be synchronized.
+
+    Returns:
+        a deep copy of the data structure, with each tensor copied to the device.
+
+    """
+    # Adapted from: https://github.com/pytorch/pytorch/blob/master/torch/nn/parallel/_functions.py
+    if torch.is_tensor(obj):
+        v = obj.to(device, non_blocking=non_blocking)
+        return v
+    elif isinstance(obj, collections.abc.Mapping):
+        return {k: to_device(o, device, non_blocking) for k, o in obj.items()}
+    elif isinstance(obj, (tuple, list, collections.UserList)):
+        return [to_device(o, device, non_blocking) for o in obj]
+    else:
+        raise TypeError(f"{obj.__class__.__name__} cannot be converted to {device}")
+
+
+class SizedIterable(Protocol):
+    def __len__(self):
+        pass
+
+    def __next__(self):
+        pass
+
+    def __iter__(self):
+        pass
+
+
+class CriterionType(Protocol):
+
+    def __call__(self, *args: Tensor, **kwargs) -> Tensor:
+        pass

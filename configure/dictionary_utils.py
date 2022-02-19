@@ -6,7 +6,8 @@ from typing import Dict, Any
 import numpy as np
 import torch
 
-from utils.types import mapType, is_map, is_iterable
+from submitters.functiontools import mapType
+from utils.general import is_map, is_iterable
 
 
 def edict2dict(item):

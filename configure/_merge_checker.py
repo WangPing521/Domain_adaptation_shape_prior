@@ -1,6 +1,6 @@
 import difflib
 
-from utils.types import mapType
+from submitters.functiontools import mapType
 
 
 def __name_getter(dictionary: mapType, previous_name, previous_names):

@@ -5,12 +5,13 @@
       <change beforePath="$PROJECT_DIR$/.idea/Domain_adaptation_shape_prior.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Domain_adaptation_shape_prior.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/loss/IIDSegmentations.py" beforeDir="false" afterPath="$PROJECT_DIR$/loss/IIDSegmentations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/trainers/SourceTrainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/trainers/SourceTrainer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/trainers/align_IBN_trainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/trainers/align_IBN_trainer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/trainers/entropy_DA_trainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/trainers/entropy_DA_trainer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configure/_merge_checker.py" beforeDir="false" afterPath="$PROJECT_DIR$/configure/_merge_checker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configure/dictionary_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/configure/dictionary_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configure/manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/configure/manager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/general.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/general.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/types.py" beforeDir="false" />
     </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -54,6 +55,18 @@
       <recent name="$PROJECT_DIR$/.data" />
       <recent name="$PROJECT_DIR$" />
     </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
   </component>
   <component name="RunManager" selected="Python.main">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true">
@@ -111,7 +124,7 @@
       </list>
     </recent_temporary>
   </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="SpellCheckerSettings" BundledDictionaries="0" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" Dictionaries="0" CorrectionsLimit="5" DefaultDictionary="application-level" UseSingleDictionary="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -131,7 +144,9 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
           </value>
         </entry>
       </map>
@@ -146,14 +161,9 @@
           <option name="timeStamp" value="16" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/trainers/SourceTrainer.py</url>
-          <line>159</line>
-          <option name="timeStamp" value="26" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/trainers/entropy_DA_trainer.py</url>
-          <line>67</line>
-          <option name="timeStamp" value="27" />
+          <url>file://$PROJECT_DIR$/main.py</url>
+          <line>85</line>
+          <option name="timeStamp" value="32" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

@@ -7,8 +7,7 @@ from typing import List, Dict
 
 from easydict import EasyDict as edict
 
-from utils.general import path2Path
-from utils.types import typePath
+from utils.general import path2Path, T_path
 from ._merge_checker import merge_checker as _merge_checker
 from .dictionary_utils import dictionary_merge_by_hierachy
 from .yaml_parser import yamlArgParser, yaml_load
@@ -18,7 +17,7 @@ __config_dictionary__: OrderedDict = OrderedDict()
 __all__ = ["ConfigManager", "get_config"]
 
 
-def _load_yaml(config_path: typePath, verbose=False):
+def _load_yaml(config_path: T_path, verbose=False):
     config_path_ = path2Path(config_path)
     assert config_path_.is_file(), config_path
     return yaml_load(config_path_, verbose=verbose)
