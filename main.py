@@ -2,6 +2,7 @@ import torch
 
 from arch.DomainSpecificBNUnet import convert2TwinBN, switch_bn as _switch_bn
 from arch.unet import UNet
+from configure import ConfigManager
 from dataset.mmwhs import mmWHSMRInterface, mmWHSCTInterface
 from demo.criterions import nullcontext
 from scheduler.customized_scheduler import RampScheduler
@@ -11,11 +12,12 @@ from trainers.SourceTrainer import SourcebaselineTrainer
 from trainers.align_IBN_trainer import align_IBNtrainer
 from trainers.entropy_DA_trainer import EntropyDA
 from utils.radam import RAdam
-from utils.utils import ConfigManger, fix_all_seed_within_context
+from utils.utils import fix_all_seed_within_context
 
 torch.backends.cudnn.benchmark = True
 
-config = ConfigManger("configs/config.yaml").config
+cmanager = ConfigManager("configs/config.yaml", strict=True)
+config = cmanager.config
 switch_bn = _switch_bn if config['DA']['double_bn'] else nullcontext
 
 with fix_all_seed_within_context(config['seed']):
@@ -47,26 +49,26 @@ with fix_all_seed_within_context(config['Data']['seed']):
         trainS_loader, valS_loader = CT_handler.DataLoaders(
             train_transform=None,
             val_transform=None,
-            group_val=True,
+            group_val=False,
             use_infinite_sampler=True,
         )
         trainT_loader, valT_loader = MR_handler.DataLoaders(
             train_transform=None,
             val_transform=None,
-            group_val=True,
+            group_val=False,
             use_infinite_sampler=True,
         )
     elif config['DA']['source'] == 'MRI' and config['DA']['target'] == 'CT':
         trainT_loader, valT_loader = CT_handler.DataLoaders(
             train_transform=None,
             val_transform=None,
-            group_val=True,
+            group_val=False,
             use_infinite_sampler=True,
         )
         trainS_loader, valS_loader = MR_handler.DataLoaders(
             train_transform=None,
             val_transform=None,
-            group_val=True,
+            group_val=False,
             use_infinite_sampler=True,
         )
 

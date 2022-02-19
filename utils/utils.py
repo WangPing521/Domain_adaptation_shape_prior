@@ -1,4 +1,5 @@
 # dictionary helper functions
+import argparse
 import collections
 import collections.abc as container_abcs
 import functools
@@ -6,12 +7,14 @@ import os
 import random
 import warnings
 from contextlib import contextmanager
+from copy import deepcopy as dcopy
 from enum import Enum
+from functools import reduce
 from itertools import repeat
 from pathlib import Path, PosixPath
-from typing import List, TypeVar, Dict, Any, Union
-from copy import deepcopy as dcopy
-import argparse
+from pprint import pprint
+from typing import List, Dict, Any, Union
+
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,16 +24,15 @@ from loguru import logger
 from torch import nn
 from torch.optim import Optimizer
 from torch.utils.data.dataloader import DataLoader, _BaseDataLoaderIter  # noqa
-from pprint import pprint
-from functools import reduce
 
-from meters import MeterInterface, AverageValueListMeter, UniversalDice, AverageValueMeter
+from meters import MeterInterface, UniversalDice, AverageValueMeter
 from utils.general import path2str, path2Path
 
 logger_format = "<green>{time:MM/DD HH:mm:ss.SS}</green> | <level>{level: ^7}</level> |" \
                 "{process.name:<5}.{thread.name:<5}: " \
                 "<cyan>{name:<8}</cyan>:<cyan>{function:<10}</cyan>:<cyan>{line:<4}</cyan>" \
                 " - <level>{message}</level>"
+
 
 def flatten_dict(d, parent_key="", sep="_"):
     items = []
@@ -41,6 +43,7 @@ def flatten_dict(d, parent_key="", sep="_"):
         else:
             items.append((new_key, v))
     return dict(items)
+
 
 def nice_dict(input_dict: Dict[str, Union[int, float]]) -> str:
     """
@@ -68,6 +71,7 @@ def get_dataset(dataloader):
         return dataloader.dataset
     else:
         raise NotImplementedError(type(dataloader))
+
 
 def multiply_iter(iter_a, iter_b):
     return [x * y for x, y in zip(iter_a, iter_b)]
@@ -113,6 +117,7 @@ def extract_model_state_dict(trainer_checkpoint_path: str, *, keyword="_model"):
     trainer_state = torch.load(trainer_checkpoint_path, map_location="cpu")
     return trainer_state[keyword]
 
+
 def deprecated(func):
     """This is a decorator which can be used to mark functions
     as deprecated. It will result in a warning being emitted
@@ -128,6 +133,7 @@ def deprecated(func):
         return func(*args, **kwargs)
 
     return new_func
+
 
 # reproducibility
 def set_deterministic(enable=True):
@@ -293,10 +299,12 @@ def ignore_exception(*exceptions, log=True):
         else:
             pass
 
+
 class YAMLargParser(object):
     """
         parse command line args for yaml type.
     """
+
     def __new__(
             cls,
             verbose: bool = True,
@@ -304,7 +312,7 @@ class YAMLargParser(object):
             k_v_sep2: str = "=",
             hierarchy: str = ".",
             type_sep: str = "!",
-    )->Dict[str, Any]:
+    ) -> Dict[str, Any]:
         cls.k_v_sep1 = k_v_sep1
         cls.k_v_sep2 = k_v_sep2
         cls.type_sep = type_sep
@@ -312,8 +320,8 @@ class YAMLargParser(object):
         cls.verbose = verbose
         args: List[str] = cls._setup()  # return a list of string using space, default by argparser.
         yaml_args: List[Dict[str, Any]] = [cls.parse_string(
-                f, sep_1=cls.k_v_sep1, sep_2=cls.k_v_sep2, type_sep=cls.type_sep
-            ) for f in args]
+            f, sep_1=cls.k_v_sep1, sep_2=cls.k_v_sep2, type_sep=cls.type_sep
+        ) for f in args]
         hierarchical_dict_list = [cls.parse_hierachy(d) for d in yaml_args]
         merged_dict = cls.merge_dict(hierarchical_dict_list)
         if cls.verbose:
@@ -405,9 +413,9 @@ def dict_merge(dct: Dict[str, Any], merge_dct: Dict[str, Any], re=True):
             return
     for k, v in merge_dct.items():
         if (
-            k in dct
-            and isinstance(dct[k], dict)
-            and isinstance(merge_dct[k], collections.Mapping)
+                k in dct
+                and isinstance(dct[k], dict)
+                and isinstance(merge_dct[k], collections.Mapping)
         ):
             dict_merge(dct[k], merge_dct[k])
         else:
@@ -432,12 +440,11 @@ def yaml_load(yaml_path: Union[Path, str], verbose=False) -> Dict[str, Any]:
     return data_loaded
 
 
-
 class ConfigManger:
     DEFAULT_CONFIG = ""
 
     def __init__(
-        self, DEFAULT_CONFIG_PATH: str = None, verbose=True, integrality_check=True
+            self, DEFAULT_CONFIG_PATH: str = None, verbose=True, integrality_check=True
     ) -> None:
         self.parsed_args: Dict[str, Any] = YAMLargParser(verbose=verbose)
         if DEFAULT_CONFIG_PATH is None:
@@ -506,6 +513,7 @@ class ConfigManger:
 
         return defaultdict(lambda: None, config)
 
+
 def _warnings(*args, **kwargs):
     if len(args) > 0:
         warnings.warn(f"Received unassigned args with args: {args}.", UserWarning)
@@ -513,17 +521,19 @@ def _warnings(*args, **kwargs):
         kwarg_str = ", ".join([f"{k}:{v}" for k, v in kwargs.items()])
         warnings.warn(f"Received unassigned kwargs: \n{kwarg_str}", UserWarning)
 
+
 def write_yaml(
-    dictionary: Dict, save_dir: Union[Path, str], save_name: str, force_overwrite=True
+        dictionary: Dict, save_dir: Union[Path, str], save_name: str, force_overwrite=True
 ) -> None:
     save_path = path2Path(save_dir) / save_name
     if save_path.exists():
         if force_overwrite is False:
             save_name = (
-                save_name.split(".")[0] + "_copy" + "." + save_name.split(".")[1]
+                    save_name.split(".")[0] + "_copy" + "." + save_name.split(".")[1]
             )
     with open(str(save_dir / save_name), "w") as outfile:  # type: ignore
         yaml.dump(dictionary, outfile, default_flow_style=False)
+
 
 def set_environment(environment_dict: Dict[str, str] = None, verbose=True) -> None:
     if environment_dict:
@@ -559,37 +569,38 @@ def meters_register(c):
     meters = MeterInterface()
     report_axis = list(range(1, c))
 
-    meters.register_meter("lr", AverageValueMeter())
-    # train dice
-    meters.register_meter(
-        f"train_dice", UniversalDice(C=c, report_axis=report_axis))
-    meters.register_meter(
-        f"trainT_dice", UniversalDice(C=c, report_axis=report_axis))
+    with meters.focus_on("train"):
+        meters.register_meter("lr", AverageValueMeter())
+        # train dice
+        meters.register_meter(
+            f"train_dice", UniversalDice(C=c, report_axis=report_axis))
+        meters.register_meter(
+            f"trainT_dice", UniversalDice(C=c, report_axis=report_axis))
 
-    # loss
-    meters.register_meter(
-        "total_loss", AverageValueMeter()
-    )
-    meters.register_meter(
-        "s_loss", AverageValueMeter()
-    )
-    meters.register_meter(
-        "align_loss", AverageValueMeter()
-    )
-    meters.register_meter(
-        "cluster_loss", AverageValueMeter()
-    )
+        # loss
+        meters.register_meter(
+            "total_loss", AverageValueMeter()
+        )
+        meters.register_meter(
+            "s_loss", AverageValueMeter()
+        )
+        meters.register_meter(
+            "align_loss", AverageValueMeter()
+        )
+        meters.register_meter(
+            "cluster_loss", AverageValueMeter()
+        )
 
-    # weight
-    meters.register_meter(
-        "weight", AverageValueMeter()
-    )
+        # weight
+        meters.register_meter(
+            "weight", AverageValueMeter()
+        )
 
-    meters.register_meter(
-        f"valS_dice", UniversalDice(C=c, report_axis=report_axis)
-    )
-    meters.register_meter(
-        f"valT_dice", UniversalDice(C=c, report_axis=report_axis)
-    )
+    with meters.focus_on("val"):
+        meters.register_meter(
+            f"valS_dice", UniversalDice(C=c, report_axis=report_axis)
+        )
+        meters.register_meter(
+            f"valT_dice", UniversalDice(C=c, report_axis=report_axis)
+        )
     return meters
-

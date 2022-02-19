@@ -1,22 +1,14 @@
 from typing import Union
 
-import rising.random as rr
-import rising.transforms as rt
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
 
-from arch.projectors import DenseClusterHead
-from arch.utils import FeatureExtractor
-from loss.IIDSegmentations import compute_joint_distribution, IIDSegmentationLoss, single_head_loss
 from loss.entropy import Entropy
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot
-from utils.image_save_utils import plot_joint_matrix, FeatureMapSaver
-from utils.rising import RisingWrapper
-from utils.utils import fix_all_seed_within_context
 
 
 class EntropyDA(SourcebaselineTrainer):
@@ -28,7 +20,6 @@ class EntropyDA(SourcebaselineTrainer):
                  weight_cluster: RampScheduler,
                  model: nn.Module,
                  optimizer, scheduler, *args, **kwargs) -> None:
-
         super().__init__(model, optimizer, scheduler, TrainS_loader, TrainT_loader, valS_loader, valT_loader,
                          weight_scheduler, weight_cluster, *args, **kwargs)
         self._trainS_loader = TrainS_loader
@@ -67,7 +58,6 @@ class EntropyDA(SourcebaselineTrainer):
             pred_T = self.model(T_img).softmax(1)
 
         align_loss = self.ent_loss(pred_T)
-
         self.meters[f"train_dice"].add(
             pred_S.max(1)[1],
             S_target.squeeze(1),
@@ -75,4 +65,4 @@ class EntropyDA(SourcebaselineTrainer):
         )
         cluster_loss = torch.tensor(0, dtype=torch.float, device=pred_S.device)
 
-        return s_loss, align_loss, cluster_loss
+        return s_loss, cluster_loss, align_loss

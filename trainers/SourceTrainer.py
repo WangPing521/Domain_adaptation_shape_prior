@@ -1,13 +1,13 @@
 from pathlib import Path
 from typing import Union, Dict, Any, Tuple
 
+import rising.random as rr
+import rising.transforms as rt
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
-import rising.random as rr
-import rising.transforms as rt
-from utils.rising import RisingWrapper
+
 from loss.IIDSegmentations import compute_joint_distribution
 from loss.entropy import SimplexCrossEntropyLoss
 from meters import Storage
@@ -16,6 +16,7 @@ from scheduler.customized_scheduler import RampScheduler
 from utils import tqdm
 from utils.general import path2Path, class2one_hot
 from utils.image_save_utils import plot_joint_matrix
+from utils.rising import RisingWrapper
 from utils.utils import set_environment, write_yaml, meters_register, fix_all_seed_within_context
 
 
@@ -80,9 +81,9 @@ class SourcebaselineTrainer:
         if self.displacement:
             with fix_all_seed_within_context(self._config['Data']['seed']):
                 # self.displacement_map_list = [(torch.randint(0, 9, (1,)), torch.randint(0, 9, (1,))) for i in range(5)]
-                self.displacement_map_list = [(2,2), (4,4), (8,8),(16,16),(32,32)]
+                self.displacement_map_list = [(2, 2), (4, 4), (8, 8)]
         else:
-            self.displacement_map_list = [(0,0)]
+            self.displacement_map_list = [(0, 0)]
 
         geometric_transform = rt.Compose(
             rt.BaseAffine(
@@ -132,7 +133,7 @@ class SourcebaselineTrainer:
 
         p_joint_S = compute_joint_distribution(
             x_out=pred_S,
-            displacement_map=(0,0))
+            displacement_map=(0, 0))
         if cur_batch == 0:
             source_joint_fig = plot_joint_matrix(p_joint_S)
             self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,
@@ -236,16 +237,16 @@ class SourcebaselineTrainer:
 
         for self.cur_epoch in range(self._start_epoch, self._max_epoch):
             self.meters.reset()
-            self.meters['lr'].add(self.optimizer.param_groups.__getitem__(0).get('lr'))
-            self.meters["weight"].add(self._weight_scheduler.value)
+            with self.meters.focus_on("train"):
+                self.meters['lr'].add(self.optimizer.param_groups.__getitem__(0).get('lr'))
+                self.meters["weight"].add(self._weight_scheduler.value)
+                train_metrics = self.train_loop(
+                    trainS_loader=self._trainS_loader,
+                    trainT_loader=self._trainT_loader,
+                    epoch=self.cur_epoch
+                )
 
-            train_metrics = self.train_loop(
-                trainS_loader=self._trainS_loader,
-                trainT_loader=self._trainT_loader,
-                epoch=self.cur_epoch
-            )
-
-            with torch.no_grad():
+            with self.meters.focus_on("val"), torch.no_grad():
                 val_metric, _ = self.eval_loop(self._valS_loader, self._valT_loader, self.cur_epoch)
 
             with self._storage:

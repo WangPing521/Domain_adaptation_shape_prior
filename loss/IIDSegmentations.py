@@ -1,4 +1,5 @@
 import math
+import typing as t
 from functools import lru_cache
 
 import numpy as np
@@ -8,7 +9,7 @@ from loguru import logger
 from torch import Tensor
 from torch.nn import functional as F
 
-from utils.general import average_list
+from utils.general import average_list, simplex
 
 
 class RedundancyCriterion(nn.Module):
@@ -88,7 +89,10 @@ class IIDSegmentationLoss(nn.Module):
             raise RuntimeError()
         return self._p_i_j.detach().cpu().numpy()
 
+
 IICLoss = IIDSegmentationLoss()
+
+
 def compute_joint_2D(x_out: Tensor, x_out_disp: Tensor, *, symmetric: bool = True, padding: int = 0):
     x_out = x_out.swapaxes(0, 1).contiguous()
     x_out_disp = x_out_disp.swapaxes(0, 1).contiguous()
@@ -132,7 +136,7 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
     _, _, h, w = x_out.shape
     padding_max = max(np.abs(displacement_map))
     padding_amount = (
-    padding_max, padding_max, padding_max, padding_max)  # pad last dim by (1, 1) and 2nd to last by (2, 2)
+        padding_max, padding_max, padding_max, padding_max)  # pad last dim by (1, 1) and 2nd to last by (2, 2)
     out = F.pad(x_out, padding_amount, "constant", 0)
     after_displacement = out[:, :, padding_max - displacement_map[0]:padding_max - displacement_map[0] + h,
                          padding_max - displacement_map[1]:padding_max - displacement_map[1] + w]
@@ -153,8 +157,10 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
     return p_i_j.contiguous()
 
 
-def single_head_loss(clusters, clustert, displacement_maps):
+def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]]):
     cluster_loss = IICLoss(clustert, clustert)
+    assert simplex(clustert) and simplex(clusters)
+
     align_loss_list = []
     for dis_map in displacement_maps:
         p_joint_S = compute_joint_distribution(
@@ -170,4 +176,6 @@ def single_head_loss(clusters, clustert, displacement_maps):
         align_1disp_loss = torch.mean(torch.abs((p_joint_S - p_joint_T)))
         align_loss_list.append(align_1disp_loss)
     align_loss = average_list(align_loss_list)
+    # todo: visualization.
+
     return align_loss, cluster_loss, p_joint_S, p_joint_T
