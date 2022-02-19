@@ -6,17 +6,11 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 
-time=3
+time=2
 account=rrg-ebrahimi
 save_dir=baseline_entropyDA
 
 declare -a StringArray=(
-  "python main.py seed=123 Optim.lr=0.0001 Trainer.name=entda  DA.source=CT DA.target=MRI  Scheduler.RegScheduler.max_value=0.1 Trainer.save_dir=${save_dir}/CT2MRI_301lr_01reg"
-  "python main.py seed=123 Optim.lr=0.0001 Trainer.name=entda  DA.source=CT DA.target=MRI  Scheduler.RegScheduler.max_value=0.01 Trainer.save_dir=${save_dir}/CT2MRI_301lr_101reg"
-  "python main.py seed=123 Optim.lr=0.0001 Trainer.name=entda  DA.source=CT DA.target=MRI  Scheduler.RegScheduler.max_value=0.001 Trainer.save_dir=${save_dir}/CT2MRI_301lr_201reg"
-  "python main.py seed=123 Optim.lr=0.0001 Trainer.name=entda  DA.source=CT DA.target=MRI  Scheduler.RegScheduler.max_value=0.0001 Trainer.save_dir=${save_dir}/CT2MRI_301lr_301reg"
-
-
   "python main.py seed=123 Optim.lr=0.00001 Trainer.name=entda DA.source=CT DA.target=MRI  Scheduler.RegScheduler.max_value=0.1 Trainer.save_dir=${save_dir}/CT2MRI_401lr_01reg"
   "python main.py seed=123 Optim.lr=0.00001 Trainer.name=entda DA.source=CT DA.target=MRI  Scheduler.RegScheduler.max_value=0.01 Trainer.save_dir=${save_dir}/CT2MRI_401lr_101reg"
   "python main.py seed=123 Optim.lr=0.00001 Trainer.name=entda DA.source=CT DA.target=MRI  Scheduler.RegScheduler.max_value=0.001 Trainer.save_dir=${save_dir}/CT2MRI_401lr_201reg"
