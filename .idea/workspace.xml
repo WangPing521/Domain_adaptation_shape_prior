@@ -154,6 +154,11 @@
           <line>123</line>
           <option name="timeStamp" value="16" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/trainers/semi_alignsource_trainer.py</url>
+          <line>129</line>
+          <option name="timeStamp" value="60" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
