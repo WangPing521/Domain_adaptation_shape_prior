@@ -34,7 +34,6 @@ class DomainsupervisedTrainer(SourcebaselineTrainer):
         self._valT_loader = valT_loader
         self._weight_scheduler = weight_scheduler
         self._weight_cluster = weight_cluster
-        breakpoint()
         self.projector = DenseClusterHead(
             input_dim=self.model.get_channel_dim(self._config['DA']['align_layer']['name']),
             num_clusters=self._config['DA']['align_layer']['clusters'])
