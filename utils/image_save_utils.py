@@ -35,6 +35,26 @@ def plot_joint_matrix(joint: Tensor):
             fig.colorbar(im_, ax=ax, orientation='vertical')
     return fig
 
+def plot_seg(img, label):
+    img_volume = img.squeeze(0)
+    fig = plt.figure()
+    img_volume = tensor2plotable(img_volume)
+    plt.imshow(img_volume, cmap="gray")
+    gt_volume = tensor2plotable(label)
+    # con = plt.contour(gt_volume)
+    plt.imshow(gt_volume, alpha=0.2, cmap="rainbow")
+    plt.show(block=False)
+    return fig
+
+def tensor2plotable(tensor) -> np.ndarray:
+    if isinstance(tensor, np.ndarray):
+        return tensor
+    elif isinstance(tensor, torch.Tensor):
+        return tensor.detach().cpu().numpy()
+    else:
+        raise TypeError(f"tensor should be an instance of Tensor, given {type(tensor)}")
+
+
 def create_ade20k_label_colormap():
     """Creates a label colormap used in ADE20K segmentation benchmark.
 

@@ -15,7 +15,7 @@ from meters.SummaryWriter import SummaryWriter
 from scheduler.customized_scheduler import RampScheduler
 from utils import tqdm
 from utils.general import path2Path, class2one_hot
-from utils.image_save_utils import plot_joint_matrix
+from utils.image_save_utils import plot_joint_matrix, plot_seg
 from utils.rising import RisingWrapper
 from utils.utils import set_environment, write_yaml, meters_register, fix_all_seed_within_context
 
@@ -131,13 +131,6 @@ class SourcebaselineTrainer:
         align_loss = torch.tensor(0, dtype=torch.float, device=pred_S.device)
         cluster_loss = torch.tensor(0, dtype=torch.float, device=pred_S.device)
 
-        p_joint_S = compute_joint_distribution(
-            x_out=pred_S,
-            displacement_map=(0, 0))
-        if cur_batch == 0:
-            source_joint_fig = plot_joint_matrix(p_joint_S)
-            self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,
-                                   close=True, )
         return s_loss, cluster_loss, align_loss
 
     def train_loop(
@@ -158,7 +151,6 @@ class SourcebaselineTrainer:
 
             s_loss, cluster_loss, align_loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
             loss = s_loss + self._weight_cluster.value * cluster_loss + self._weight_scheduler.value * align_loss
-            # for entropy DA: align_loss = entropu loss
 
             loss.backward()
             self.optimizer.step()
@@ -204,6 +196,10 @@ class SourcebaselineTrainer:
 
             report_dict = self.meters.statistics()
             valS_indicator.set_postfix_statics(report_dict, cache_time=20)
+            if batch_idS == 28:
+                source_seg = plot_seg(imageS.squeeze(0), preds_S.max(1)[1].squeeze(0))
+                self.writer.add_figure(tag=f"val_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
+
         valS_indicator.close()
 
         for batch_idT, data_T in enumerate(valT_indicator):
@@ -212,8 +208,11 @@ class SourcebaselineTrainer:
                 data_T[0][1].to(self.device),
                 data_T[1]
             )
-            with self.switch_bn(self.model, 1):
+            if self._config['Trainer']['name'] in ['baseline','upperbaseline']:
                 preds_T = self.model(imageT).softmax(1)
+            else:
+                with self.switch_bn(self.model, 1):
+                    preds_T = self.model(imageT).softmax(1)
             self.meters[f"valT_dice"].add(
                 preds_T.max(1)[1],
                 targetT.squeeze(1),
@@ -221,6 +220,9 @@ class SourcebaselineTrainer:
 
             report_dict = self.meters.statistics()
             valT_indicator.set_postfix_statics(report_dict, cache_time=20)
+            if batch_idT == 28:
+                target_seg = plot_seg(imageT.squeeze(0), preds_T.max(1)[1].squeeze(0))
+                self.writer.add_figure(tag=f"val_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
 
         valT_indicator.close()
         assert report_dict is not None

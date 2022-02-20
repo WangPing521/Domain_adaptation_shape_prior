@@ -6,7 +6,7 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 
-time=3
+time=2
 account=def-chdesa
 save_dir=align_joint_prediction
 

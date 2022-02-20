@@ -28,13 +28,13 @@ Scheduler:
     max_value: 0
 
 Trainer:
-  name: baseline # baseline  supervised  align_IndividualBN
+  name: align_IndividualBN # baseline  supervised  align_IndividualBN upperbaseline
   device: cuda
   save_dir: runs
   checkpoint_path: runs
 
 DA:
-  double_bn: True
+  double_bn: False
   source: CT
   target: MRI
   displacement: False

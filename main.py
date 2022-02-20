@@ -11,6 +11,7 @@ from trainers.Domain_supervised_Trainer import DomainsupervisedTrainer
 from trainers.SourceTrainer import SourcebaselineTrainer
 from trainers.align_IBN_trainer import align_IBNtrainer
 from trainers.entropy_DA_trainer import EntropyDA
+from trainers.upper_supervised_Trainer import UpperbaselineTrainer
 from utils.radam import RAdam
 from utils.utils import fix_all_seed_within_context
 
@@ -25,15 +26,9 @@ with fix_all_seed_within_context(config['seed']):
 with fix_all_seed_within_context(config['seed']):
     if config['DA']['double_bn']:
         model = convert2TwinBN(model)
-    # optimizer = torch.optim.Adam(chain(model.parameters(), projector.parameters()), lr=5e-4, weight_decay=1e-5)
     optimizer = RAdam(model.parameters(), lr=config["Optim"]["lr"])
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(90, 1), eta_min=1e-7)
     scheduler = GradualWarmupScheduler(optimizer, multiplier=300, total_epoch=10, after_scheduler=scheduler)
-
-# with fix_all_seed_within_context(config['seed']):
-#     projector = Projector(input_dim=96, output_dim=20, intermediate_dim=128).to(device)
-#     optimizer = torch.optim.Adam(chain(model.parameters(), projector.parameters()), lr=5e-4, weight_decay=1e-5)
-#     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max_epoch)
 
 if config['Data_input']['dataset'] == 'mmwhs':
     CT_handler = mmWHSCTInterface(**config["Data"])
@@ -77,6 +72,7 @@ weight_cluster = RampScheduler(**config['Scheduler']["ClusterScheduler"])
 
 Trainer_container = {
     "baseline": SourcebaselineTrainer,
+    "upperbaseline": UpperbaselineTrainer,
     "supervised": DomainsupervisedTrainer,
     "entda": EntropyDA,
     "align_IndividualBN": align_IBNtrainer,
