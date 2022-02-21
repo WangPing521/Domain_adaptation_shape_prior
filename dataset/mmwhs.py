@@ -69,6 +69,7 @@ class MedicalDatasetInterface:
             group_train=False,
             group_val=True,
             use_infinite_sampler: bool = False,
+            batchsize_indicator: int=6
     ) -> Tuple[DataLoader, DataLoader]:
 
         _dataloader_params = dcp(self.dataloader_params)
@@ -83,7 +84,7 @@ class MedicalDatasetInterface:
             )
         if use_infinite_sampler:
             contrastive_sampler = ContrastBatchSampler(train_set, scan_sample_num=3, partition_sample_num=1,
-                                                       shuffle=False)
+                                                       shuffle=False, batchsize_indicator=batchsize_indicator)
 
             train_loader = (
                 DataLoader(
@@ -97,7 +98,7 @@ class MedicalDatasetInterface:
                 )
             )
         else:
-            raise RuntimeError()
+            # raise RuntimeError()
             train_loader = (
                 DataLoader(train_set, **_dataloader_params)
                 if not group_train

@@ -1,15 +1,16 @@
 from typing import Union
 
+import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
 
 from arch.projectors import DenseClusterHead
 from arch.utils import FeatureExtractor
-from loss.IIDSegmentations import single_head_loss
+from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
-from utils.general import class2one_hot
+from utils.general import class2one_hot, average_list
 from utils.image_save_utils import plot_joint_matrix, FeatureMapSaver, plot_seg
 
 
@@ -88,14 +89,28 @@ class align_IBNtrainer(SourcebaselineTrainer):
             clusters_T = self.projector(feature_T)
 
         assert len(clusters_S) == len(clusters_T)
-        align_losses, cluster_losses, p_joint_Ss, p_joint_Ts = \
-            zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list) for
-                  clusters, clustert in zip(clusters_S, clusters_T)])
-        align_loss = sum(align_losses) / len(align_losses)
-        cluster_loss = sum(cluster_losses) / len(cluster_losses)
+        align_loss_multires, cluster_losses_multires = [], []
+        p_jointS_list, p_jointT_list = [], []
+        for rs in range(6):
+            if rs:
+                clusters_S, clusters_T = multi_resilution_cluster(clusters_S, clusters_T)
+
+            align_losses, cluster_losses, p_joint_Ss, p_joint_Ts = \
+                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list) for
+                      clusters, clustert in zip(clusters_S, clusters_T)])
+            align_loss = sum(align_losses) / len(align_losses)
+            cluster_loss = sum(cluster_losses) / len(cluster_losses)
+            align_loss_multires.append(align_loss)
+            cluster_losses_multires.append(cluster_loss)
+            p_jointS_list.append(p_joint_Ss[-1])
+            p_jointT_list.append(p_joint_Ts[-1])
+
+        align_loss = average_list(align_loss_multires)
+        cluster_loss = average_list(cluster_losses_multires)
+
         # for visualization
-        p_joint_S = p_joint_Ss[-1]
-        p_joint_T = p_joint_Ts[-1]
+        p_joint_S = sum(p_jointS_list) / len(p_jointS_list)
+        p_joint_T = sum(p_jointT_list) / len(p_jointT_list)
         clusters = clusters_S[-1]
         clustert = clusters_T[-1]
 

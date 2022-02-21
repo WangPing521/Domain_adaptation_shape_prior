@@ -179,3 +179,20 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
     # todo: visualization.
 
     return align_loss, cluster_loss, p_joint_S, p_joint_T
+
+
+def multi_resilution_cluster(clusters_S: t.List, clusters_T: t.List):
+    low_res_clusters_S, low_res_clusters_T =[], []
+    for cluster_s, cluster_t in zip(clusters_S, clusters_T):
+        assert simplex(cluster_s)
+        assert simplex(cluster_t)
+        low_res_cluster_s = F.avg_pool2d(cluster_s, kernel_size=(2,2))
+        low_res_cluster_t = F.avg_pool2d(cluster_t, kernel_size=(2,2))
+        assert simplex(low_res_cluster_s)
+        assert simplex(low_res_cluster_t)
+
+        low_res_clusters_S.append(low_res_cluster_s)
+        low_res_clusters_T.append(low_res_cluster_t)
+
+
+    return low_res_clusters_S, low_res_clusters_T

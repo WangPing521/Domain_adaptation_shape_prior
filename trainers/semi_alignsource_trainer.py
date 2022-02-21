@@ -10,6 +10,7 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 
 from arch.projectors import DenseClusterHead
 from arch.utils import FeatureExtractor
+from loss.IIDSegmentations import IIDSegmentationLoss
 from utils import tqdm
 from utils.rising import RisingWrapper
 from loss.entropy import SimplexCrossEntropyLoss
@@ -102,7 +103,7 @@ class Semi_alignTrainer:
         self.extractor = FeatureExtractor(self.model, feature_names=self._config['DA']['align_layer']['name'])
         self.extractor.bind()
         self.saver = FeatureMapSaver(save_dir=self._save_dir)
-
+        self.IICLoss = IIDSegmentationLoss()
     def to(self, device):
         self.model.to(device=device)
 
@@ -127,7 +128,6 @@ class Semi_alignTrainer:
         onehot_lab_target = class2one_hot(lab_target.squeeze(1), C)
         s_loss = self.crossentropy(pred_lab, onehot_lab_target)
 
-        semi_loss = 0
         if extracted_layer == 'Deconv_1x1':
             pred_unlab = self.model(unlab_img).softmax(1)
 
@@ -140,6 +140,8 @@ class Semi_alignTrainer:
 
             # projector cluster --->joint
             clusters_unlab = self.projector(feature_unlab)
+
+        semi_loss = self.IICLoss(clusters_unlab,clusters_unlab)
 
         self.meters[f"train_dice"].add(
             pred_lab.max(1)[1],

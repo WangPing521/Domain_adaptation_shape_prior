@@ -46,12 +46,14 @@ with fix_all_seed_within_context(config['Data']['seed']):
             val_transform=None,
             group_val=False,
             use_infinite_sampler=True,
+            batchsize_indicator=config['DA']['batchsize_indicator']
         )
         trainT_loader, valT_loader = MR_handler.DataLoaders(
             train_transform=None,
             val_transform=None,
             group_val=False,
             use_infinite_sampler=True,
+            batchsize_indicator=config['DA']['batchsize_indicator']
         )
     elif config['DA']['source'] == 'MRI' and config['DA']['target'] == 'CT':
         trainT_loader, valT_loader = CT_handler.DataLoaders(
@@ -59,12 +61,14 @@ with fix_all_seed_within_context(config['Data']['seed']):
             val_transform=None,
             group_val=False,
             use_infinite_sampler=True,
+            batchsize_indicator=config['DA']['batchsize_indicator']
         )
         trainS_loader, valS_loader = MR_handler.DataLoaders(
             train_transform=None,
             val_transform=None,
             group_val=False,
             use_infinite_sampler=True,
+            batchsize_indicator=config['DA']['batchsize_indicator']
         )
 
 RegScheduler = RampScheduler(**config['Scheduler']["RegScheduler"])

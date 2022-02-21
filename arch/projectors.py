@@ -110,7 +110,7 @@ class DenseClusterHead(_ProjectorHeadBase):
     this classification head uses the loss for IIC segmentation, which consists of multiple heads
     """
 
-    def __init__(self, *, input_dim: int, num_clusters=10, hidden_dim=64, num_subheads=10, T=1,
+    def __init__(self, *, input_dim: int, num_clusters=10, hidden_dim=64, num_subheads=3, T=1,
                  head_type: str = "linear", normalize: bool = False):
         super().__init__(input_dim=input_dim, output_dim=num_clusters, head_type=head_type, normalize=normalize,
                          pool_name="none", spatial_size=(1, 1))

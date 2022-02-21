@@ -52,7 +52,7 @@ class ContrastBatchSampler(Sampler[List[int]]):
                 random.shuffle(batch_index)
             return batch_index
 
-    def __init__(self, dataset, scan_sample_num=4, partition_sample_num=1, shuffle=False) -> None:
+    def __init__(self, dataset, scan_sample_num=4, partition_sample_num=1, shuffle=False, batchsize_indicator=6) -> None:
         super(ContrastBatchSampler, self).__init__(data_source=dataset)
         self._dataset = dataset
         filenames = dcopy(dataset.get_filenames())
@@ -69,7 +69,7 @@ class ContrastBatchSampler(Sampler[List[int]]):
             scan_name = _get_scan_name(filename)
             slice_num = int(re.compile(r"\d+").findall(os.path.basename(filename))[1])
             total_scan_num = total_scan_dict[scan_name]
-            return min(slice_num // (total_scan_num // 6), 6)
+            return min(slice_num // (total_scan_num // batchsize_indicator), batchsize_indicator)
 
         for i, filename in enumerate(filenames):
             group = _get_scan_name(filename)  # noqa
