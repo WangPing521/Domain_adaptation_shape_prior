@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=3
 account=rrg-ebrahimi
-save_dir=main_jobs_alignweight
+save_dir=main_jobs_alignweight_MR2CT
 
 declare -a StringArray=(
 # CT2MRI
@@ -56,18 +56,6 @@ declare -a StringArray=(
 "python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.double_bn=True DA.align_layer.clusters=20 DA.align_layer.name=Up_conv2 DA.displacement=True Scheduler.RegScheduler.max_value=1    Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_1Areg_disp_upconv2_20c"
 "python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.double_bn=True DA.align_layer.clusters=20 DA.align_layer.name=Up_conv2 DA.displacement=True Scheduler.RegScheduler.max_value=0.1  Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_01Areg_disp_upconv2_20c"
 "python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.double_bn=True DA.align_layer.clusters=20 DA.align_layer.name=Up_conv2 DA.displacement=True Scheduler.RegScheduler.max_value=0.01 Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_101Areg_disp_upconv2_20c"
-
-#
-"python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.double_bn=True DA.align_layer.clusters=40 DA.align_layer.name=Up_conv2 DA.displacement=False Scheduler.RegScheduler.max_value=10   Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_10Areg_0disp_upconv2_40c"
-"python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.double_bn=True DA.align_layer.clusters=40 DA.align_layer.name=Up_conv2 DA.displacement=False Scheduler.RegScheduler.max_value=1    Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_1Areg_0disp_upconv2_40c"
-"python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.double_bn=True DA.align_layer.clusters=40 DA.align_layer.name=Up_conv2 DA.displacement=False Scheduler.RegScheduler.max_value=0.1  Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_01Areg_0disp_upconv2_40c"
-"python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.double_bn=True DA.align_layer.clusters=40 DA.align_layer.name=Up_conv2 DA.displacement=False Scheduler.RegScheduler.max_value=0.01 Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_101Areg_0disp_upconv2_40c"
-
-"python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.double_bn=True DA.align_layer.clusters=40 DA.align_layer.name=Up_conv2 DA.displacement=True Scheduler.RegScheduler.max_value=10   Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_10Areg_disp_upconv2_40c"
-"python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.double_bn=True DA.align_layer.clusters=40 DA.align_layer.name=Up_conv2 DA.displacement=True Scheduler.RegScheduler.max_value=1    Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_1Areg_disp_upconv2_40c"
-"python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.double_bn=True DA.align_layer.clusters=40 DA.align_layer.name=Up_conv2 DA.displacement=True Scheduler.RegScheduler.max_value=0.1  Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_01Areg_disp_upconv2_40c"
-"python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.double_bn=True DA.align_layer.clusters=40 DA.align_layer.name=Up_conv2 DA.displacement=True Scheduler.RegScheduler.max_value=0.01 Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_101Areg_disp_upconv2_40c"
-
 
 
 )
