@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=2
 account=rrg-ebrahimi
-save_dir=main_jobs_base_MR2CT_BN
+save_dir=main_jobs_base_MR2CT_Batchsize
 
 declare -a StringArray=(
 # CT2MRI
