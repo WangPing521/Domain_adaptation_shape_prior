@@ -3,6 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="fd844c49-22d4-4e62-bc0a-ea83ceef47e0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/config.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_jobs_1.sh" beforeDir="false" afterPath="$PROJECT_DIR$/main_jobs_1.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_jobs_2.sh" beforeDir="false" afterPath="$PROJECT_DIR$/main_jobs_2.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trainers/align_IBN_trainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/trainers/align_IBN_trainer.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -168,6 +172,16 @@
           <url>file://$PROJECT_DIR$/trainers/SourceTrainer.py</url>
           <line>149</line>
           <option name="timeStamp" value="83" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/main.py</url>
+          <line>43</line>
+          <option name="timeStamp" value="95" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/dataset/mmwhs.py</url>
+          <line>85</line>
+          <option name="timeStamp" value="96" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
