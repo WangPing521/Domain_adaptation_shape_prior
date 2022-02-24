@@ -10,6 +10,7 @@ from scheduler.warmup_scheduler import GradualWarmupScheduler
 from trainers.Domain_supervised_Trainer import DomainsupervisedTrainer
 from trainers.SourceTrainer import SourcebaselineTrainer
 from trainers.align_IBN_trainer import align_IBNtrainer
+from trainers.align_combinationlayer_trainer import mutli_aligntrainer
 from trainers.entropy_DA_trainer import EntropyDA
 from trainers.upper_supervised_Trainer import UpperbaselineTrainer
 from utils.radam import RAdam
@@ -80,6 +81,7 @@ Trainer_container = {
     "supervised": DomainsupervisedTrainer,
     "entda": EntropyDA,
     "align_IndividualBN": align_IBNtrainer,
+    "combinationlayer": mutli_aligntrainer,
 }
 trainer_name = Trainer_container.get(config['Trainer'].get('name'))
 

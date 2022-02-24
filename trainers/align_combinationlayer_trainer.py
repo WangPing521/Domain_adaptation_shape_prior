@@ -14,7 +14,7 @@ from utils.general import class2one_hot, average_list
 from utils.image_save_utils import plot_joint_matrix, FeatureMapSaver, plot_seg
 
 
-class align_IBNtrainer(SourcebaselineTrainer):
+class mutli_aligntrainer(SourcebaselineTrainer):
 
     def __init__(self, TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
                  TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
@@ -67,52 +67,69 @@ class align_IBNtrainer(SourcebaselineTrainer):
         onehot_targetS = class2one_hot(S_target.squeeze(1), C)
         s_loss = self.crossentropy(pred_S, onehot_targetS)
 
-        if extracted_layer == 'Deconv_1x1':
-            with self.switch_bn(self.model, 1):
-                pred_T = self.model(T_img).softmax(1)
-            clusters_S = [pred_S]
-            clusters_T = [pred_T]
 
-        else:
-            with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
-                self.extractor.clear()
-                _ = self.model(S_img, until=extracted_layer)
-                feature_S = next(self.extractor.features())
-            with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
-                self.extractor.clear()
-                _ = self.model(T_img, until=extracted_layer)
-                feature_T = next(self.extractor.features())
+        with self.switch_bn(self.model, 1):
+            pred_T = self.model(T_img).softmax(1)
+        clusters_S1 = [pred_S]
+        clusters_T1 = [pred_T]
 
-            # projector cluster --->joint
-            clusters_S = self.projector(feature_S)
-            clusters_T = self.projector(feature_T)
 
-        assert len(clusters_S) == len(clusters_T)
-        align_loss_multires, cluster_losses_multires = [], []
-        p_jointS_list, p_jointT_list = [], []
+        with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
+            self.extractor.clear()
+            _ = self.model(S_img, until=extracted_layer)
+            feature_S = next(self.extractor.features())
+        with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
+            self.extractor.clear()
+            _ = self.model(T_img, until=extracted_layer)
+            feature_T = next(self.extractor.features())
+
+        # projector cluster --->joint
+        clusters_S2 = self.projector(feature_S)
+        clusters_T2 = self.projector(feature_T)
+
+        assert len(clusters_S1) == len(clusters_T1)
+        assert len(clusters_S2) == len(clusters_T2)
+
+        align_loss_multires1, cluster_losses_multires1, align_loss_multires2, cluster_losses_multires2 = [], [], [], []
+        p_jointS_list2, p_jointT_list2 = [], []
 
         for rs in range(self._config['DA']['multi_scale']):
             if rs:
-                clusters_S, clusters_T = multi_resilution_cluster(clusters_S, clusters_T)
+                clusters_S1, clusters_T1 = multi_resilution_cluster(clusters_S1, clusters_T1)
+                clusters_S2, clusters_T2 = multi_resilution_cluster(clusters_S2, clusters_T2)
+            align_losses1, cluster_losses1, p_joint_Ss1, p_joint_Ts1 = \
+                zip(*[single_head_loss(clusters1, clustert1, displacement_maps=self.displacement_map_list) for
+                      clusters1, clustert1 in zip(clusters_S1, clusters_T1)])
+            align_losses2, cluster_losses2, p_joint_Ss2, p_joint_Ts2 = \
+                zip(*[single_head_loss(clusters2, clustert2, displacement_maps=self.displacement_map_list) for
+                      clusters2, clustert2 in zip(clusters_S2, clusters_T2)])
 
-            align_losses, cluster_losses, p_joint_Ss, p_joint_Ts = \
-                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list) for
-                      clusters, clustert in zip(clusters_S, clusters_T)])
-            align_loss = sum(align_losses) / len(align_losses)
-            cluster_loss = sum(cluster_losses) / len(cluster_losses)
-            align_loss_multires.append(align_loss)
-            cluster_losses_multires.append(cluster_loss)
-            p_jointS_list.append(p_joint_Ss[-1])
-            p_jointT_list.append(p_joint_Ts[-1])
+            align_loss1 = sum(align_losses1) / len(align_losses1)
+            cluster_loss1 = sum(cluster_losses1) / len(cluster_losses1)
+            align_loss_multires1.append(align_loss1)
+            cluster_losses_multires1.append(cluster_loss1)
 
-        align_loss = average_list(align_loss_multires)
-        cluster_loss = average_list(cluster_losses_multires)
+            align_loss2 = sum(align_losses2) / len(align_losses2)
+            cluster_loss2 = sum(cluster_losses2) / len(cluster_losses2)
+            align_loss_multires2.append(align_loss2)
+            cluster_losses_multires2.append(cluster_loss2)
 
+            p_jointS_list2.append(p_joint_Ss1[-1])
+            p_jointT_list2.append(p_joint_Ts1[-1])
+
+        align_loss1 = average_list(align_loss_multires1)
+        cluster_loss1 = average_list(cluster_losses_multires1)
+
+        align_loss2 = average_list(align_loss_multires2)
+        cluster_loss2 = average_list(cluster_losses_multires2)
+
+        cluster_loss = cluster_loss1 + self._config['DA']['weight1'] * cluster_loss2
+        align_loss = align_loss1 + self._config['DA']['weight2'] * align_loss2
         # for visualization
-        p_joint_S = sum(p_jointS_list) / len(p_jointS_list)
-        p_joint_T = sum(p_jointT_list) / len(p_jointT_list)
-        clusters = clusters_S[-1]
-        clustert = clusters_T[-1]
+        p_joint_S = sum(p_jointS_list2) / len(p_jointS_list2)
+        p_joint_T = sum(p_jointT_list2) / len(p_jointT_list2)
+        clusters = clusters_S1[-1]
+        clustert = clusters_T1[-1]
 
         self.meters[f"train_dice"].add(
             pred_S.max(1)[1],
