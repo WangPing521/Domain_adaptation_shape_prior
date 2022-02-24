@@ -7,7 +7,7 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 source $CC_WRAPPER_PATH
 
 time=2
-account=rrg-ebrahimi
+account=def-chdesa
 save_dir=main_jobs_base21_MR2CT_runs
 
 declare -a StringArray=(
