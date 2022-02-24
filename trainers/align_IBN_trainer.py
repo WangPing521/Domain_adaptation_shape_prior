@@ -1,6 +1,5 @@
 from typing import Union
 
-import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
@@ -10,7 +9,7 @@ from arch.utils import FeatureExtractor
 from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
-from utils.general import class2one_hot, average_list
+from utils.general import class2one_hot, average_list, simplex
 from utils.image_save_utils import plot_joint_matrix, FeatureMapSaver, plot_seg
 
 
@@ -59,25 +58,23 @@ class align_IBNtrainer(SourcebaselineTrainer):
         S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
         S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
         T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
-        T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
+        # T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
-        with self.switch_bn(self.model, 0):
+        with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
+            self.extractor.clear()
             pred_S = self.model(S_img).softmax(1)
+            feature_S = next(self.extractor.features())
 
         onehot_targetS = class2one_hot(S_target.squeeze(1), C)
         s_loss = self.crossentropy(pred_S, onehot_targetS)
 
         if extracted_layer == 'Deconv_1x1':
-            with self.switch_bn(self.model, 1):
+            with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
                 pred_T = self.model(T_img).softmax(1)
             clusters_S = [pred_S]
             clusters_T = [pred_T]
 
         else:
-            with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
-                self.extractor.clear()
-                _ = self.model(S_img, until=extracted_layer)
-                feature_S = next(self.extractor.features())
             with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
                 self.extractor.clear()
                 _ = self.model(T_img, until=extracted_layer)
@@ -87,6 +84,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
             clusters_S = self.projector(feature_S)
             clusters_T = self.projector(feature_T)
 
+        assert simplex(clusters_S[0]) and simplex(clusters_T[0])
         assert len(clusters_S) == len(clusters_T)
         align_loss_multires, cluster_losses_multires = [], []
         p_jointS_list, p_jointT_list = [], []
