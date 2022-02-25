@@ -78,7 +78,9 @@ class SourcebaselineTrainer:
         self.meters = meters_register(c)
         self.displacement = self._config['DA']['displacement']
         if self.displacement:
-            self.displacement_map_list = [(0,0),(-3,-3),(3,3),(-3,0),(3,0),(0,3),(0,-3),(-3,3),(3,-3)]
+            self.displacement_map_list = [(0,0),(-1,-1),(1,1),(-1,0),(1,0),(0,1),(0,-1),(-1,1),(1,-1)]
+            # self.displacement_map_list = [(0,0),(-3,-3),(3,3),(-3,0),(3,0),(0,3),(0,-3),(-3,3),(3,-3)]
+
         else:
             self.displacement_map_list = [(0, 0)]
 
