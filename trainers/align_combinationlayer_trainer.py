@@ -61,29 +61,24 @@ class mutli_aligntrainer(SourcebaselineTrainer):
         T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
         T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
-        with self.switch_bn(self.model, 0):
+
+        with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
+            self.extractor.clear()
             pred_S = self.model(S_img).softmax(1)
+            feature_S = next(self.extractor.features())
 
         onehot_targetS = class2one_hot(S_target.squeeze(1), C)
         s_loss = self.crossentropy(pred_S, onehot_targetS)
 
-
-        with self.switch_bn(self.model, 1):
-            pred_T = self.model(T_img).softmax(1)
-        clusters_S1 = [pred_S]
-        clusters_T1 = [pred_T]
-
-
-        with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
-            self.extractor.clear()
-            _ = self.model(S_img, until=extracted_layer)
-            feature_S = next(self.extractor.features())
         with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
             self.extractor.clear()
-            _ = self.model(T_img, until=extracted_layer)
+            pred_T = self.model(T_img).softmax(1)
             feature_T = next(self.extractor.features())
 
         # projector cluster --->joint
+        clusters_S1 = [pred_S]
+        clusters_T1 = [pred_T]
+
         clusters_S2 = self.projector(feature_S)
         clusters_T2 = self.projector(feature_T)
 
