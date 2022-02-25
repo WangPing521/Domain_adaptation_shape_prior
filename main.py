@@ -99,4 +99,5 @@ trainer = trainer_name(
     config=config,
     **config['Trainer']
 )
+trainer.inference(identifier='last.pth')
 trainer.start_training()

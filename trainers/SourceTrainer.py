@@ -262,17 +262,17 @@ class SourcebaselineTrainer:
         :param kwargs:
         :return:
         """
-        if self._checkpoint is None:
-            self._checkpoint = self._save_dir
-        assert Path(self._checkpoint).exists(), Path(self._checkpoint)
-        assert (Path(self._checkpoint).is_dir() and identifier is not None) or (
-                Path(self._checkpoint).is_file() and identifier is None
+        if self.checkpoint_path is None:
+            self.checkpoint_path = self._save_dir
+        assert Path(self.checkpoint_path).exists(), Path(self.checkpoint_path)
+        assert (Path(self.checkpoint_path).is_dir() and identifier is not None) or (
+                Path(self.checkpoint_path).is_file() and identifier is None
         )
 
         state_dict = torch.load(
-            str(Path(self._checkpoint) / identifier)
+            str(Path(self.checkpoint_path) / identifier)
             if identifier is not None
-            else self._checkpoint,
+            else self.checkpoint_path,
             map_location=torch.device("cpu"),
         )
         self.load_checkpoint(state_dict)
@@ -338,7 +338,7 @@ class SourcebaselineTrainer:
         :return:
         """
         self._load_state_dict(state_dict)
-        self._best_score = state_dict["best_score"]
+        # self._best_score = state_dict["best_score"]
         self._start_epoch = state_dict["epoch"] + 1
 
     def load_checkpoint_from_path(self, checkpoint_path):

@@ -3,6 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="fd844c49-22d4-4e62-bc0a-ea83ceef47e0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/baselines.sh" beforeDir="false" afterPath="$PROJECT_DIR$/baselines.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/config.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/impact_weight.sh" beforeDir="false" afterPath="$PROJECT_DIR$/impact_weight.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/trainers/SourceTrainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/trainers/SourceTrainer.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +48,9 @@
     <option name="mySupportGeventDebugging" value="true" />
   </component>
   <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/runs/runs" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/trainers" />
@@ -76,7 +84,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
-      <option name="PARAMETERS" value="Trainer.device=cpu" />
+      <option name="PARAMETERS" value="Trainer.device=cpu Trainer.checkpoint_path=runs/runs" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -154,24 +162,19 @@
           <option name="timeStamp" value="16" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/main.py</url>
-          <line>99</line>
-          <option name="timeStamp" value="74" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/trainers/SourceTrainer.py</url>
-          <line>242</line>
-          <option name="timeStamp" value="82" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/trainers/SourceTrainer.py</url>
           <line>149</line>
           <option name="timeStamp" value="83" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/dataset/mmwhs.py</url>
-          <line>85</line>
-          <option name="timeStamp" value="96" />
+          <url>file://$PROJECT_DIR$/main.py</url>
+          <line>101</line>
+          <option name="timeStamp" value="114" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/main.py</url>
+          <line>102</line>
+          <option name="timeStamp" value="115" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
