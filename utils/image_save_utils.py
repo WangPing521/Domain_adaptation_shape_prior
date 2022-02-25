@@ -43,7 +43,7 @@ def plot_seg(img, label):
     gt_volume = tensor2plotable(label)
     # con = plt.contour(gt_volume)
     plt.imshow(gt_volume, alpha=0.2, cmap="rainbow")
-    plt.show(block=False)
+    # plt.show(block=False)
     return fig
 
 def tensor2plotable(tensor) -> np.ndarray:
