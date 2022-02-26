@@ -143,7 +143,7 @@ class Pseudo_labelingDATrainer:
         s_loss = self.crossentropy(pred_T, torch.Tensor(output_segs).to(self.device))
         s_loss = torch.mean(s_loss * torch.Tensor(mask).to(self.device))
 
-        self.meters[f"train_dice"].add(
+        self.meters[f"trainT_dice"].add(
             pred_T.max(1)[1],
             T_target.squeeze(1),
             group_name=["_".join(x.split("_")[:-1]) for x in T_filename],
