@@ -118,6 +118,7 @@ class UNet(nn.Module):
         self._num_classes = num_classes
         assert max_channel % 16 == 0 and max_channel >= 128, max_channel
         self._max_channel = max_channel
+        self._momentum = momentum
 
         self._max_pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
         self._max_pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
