@@ -191,7 +191,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/trainers/align_IBN_trainer.py</url>
-          <line>93</line>
+          <line>95</line>
           <option name="timeStamp" value="131" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
@@ -211,7 +211,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/trainers/align_IBN_trainer.py</url>
-          <line>132</line>
+          <line>134</line>
           <option name="timeStamp" value="156" />
         </line-breakpoint>
       </breakpoints>
