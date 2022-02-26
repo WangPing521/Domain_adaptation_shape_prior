@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=3
 account=def-chdesa
-save_dir=impact_weight
+save_dir=impact_weight_disp1
 
 declare -a StringArray=(
 "python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT Trainer.name=align_IndividualBN DA.batchsize_indicator=6 DA.double_bn=True DA.align_layer.name=Deconv_1x1 DA.multi_scale=1 DA.displacement=True Scheduler.RegScheduler.max_value=0.01 Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/MRI2CT_101Areg_r1_disp_prediction_seed1"
