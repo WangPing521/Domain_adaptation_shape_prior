@@ -82,7 +82,7 @@ class OLVATrainer(align_IBNtrainer):
     def vae_kl_divergence(self, mean, log_var) -> Tensor:
         mean, log_var = [torch.flatten(x, start_dim=1) for x in (mean, log_var)]
         # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-        kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mean ** 2 - log_var.exp(), dim=1), dim=0)
+        kld_loss = torch.mean(-0.5 * torch.mean(1 + log_var - mean ** 2 - log_var.exp(), dim=1), dim=0)
         return kld_loss
 
     def ot_loss(self, source_sampled: Tensor, target_sampled: Tensor, *, alpha: float = 1.0):
