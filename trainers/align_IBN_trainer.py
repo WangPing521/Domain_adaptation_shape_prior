@@ -76,6 +76,8 @@ class align_IBNtrainer(SourcebaselineTrainer):
 
         else:
             with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
+                pred_T = self.model(T_img).softmax(1)
+            with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
                 self.extractor.clear()
                 _ = self.model(T_img, until=extracted_layer)
                 feature_T = next(self.extractor.features())
