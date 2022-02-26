@@ -32,7 +32,8 @@ class VAEUNet(UNet):
         e5_sampled = e5
         if enable_sampling:
             e5_std = torch.exp(e5_logvar / 2)
-            e5_sampled = e5 + e5_std * torch.randn_like(e5_std)
+            with fix_all_seed_within_context(seed=int(e5.sum())):
+                e5_sampled = e5 + e5_std * torch.randn_like(e5_std)
         self._e5, self._e5_sampled, self._e5_logvar = e5, e5_sampled, e5_logvar
         return self.forward_decoder(e5_sampled, **features)
 

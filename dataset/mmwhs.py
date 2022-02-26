@@ -90,7 +90,7 @@ class MedicalDatasetInterface:
                 DataLoader(
                     train_set,
                     batch_sampler=contrastive_sampler,
-                    **{k: v for k, v in _dataloader_params.items() if k != "shuffle"},
+                    **{k: v for k, v in _dataloader_params.items() if k != "shuffle" and k!="batch_size"},
                 )
                 if not group_train
                 else self._grouped_dataloader(

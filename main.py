@@ -88,7 +88,7 @@ Trainer_container = {
 }
 trainer_name = Trainer_container.get(config['Trainer'].get('name'))
 if trainer_name == OLVATrainer:
-    model = unet2vaeunet(model)
+    model = unet2vaeunet(model, seed=config['seed'])
 
 trainer = trainer_name(
     model=model,
