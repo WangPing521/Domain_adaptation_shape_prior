@@ -38,8 +38,8 @@ DA:
   double_bn: False
   displacement: False
   multi_scale: 6 # 1, 2, 3, 4, 5, 6 Note: 1 refers to without multi_scale resilution
-  source: CT
-  target: MRI
+  source: MRI
+  target: CT
   weight1: 1
   weight2: 1
   align_layer:

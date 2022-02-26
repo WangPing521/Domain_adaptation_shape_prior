@@ -1,38 +1,59 @@
 from pathlib import Path
 from typing import Union, Dict, Any, Tuple
 
-import torch
-import torch.nn as nn
 import rising.random as rr
 import rising.transforms as rt
+import torch
+from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
-
-from arch.projectors import DenseClusterHead
-from arch.utils import FeatureExtractor
-from loss.IIDSegmentations import IIDSegmentationLoss
-from utils import tqdm
-from utils.rising import RisingWrapper
+import numpy as np
 from loss.entropy import SimplexCrossEntropyLoss
-from meters import Storage
+from meters import Storage, MeterInterface, AverageValueMeter, UniversalDice
 from meters.SummaryWriter import SummaryWriter
-from scheduler.customized_scheduler import RampScheduler
-from utils.general import class2one_hot, path2Path
-from utils.image_save_utils import FeatureMapSaver
-from utils.utils import set_environment, write_yaml, meters_register, fix_all_seed_within_context
+from utils import tqdm
+from utils.general import path2Path
+from utils.image_save_utils import plot_seg
+from utils.rising import RisingWrapper
+from utils.utils import set_environment, write_yaml
+
+def meters_registerPDA(c):
+    meters = MeterInterface()
+    report_axis = list(range(1, c))
+
+    with meters.focus_on("train"):
+        meters.register_meter("lr", AverageValueMeter())
+        meters.register_meter(
+            f"trainT_dice", UniversalDice(C=c, report_axis=report_axis))
+
+        # loss
+        meters.register_meter(
+            "loss", AverageValueMeter()
+        )
+
+    with meters.focus_on("val"):
+        meters.register_meter(
+            f"valT_dice", UniversalDice(C=c, report_axis=report_axis)
+        )
+    return meters
 
 
-class Semi_alignTrainer:
+class Pseudo_labelingDATrainer:
+    PROJECT_PATH = str(Path(__file__).parents[1])
 
-    def __init__(self,
+    RUN_PATH = str(Path(PROJECT_PATH) / "runs")
+    ARCHIVE_PATH = str(Path(PROJECT_PATH) / "archives")
+    wholemeter_filename = "wholeMeter.csv"
+    checkpoint_identifier = "last.pth"
+
+    def __init__(
+            self,
+            Smodel:nn.Module,
             model: nn.Module,
             optimizer,
             scheduler,
-            lab_loader,
-            unlab_loader,
-            val_loader,
-            weight_scheduler,
-            weight_cluster: RampScheduler,
+            TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
+            valT_loader: Union[DataLoader, _BaseDataLoaderIter],
             max_epoch: int = 100,
             save_dir: str = "base",
             checkpoint_path: str = None,
@@ -40,7 +61,8 @@ class Semi_alignTrainer:
             config: dict = None,
             num_batches=200,
             *args,
-            **kwargs) -> None:
+            **kwargs
+    ) -> None:
         self._save_dir: Path = Path(self.RUN_PATH) / str(save_dir)
         self._save_dir.mkdir(exist_ok=True, parents=True)
         self._start_epoch = 0
@@ -50,30 +72,21 @@ class Semi_alignTrainer:
             write_yaml(self._config, save_dir=self._save_dir, save_name="config.yaml")
             set_environment(config.get("Environment"))
 
+        self.Smodel=Smodel
         self.model = model
         self.optimizer = optimizer
         self.scheduler = scheduler
-        self._lab_loader = lab_loader
-        self._unlab_loader = unlab_loader
-        self._val_loader = val_loader
+        self._trainT_loader = TrainT_loader
+        self._valT_loader = valT_loader
         self._max_epoch = max_epoch
         self._num_batches = num_batches
-        self._weight_scheduler = weight_scheduler
         self.device = device
         self.checkpoint_path = checkpoint_path
-        self.crossentropy = SimplexCrossEntropyLoss()
+        self.crossentropy = SimplexCrossEntropyLoss(reduction='none')
         self._storage = Storage(self._save_dir)
         self.writer = SummaryWriter(str(self._save_dir))
         c = self._config['Data_input']['num_class']
-        self.meters = meters_register(c)
-        self.displacement = self._config['DA']['displacement']
-        if self.displacement:
-            with fix_all_seed_within_context(self._config['Data']['seed']):
-                # self.displacement_map_list = [(torch.randint(0, 9, (1,)), torch.randint(0, 9, (1,))) for i in
-                # range(5)]
-                self.displacement_map_list = [(2, 2), (4, 4), (8, 8)]
-        else:
-            self.displacement_map_list = [(0, 0)]
+        self.meters = meters_registerPDA(c)
 
         geometric_transform = rt.Compose(
             rt.BaseAffine(
@@ -93,67 +106,53 @@ class Semi_alignTrainer:
             geometry_transform=geometric_transform, intensity_transform=intensity_transform
         )
 
-        self.projector = DenseClusterHead(
-            input_dim=self.model.get_channel_dim(self._config['DA']['align_layer']['name']),
-            num_clusters=self._config['DA']['align_layer']['clusters'])
-
-        self.optimizer.add_param_group({'params': self.projector.parameters(),
-                                        })
-
-        self.extractor = FeatureExtractor(self.model, feature_names=self._config['DA']['align_layer']['name'])
-        self.extractor.bind()
-        self.saver = FeatureMapSaver(save_dir=self._save_dir)
-        self.IICLoss = IIDSegmentationLoss()
     def to(self, device):
         self.model.to(device=device)
+        self.Smodel.to(device=device)
 
-
-    def run_step(self, lab_data, unlab_data, cur_batch: int):
-        extracted_layer = self.extractor.feature_names[0]
-        C = int(self._config['Data_input']['num_class'])
-        lab_img, lab_target, lab_filename = (
-            lab_data[0][0].to(self.device),
-            lab_data[0][1].to(self.device),
-            lab_data[1],
+    def run_step(self, t_data, cur_batch: int):
+        T_img, T_target, T_filename = (
+            t_data[0][0].to(self.device),
+            t_data[0][1].to(self.device),
+            t_data[1],
         )
-        unlab_img, unlab_target, unlab_filename = (
-            unlab_data[0][0].to(self.device),
-            unlab_data[0][1].to(self.device),
-            unlab_data[1],
-        )
-        lab_img = self._rising_augmentation(lab_img, mode="image", seed=cur_batch)
-        lab_target = self._rising_augmentation(lab_target.float(), mode="feature", seed=cur_batch)
+        T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
+        T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
-        pred_lab = self.model(lab_img).softmax(1)
-        onehot_lab_target = class2one_hot(lab_target.squeeze(1), C)
-        s_loss = self.crossentropy(pred_lab, onehot_lab_target)
+        pred_t_list = []
+        with torch.no_grad():
+            for i in range(5):
+                pred_tt = self.Smodel(T_img).softmax(1)
+                pred_t_list.append(pred_tt.unsqueeze(0).cpu().numpy())
 
-        if extracted_layer == 'Deconv_1x1':
-            pred_unlab = self.model(unlab_img).softmax(1)
+        preds = np.concatenate(pred_t_list, axis=0)
+        output_segs = np.mean(preds, axis=0)
+        output_stds = np.std(preds, axis=0)
+        idx_pos = output_segs >= 0.5
+        idx_neg = output_segs < 0.5
+        stds_pos = output_stds[idx_pos]
+        stds_neg = output_stds[idx_neg]
+        percent = 90
+        th_pos = np.percentile(stds_pos, percent)
+        th_neg = np.percentile(stds_neg, percent)
+        # print('%d, %.6f, %.6f' % (percent, th_pos, th_neg))
+        mask = np.logical_or(np.logical_and(idx_pos, output_stds < th_pos), np.logical_and(idx_neg, output_stds < th_neg))
+        mask = mask.astype(np.uint8)
 
-        else:
-            pred_unlab = self.model(unlab_img).softmax(1)
-            with self.extractor.enable_register(True):
-                self.extractor.clear()
-                _ = self.model(unlab_img, until=extracted_layer)
-                feature_unlab = next(self.extractor.features())
-
-            # projector cluster --->joint
-            clusters_unlab = self.projector(feature_unlab)
-
-        semi_loss = self.IICLoss(clusters_unlab,clusters_unlab)
+        pred_T = self.model(T_img).softmax(1)
+        s_loss = self.crossentropy(pred_T, torch.Tensor(output_segs).to(self.device))
+        s_loss = torch.mean(s_loss * torch.Tensor(mask).to(self.device))
 
         self.meters[f"train_dice"].add(
-            pred_lab.max(1)[1],
-            lab_target.squeeze(1),
-            group_name=["_".join(x.split("_")[:-1]) for x in lab_filename],
+            pred_T.max(1)[1],
+            T_target.squeeze(1),
+            group_name=["_".join(x.split("_")[:-1]) for x in T_filename],
         )
 
-        return s_loss, semi_loss
+        return s_loss
 
     def train_loop(
             self,
-            trainS_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             trainT_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             epoch: int = 0,
             *args,
@@ -162,21 +161,15 @@ class Semi_alignTrainer:
         self.model.train()
         batch_indicator = tqdm(range(self._num_batches))
         batch_indicator.set_description(f"Training Epoch {epoch:03d}")
-        report_dict, p_joint_S, p_joint_T = None, None, None
+        report_dict = None, None
 
-        for cur_batch, (batch_id, lab_data, unlab_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
+        for cur_batch, (batch_id, t_data) in enumerate(zip(batch_indicator, trainT_loader)):
             self.optimizer.zero_grad()
 
-            s_loss, align_loss = self.run_step(lab_data=lab_data, unlab_data=unlab_data, cur_batch=cur_batch)
-            loss = s_loss + self._weight_scheduler.value * align_loss
-
+            loss = self.run_step(t_data=t_data, cur_batch=cur_batch)
             loss.backward()
             self.optimizer.step()
-
-            self.meters['total_loss'].add(loss.item())
-            self.meters['s_loss'].add(s_loss.item())
-            self.meters['align_loss'].add(align_loss.item())
-
+            self.meters['s_loss'].add(loss.item())
             report_dict = self.meters.statistics()
             batch_indicator.set_postfix_statics(report_dict, cache_time=20)
         batch_indicator.close()
@@ -186,37 +179,40 @@ class Semi_alignTrainer:
 
     def eval_loop(
             self,
-            val_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
+            valT_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             epoch: int = 0,
             *args,
             **kwargs,
     ) -> Tuple[Any, Any]:
         self.model.eval()
-        val_indicator = tqdm(val_loader)
-        val_indicator.set_description(f"Val_Epoch {epoch:03d}")
+        valT_indicator = tqdm(valT_loader)
+        valT_indicator.set_description(f"ValT_Epoch {epoch:03d}")
         report_dict = {}
-        for batch_id, data in enumerate(val_indicator):
-            image, target, filename = (
-                data[0][0].to(self.device),
-                data[0][1].to(self.device),
-                data[1]
+
+        for batch_idT, data_T in enumerate(valT_indicator):
+            imageT, targetT, filenameT = (
+                data_T[0][0].to(self.device),
+                data_T[0][1].to(self.device),
+                data_T[1]
             )
-            preds = self.model(image).softmax(1)
-            self.meters[f"valS_dice"].add(
-                preds.max(1)[1],
-                target.squeeze(1),
-                group_name=["_".join(x.split("_")[:-1]) for x in filename])
+
+            preds_T = self.model(imageT).softmax(1)
+            self.meters[f"valT_dice"].add(
+                preds_T.max(1)[1],
+                targetT.squeeze(1),
+                group_name=["_".join(x.split("_")[:-1]) for x in filenameT])
 
             report_dict = self.meters.statistics()
-            val_indicator.set_postfix_statics(report_dict, cache_time=20)
-        val_indicator.close()
+            valT_indicator.set_postfix_statics(report_dict, cache_time=20)
+            if batch_idT == 28:
+                target_seg = plot_seg(imageT.squeeze(0), preds_T.max(1)[1].squeeze(0))
+                self.writer.add_figure(tag=f"val_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
 
+        valT_indicator.close()
         assert report_dict is not None
-        return dict(report_dict), self.meters["val_dice"].summary()["DSC_mean"]
+        return dict(report_dict), self.meters["valT_dice"].summary()["DSC_mean"]
 
     def schedulerStep(self):
-        self._weight_scheduler.step()
-        self._weight_cluster.step()
         self.scheduler.step()
 
     def start_training(self):
@@ -227,15 +223,13 @@ class Semi_alignTrainer:
             self.meters.reset()
             with self.meters.focus_on("train"):
                 self.meters['lr'].add(self.optimizer.param_groups.__getitem__(0).get('lr'))
-                self.meters["weight"].add(self._weight_scheduler.value)
                 train_metrics = self.train_loop(
-                    lab_loader=self._lab_loader,
-                    unlab_loader=self._unlab_loader,
+                    trainT_loader=self._trainT_loader,
                     epoch=self.cur_epoch
                 )
 
             with self.meters.focus_on("val"), torch.no_grad():
-                val_metric, _ = self.eval_loop(self._val_loader, self.cur_epoch)
+                val_metric, _ = self.eval_loop(self._valT_loader, self.cur_epoch)
 
             with self._storage:
                 self._storage.add_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)
@@ -251,17 +245,17 @@ class Semi_alignTrainer:
         :param kwargs:
         :return:
         """
-        if self._checkpoint is None:
-            self._checkpoint = self._save_dir
-        assert Path(self._checkpoint).exists(), Path(self._checkpoint)
-        assert (Path(self._checkpoint).is_dir() and identifier is not None) or (
-                Path(self._checkpoint).is_file() and identifier is None
+        if self.checkpoint_path is None:
+            self.checkpoint_path = self._save_dir
+        assert Path(self.checkpoint_path).exists(), Path(self.checkpoint_path)
+        assert (Path(self.checkpoint_path).is_dir() and identifier is not None) or (
+                Path(self.checkpoint_path).is_file() and identifier is None
         )
 
         state_dict = torch.load(
-            str(Path(self._checkpoint) / identifier)
+            str(Path(self.checkpoint_path) / identifier)
             if identifier is not None
-            else self._checkpoint,
+            else self.checkpoint_path,
             map_location=torch.device("cpu"),
         )
         self.load_checkpoint(state_dict)
@@ -327,7 +321,7 @@ class Semi_alignTrainer:
         :return:
         """
         self._load_state_dict(state_dict)
-        self._best_score = state_dict["best_score"]
+        # self._best_score = state_dict["best_score"]
         self._start_epoch = state_dict["epoch"] + 1
 
     def load_checkpoint_from_path(self, checkpoint_path):
@@ -361,4 +355,5 @@ class Semi_alignTrainer:
             shutil.rmtree(save_dir, ignore_errors=True)
         shutil.move(str(self._save_dir), str(save_dir))
         shutil.rmtree(str(self._save_dir), ignore_errors=True)
+
 
