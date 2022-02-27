@@ -8,12 +8,13 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 
 from meters import AverageValueMeter
 from scheduler.customized_scheduler import RampScheduler
+from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot
 from .align_IBN_trainer import align_IBNtrainer
 from .olva_helper import VAEUNet
 
 
-class OLVATrainer(align_IBNtrainer):
+class OLVATrainer(align_IBNtrainer, SourcebaselineTrainer):
     def __init__(self, TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
                  TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
                  valS_loader: Union[DataLoader, _BaseDataLoaderIter],
@@ -22,7 +23,7 @@ class OLVATrainer(align_IBNtrainer):
                  **kwargs) -> None:
         assert config['DA']['align_layer']['name'] == "Deconv_1x1"
         super().__init__(TrainS_loader, TrainT_loader, valS_loader, valT_loader, weight_scheduler, weight_cluster,
-                         model, optimizer, scheduler, *args, config=config, **kwargs)
+                         model, optimizer, scheduler, config=config, *args,**kwargs)
         del self.projector
         self.optimizer.param_groups.pop()
         self.extractor.remove()

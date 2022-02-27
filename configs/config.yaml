@@ -28,7 +28,7 @@ Scheduler:
     max_value: 0
 
 Trainer:
-  name: align_IndividualBN # baseline entda  supervised  align_IndividualBN upperbaseline, combinationlayer
+  name: ottrainer # baseline entda  supervised  align_IndividualBN upperbaseline, combinationlayer, ottrainer
   device: cuda
   save_dir: runs
   checkpoint_path: runs
@@ -43,7 +43,7 @@ DA:
   weight1: 1
   weight2: 1
   align_layer:
-    name: Up_conv2 # Up_conv5, Up_conv4, Up_conv3, Up_conv2, Deconv_1x1
+    name: Deconv_1x1 # Up_conv5, Up_conv4, Up_conv3, Up_conv2, Deconv_1x1
     clusters: 5
 
 seed: 123
