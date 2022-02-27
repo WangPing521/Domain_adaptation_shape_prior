@@ -7,8 +7,8 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 source $CC_WRAPPER_PATH
 
 time=5
-account=def-chdesa
-save_dir=rrg-ebrahimi
+account=rrg-ebrahimi
+save_dir=psuedoDA
 
 declare -a StringArray=(
 # CT2MRI
