@@ -46,14 +46,14 @@
     <option name="mySupportGeventDebugging" value="true" />
   </component>
   <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/runs" />
+      <recent name="$PROJECT_DIR$/runs/runs" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/trainers" />
       <recent name="$PROJECT_DIR$/.data" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/runs" />
-      <recent name="$PROJECT_DIR$/runs/runs" />
     </key>
   </component>
   <component name="RunDashboard">

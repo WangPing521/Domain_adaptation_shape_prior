@@ -28,7 +28,7 @@ def meters_registerPDA(c):
 
         # loss
         meters.register_meter(
-            "loss", AverageValueMeter()
+            "s_loss", AverageValueMeter()
         )
 
     with meters.focus_on("val"):
