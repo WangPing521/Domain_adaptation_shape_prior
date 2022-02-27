@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set  -e -u -o pipefail
+#set  -e -u -o pipefail
 
 CC_WRAPPER_PATH="CC_wrapper.sh"
 
