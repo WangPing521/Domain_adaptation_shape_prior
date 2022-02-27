@@ -121,7 +121,7 @@ class Pseudo_labelingDATrainer:
 
         pred_t_list = []
         with torch.no_grad():
-            for i in range(5):
+            for i in range(10):
                 pred_tt = self.Smodel(T_img).softmax(1)
                 pred_t_list.append(pred_tt.unsqueeze(0).cpu().numpy())
 

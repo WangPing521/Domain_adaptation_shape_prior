@@ -6,9 +6,9 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 
-time=2
+time=3
 account=rrg-ebrahimi
-save_dir=psuedoDA
+save_dir=psuedoDA1
 
 declare -a StringArray=(
 # CT2MRI
@@ -22,6 +22,9 @@ declare -a StringArray=(
 "python pseudoDA_main.py seed=231 Optim.lr=0.000001 DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Trainer.save_dir=${save_dir}/pseudoDA_501seed2"
 "python pseudoDA_main.py seed=321 Optim.lr=0.000001 DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Trainer.save_dir=${save_dir}/pseudoDA_501seed3"
 
+"python pseudoDA_main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Trainer.save_dir=${save_dir}/pseudoDA_401seed1"
+"python pseudoDA_main.py seed=231 Optim.lr=0.00001 DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Trainer.save_dir=${save_dir}/pseudoDA_401seed2"
+"python pseudoDA_main.py seed=321 Optim.lr=0.00001 DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Trainer.save_dir=${save_dir}/pseudoDA_401seed3"
 
 )
 
