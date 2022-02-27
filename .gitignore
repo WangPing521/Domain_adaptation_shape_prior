@@ -2,3 +2,4 @@
 runs
 .idea
 *.pyc
+.mypy_cache

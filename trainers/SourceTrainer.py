@@ -16,7 +16,7 @@ from utils import tqdm
 from utils.general import path2Path, class2one_hot
 from utils.image_save_utils import plot_seg
 from utils.rising import RisingWrapper
-from utils.utils import set_environment, write_yaml, meters_register, fix_all_seed_within_context
+from utils.utils import set_environment, write_yaml, meters_register
 
 
 class SourcebaselineTrainer:
@@ -78,7 +78,7 @@ class SourcebaselineTrainer:
         self.meters = meters_register(c)
         self.displacement = self._config['DA']['displacement']
         if self.displacement:
-            self.displacement_map_list = [(0,0),(-1,-1),(1,1),(-1,0),(1,0),(0,1),(0,-1),(-1,1),(1,-1)]
+            self.displacement_map_list = [(0, 0), (-1, -1), (1, 1), (-1, 0), (1, 0), (0, 1), (0, -1), (-1, 1), (1, -1)]
             # self.displacement_map_list = [(0,0),(-3,-3),(3,3),(-3,0),(3,0),(0,3),(0,-3),(-3,3),(3,-3)]
 
         else:
@@ -151,6 +151,8 @@ class SourcebaselineTrainer:
             s_loss, cluster_loss, align_loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
             loss = s_loss + self._weight_cluster.value * cluster_loss + self._weight_scheduler.value * align_loss
 
+            if torch.isnan(loss):
+                raise RuntimeError(loss)
             loss.backward()
             self.optimizer.step()
 
@@ -207,7 +209,7 @@ class SourcebaselineTrainer:
                 data_T[0][1].to(self.device),
                 data_T[1]
             )
-            if self._config['Trainer']['name'] in ['baseline','upperbaseline']:
+            if self._config['Trainer']['name'] in ['baseline', 'upperbaseline']:
                 preds_T = self.model(imageT).softmax(1)
             else:
                 with self.switch_bn(self.model, 1):

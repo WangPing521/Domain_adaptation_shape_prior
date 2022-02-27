@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#set  -e -u -o pipefail
+set -e -u -o pipefail
 
 CC_WRAPPER_PATH="CC_wrapper.sh"
 
@@ -9,38 +9,29 @@ source $CC_WRAPPER_PATH
 time=5
 account=rrg-ebrahimi
 save_dir=olva
-
+common="Scheduler.RegScheduler.begin_epoch=0 Scheduler.RegScheduler.max_epoch=0 Scheduler.ClusterScheduler.begin_epoch=0 Scheduler.ClusterScheduler.max_epoch=0  "
 declare -a StringArray=(
-# CT2MRI
-# lr = 0.00001
-#------------------MR2CT
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=10 Scheduler.ClusterScheduler.max_value=10      Trainer.save_dir=${save_dir}/OLVA_10kl_10ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=10 Scheduler.ClusterScheduler.max_value=0.001   Trainer.save_dir=${save_dir}/OLVA_10kl_201ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=10 Scheduler.ClusterScheduler.max_value=0.0001  Trainer.save_dir=${save_dir}/OLVA_10kl_301ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=10 Scheduler.ClusterScheduler.max_value=0.00001 Trainer.save_dir=${save_dir}/OLVA_10kl_401ot"
+  # CT2MRI
+  # lr = 0.00001
+  #------------------MR2CT
+  "python main.py ${common} seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.align_layer.name=Deconv_1x1  DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0 Scheduler.ClusterScheduler.max_value=0   Trainer.enable_sampling=true   Trainer.save_dir=${save_dir}/OLVA_0kl_0ot/sample_true"
+  "python main.py ${common} seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.align_layer.name=Deconv_1x1  DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0 Scheduler.ClusterScheduler.max_value=0   Trainer.enable_sampling=false   Trainer.save_dir=${save_dir}/OLVA_0kl_0ot/sample_false"
 
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=1 Scheduler.ClusterScheduler.max_value=10      Trainer.save_dir=${save_dir}/OLVA_1kl_10ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=1 Scheduler.ClusterScheduler.max_value=0.001   Trainer.save_dir=${save_dir}/OLVA_1kl_201ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=1 Scheduler.ClusterScheduler.max_value=0.0001  Trainer.save_dir=${save_dir}/OLVA_1kl_301ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=1 Scheduler.ClusterScheduler.max_value=0.00001 Trainer.save_dir=${save_dir}/OLVA_1kl_401ot"
+  "python main.py ${common} seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.align_layer.name=Deconv_1x1  DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.1    Scheduler.ClusterScheduler.max_value=0.1 Trainer.enable_sampling=true  Trainer.save_dir=${save_dir}/OLVA_0.1kl_0.1ot"
+  "python main.py ${common} seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.align_layer.name=Deconv_1x1  DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.01   Scheduler.ClusterScheduler.max_value=0.1 Trainer.enable_sampling=true  Trainer.save_dir=${save_dir}/OLVA_0.1kl_101ot"
+  "python main.py ${common} seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.align_layer.name=Deconv_1x1  DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.001  Scheduler.ClusterScheduler.max_value=0.1 Trainer.enable_sampling=true  Trainer.save_dir=${save_dir}/OLVA_0.1kl_201ot"
+  "python main.py ${common} seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.align_layer.name=Deconv_1x1  DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.1 Trainer.enable_sampling=true  Trainer.save_dir=${save_dir}/OLVA_0.1kl_301ot"
 
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.001 Scheduler.ClusterScheduler.max_value=10      Trainer.save_dir=${save_dir}/OLVA_201kl_10ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.001 Scheduler.ClusterScheduler.max_value=0.001   Trainer.save_dir=${save_dir}/OLVA_201kl_201ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.001 Scheduler.ClusterScheduler.max_value=0.0001  Trainer.save_dir=${save_dir}/OLVA_201kl_301ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.001 Scheduler.ClusterScheduler.max_value=0.00001 Trainer.save_dir=${save_dir}/OLVA_201kl_401ot"
+  "python main.py ${common} seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.align_layer.name=Deconv_1x1  DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.1    Scheduler.ClusterScheduler.max_value=0.01 Trainer.enable_sampling=true  Trainer.save_dir=${save_dir}/OLVA_0.01kl_0.1ot"
+  "python main.py ${common} seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.align_layer.name=Deconv_1x1  DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.01   Scheduler.ClusterScheduler.max_value=0.01 Trainer.enable_sampling=true  Trainer.save_dir=${save_dir}/OLVA_0.01kl_101ot"
+  "python main.py ${common} seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.align_layer.name=Deconv_1x1  DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.001  Scheduler.ClusterScheduler.max_value=0.01 Trainer.enable_sampling=true  Trainer.save_dir=${save_dir}/OLVA_0.01kl_201ot"
+  "python main.py ${common} seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.align_layer.name=Deconv_1x1  DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.01 Trainer.enable_sampling=true  Trainer.save_dir=${save_dir}/OLVA_0.01kl_301ot"
 
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=10      Trainer.save_dir=${save_dir}/OLVA_401kl_10ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.001   Trainer.save_dir=${save_dir}/OLVA_401kl_201ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.0001  Trainer.save_dir=${save_dir}/OLVA_401kl_301ot"
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=ottrainer DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.double_bn=True Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.00001 Trainer.save_dir=${save_dir}/OLVA_401kl_401ot"
 
 )
 
-for cmd in "${StringArray[@]}"
-do
-	echo ${cmd}
-	CC_wrapper "${time}" "${account}" "${cmd}" 16
+for cmd in "${StringArray[@]}"; do
+  echo ${cmd}
+  CC_wrapper "${time}" "${account}" "${cmd}" 16
 
 done
-
-
