@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=5
 account=def-chdesa
-save_dir=psuedoDA
+save_dir=rrg-ebrahimi
 
 declare -a StringArray=(
 # CT2MRI
