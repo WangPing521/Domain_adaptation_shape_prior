@@ -1,6 +1,7 @@
 # this file is going to implement OLVA paper, which does not exist reference code.
 
 import typing as t
+from contextlib import contextmanager
 
 import torch
 from torch import Tensor, nn
@@ -26,14 +27,14 @@ class VAEUNet(UNet):
             nn.Conv2d(in_channels=self.get_channel_dim("Conv5"), out_channels=self.get_channel_dim("Conv5"),
                       kernel_size=(1, 1))  # to enable negative values.
         )
+        self._enable_sampling = False
 
-    def forward(self, x, enable_sampling=True):
+    def forward(self, x, **kwargs):
         e5, e5_logvar, features = self.forward_encoder(x)
         e5_sampled = e5
-        if enable_sampling:
+        if self._enable_sampling:
             e5_std = torch.exp(e5_logvar / 2)
-            with fix_all_seed_within_context(seed=int(e5.sum())):
-                e5_sampled = e5 + e5_std * torch.randn_like(e5_std)
+            e5_sampled = e5 + e5_std * torch.randn_like(e5_std)
         self._e5, self._e5_sampled, self._e5_logvar = e5, e5_sampled, e5_logvar
         return self.forward_decoder(e5_sampled, **features)
 
@@ -123,6 +124,15 @@ class VAEUNet(UNet):
     @property
     def latent_code_log_var(self):
         return self._e5_logvar
+
+    @contextmanager
+    def switch_sampling(self, *, enable: bool):
+        prev_state = self._enable_sampling
+        try:
+            self._enable_sampling = enable
+            yield
+        finally:
+            self._enable_sampled = prev_state
 
 
 def unet2vaeunet(model: "UNet", *, seed=0) -> "VAEUNet":

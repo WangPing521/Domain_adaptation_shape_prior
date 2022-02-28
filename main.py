@@ -104,5 +104,8 @@ trainer = trainer_name(
     config=config,
     **config['Trainer']
 )
+checkpoint_path = config["Trainer"].get('checkpoint_path')
+#if checkpoint_path:
+#    trainer.load_checkpoint_from_path(checkpoint_path)
 # trainer.inference(identifier='last.pth')
 trainer.start_training()
