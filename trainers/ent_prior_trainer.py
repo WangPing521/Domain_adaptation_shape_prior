@@ -8,7 +8,7 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 from arch.projectors import DenseClusterHead
 from arch.utils import FeatureExtractor
 from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
-from loss.entropy import Entropy
+from loss.entropy import Entropy, KL_div
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list, simplex
@@ -34,6 +34,7 @@ class entPlusPriorTrainer(SourcebaselineTrainer):
         self._weight_scheduler = weight_scheduler
         self._weight_cluster = weight_cluster
         self.ent_loss = Entropy()
+        self.KL_loss = KL_div()
 
     def run_step(self, s_data, t_data, cur_batch: int):
         C = int(self._config['Data_input']['num_class'])
@@ -62,15 +63,7 @@ class entPlusPriorTrainer(SourcebaselineTrainer):
             pred_T = self.model(T_img).softmax(1)
 
         align_loss = self.ent_loss(pred_T)
-        S_mask = pred_S.max(1)[1]
-        T_mask = pred_T.max(1)[1]
-        prior_l = []
-        for c1 in range(1, pred_S.shape[1]):
-            count_s = (S_mask==torch.Tensor[c1]).float().sum()
-            count_t = (T_mask==torch.Tensor([c1])).float().sum()
-            l1 = torch.abs(count_s - count_t)
-            prior_l.append(l1)
-        cluster_loss = sum(prior_l) / len(prior_l)
+        cluster_loss = self.KL_loss(pred_T, pred_S.detach())
 
         self.meters[f"train_dice"].add(
             pred_S.max(1)[1],

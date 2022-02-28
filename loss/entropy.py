@@ -1,8 +1,10 @@
+from typing import Optional, Union, List
+
 from torch import Tensor
 from torch import nn
 import torch
 
-from utils.general import simplex
+from utils.general import simplex, assert_list
 
 
 def _check_reduction_params(reduction):
@@ -66,3 +68,56 @@ class SimplexCrossEntropyLoss(nn.Module):
             return ce_loss.sum()
         else:
             return ce_loss
+
+
+class KL_div(nn.Module):
+    r"""
+    KL(p,q)= -\sum p(x) * log(q(x)/p(x))
+    where p, q are distributions
+    p is usually the fixed one like one hot coding
+    p is the target and q is the distribution to get approached.
+
+    reduction (string, optional): Specifies the reduction to apply to the output:
+    ``'none'`` | ``'mean'`` | ``'sum'``. ``'none'``: no reduction will be applied,
+    ``'mean'``: the sum of the output will be divided by the number of
+    elements in the output, ``'sum'``: the output will be summed.
+    """
+
+    def __init__(self, reduction="mean", eps=1e-16, weight: Union[List[float], Tensor] = None, verbose=True):
+        super().__init__()
+        self._eps = eps
+        self._reduction = reduction
+        self._weight: Optional[Tensor] = weight
+        if weight is not None:
+            assert isinstance(weight, (list, Tensor)), type(weight)
+            if isinstance(weight, list):
+                assert assert_list(lambda x: isinstance(x, (int, float)), weight)
+                self._weight = torch.Tensor(weight).float()
+            else:
+                self._weight = weight.float()
+            # normalize weight:
+            self._weight = self._weight / self._weight.sum()
+        if verbose:
+            print(f"Initialized {self.__class__.__name__} \nwith weight={self._weight} and reduction={self._reduction}.")
+
+    def forward(self, prob: Tensor, target: Tensor, **kwargs) -> Tensor:
+        if not kwargs.get("disable_assert"):
+            assert prob.shape == target.shape
+            assert simplex(prob), prob
+            assert simplex(target), target
+            assert not target.requires_grad
+            assert prob.requires_grad
+        b, c, *hwd = target.shape
+        kl = (-target * torch.log((prob + self._eps) / (target + self._eps)))
+        if self._weight is not None:
+            assert len(self._weight) == c
+            weight = self._weight.expand(b, *hwd, -1).transpose(-1, 1).detach()
+            kl *= weight.to(kl.device)
+        kl = kl.sum(1)
+        if self._reduction == "mean":
+            return kl.mean()
+        elif self._reduction == "sum":
+            return kl.sum()
+        else:
+            return kl
+
