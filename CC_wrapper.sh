@@ -24,3 +24,14 @@ CC_wrapper(){
     ./tmp.sh
     rm -rf ./tmp.sh
 }
+
+
+Local_wrapper(){
+    hour=$1
+    account=$2
+    command=$3
+    mem=$4
+    echo ${command} > tmp.sh
+    bash ./tmp.sh
+    rm -rf ./tmp.sh
+}

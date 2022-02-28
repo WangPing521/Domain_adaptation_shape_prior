@@ -44,6 +44,7 @@ class OLVATrainer(align_IBNtrainer):
         self._enable_sampling = enable_sampling
 
     def run_step(self, s_data, t_data, cur_batch: int):
+        assert self.model.training
         with self.model.switch_sampling(enable=self._enable_sampling):
             C = int(self._config['Data_input']['num_class'])
             S_img, S_target, S_filename = (
@@ -61,20 +62,14 @@ class OLVATrainer(align_IBNtrainer):
             T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
             T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
-            with self.switch_bn(self.model, 0), fix_all_seed_within_context(seed=cur_batch):
-                pred_S = self.model(S_img).softmax(1)
-            source_latent_mean = self.model.latent_code_mean
-            source_latent_logvar = self.model.latent_code_log_var
-            source_latent_sampled = self.model.latent_code_sampled
+            with  fix_all_seed_within_context(seed=cur_batch):
+                pred_S, pred_T = torch.chunk(self.model(torch.cat([S_img, T_img])).softmax(1), 2)
+            source_latent_mean, target_latent_mean = torch.chunk(self.model.latent_code_mean, 2)
+            source_latent_logvar, target_latent_logvar = torch.chunk(self.model.latent_code_log_var, 2)
+            source_latent_sampled, target_latent_sampled = torch.chunk(self.model.latent_code_sampled, 2)
 
             onehot_targetS = class2one_hot(S_target.squeeze(1), C)
             s_loss = self.crossentropy(pred_S, onehot_targetS)
-
-            with self.switch_bn(self.model, 0), fix_all_seed_within_context(seed=cur_batch + 1):
-                pred_T = self.model(T_img).softmax(1)
-            target_latent_mean = self.model.latent_code_mean
-            target_latent_logvar = self.model.latent_code_log_var
-            target_latent_sampled = self.model.latent_code_sampled
 
             self.meters[f"train_dice"].add(
                 pred_S.max(1)[1],
@@ -84,7 +79,7 @@ class OLVATrainer(align_IBNtrainer):
             kl_loss = 0.5 * self.vae_kl_divergence(source_latent_mean, source_latent_logvar) \
                       + 0.5 * self.vae_kl_divergence(target_latent_mean, target_latent_logvar)
 
-            ot_loss = self.ot_loss(source_latent_sampled, target_latent_sampled, alpha=10.0)
+            ot_loss, T = self.ot_loss(source_latent_sampled, target_latent_sampled, alpha=10.0)
 
             with self.meters.focus_on("olva"):
                 self.meters["kl"].add(kl_loss.item())
@@ -166,4 +161,5 @@ class OLVATrainer(align_IBNtrainer):
         assert pairwise_distance.shape == torch.Size([B, B])
         with torch.no_grad():
             T = ot.emd(torch.ones(B) / B, torch.ones(B) / B, pairwise_distance)
-        return min((pairwise_distance * T).mean(), torch.tensor(1e3, dtype=torch.float, device=source_sampled.device))
+        return min((pairwise_distance * T).mean(),
+                   torch.tensor(1e3, dtype=torch.float, device=source_sampled.device)), T

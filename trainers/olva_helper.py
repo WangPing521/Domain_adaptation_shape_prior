@@ -132,7 +132,7 @@ class VAEUNet(UNet):
             self._enable_sampling = enable
             yield
         finally:
-            self._enable_sampled = prev_state
+            self._enable_sampling = prev_state
 
 
 def unet2vaeunet(model: "UNet", *, seed=0) -> "VAEUNet":
