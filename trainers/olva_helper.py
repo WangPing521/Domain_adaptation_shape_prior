@@ -30,15 +30,19 @@ class VAEUNet(UNet):
         self._enable_sampling = False
 
     def forward(self, x, **kwargs):
-        e5, e5_logvar, features = self.forward_encoder(x)
+        e5_sampled, features = self.forward_encoder(x)
+        return self.forward_decoder(e5_sampled, **features)
+
+    def forward_encoder(self, x, until: str = None):
+        e5, e5_logvar, features = self._forward_encoder(x, until=until)
         e5_sampled = e5
         if self._enable_sampling:
             e5_std = torch.exp(e5_logvar / 2)
             e5_sampled = e5 + e5_std * torch.randn_like(e5_std)
         self._e5, self._e5_sampled, self._e5_logvar = e5, e5_sampled, e5_logvar
-        return self.forward_decoder(e5_sampled, **features)
+        return e5_sampled, features
 
-    def forward_encoder(self, x, until: str = None) -> t.Union[Tensor, t.Tuple[Tensor, Tensor, t.Dict[str, Tensor]]]:
+    def _forward_encoder(self, x, until: str = None) -> t.Union[Tensor, t.Tuple[Tensor, Tensor, t.Dict[str, Tensor]]]:
         if until:
             if until not in self.layer_dimension:
                 raise KeyError(f"`return_until` should be in {', '.join(self.layer_dimension.keys())},"
@@ -72,9 +76,10 @@ class VAEUNet(UNet):
         e5_std = self._Conv5_std(_e5)  # 256 14 14
         return e5, e5_std, {"e4": e4, "e3": e3, "e2": e2, "e1": e1}
 
-    def forward_decoder(self, e5, *, e4, e3, e2, e1, until: str = None) -> Tensor:
+    def forward_decoder(self, e5, *, e4=None, e3=None, e2=None, e1=None, until: str = None) -> Tensor:
         # decoding + concat path
         d5 = self._Up5(e5)
+        e4 = d5 if e4 is None else e4
         d5 = torch.cat((torch.zeros_like(e4), d5), dim=1)
 
         d5 = self._Up_conv5(d5)  # 128 28 28
@@ -84,6 +89,7 @@ class VAEUNet(UNet):
             return d5
 
         d4 = self._Up4(d5)
+        e3 = d4 if e3 is None else e3
         d4 = torch.cat((torch.zeros_like(e3), d4), dim=1)
         d4 = self._Up_conv4(d4)  # 64 56 56
 
@@ -93,6 +99,7 @@ class VAEUNet(UNet):
         # d4->Up4+Up_conv4
 
         d3 = self._Up3(d4)
+        e2 = d3 if e2 is None else e2
         d3 = torch.cat((torch.zeros_like(e2), d3), dim=1)
         d3 = self._Up_conv3(d3)  # 32 112 112
 
@@ -102,6 +109,7 @@ class VAEUNet(UNet):
         # d3->Up3+upconv3
 
         d2 = self._Up2(d3)
+        e1 = d2 if e1 is None else e1
         d2 = torch.cat((torch.zeros_like(e1), d2), dim=1)
         d2 = self._Up_conv2(d2)  # 16 224 224
 

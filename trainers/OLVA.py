@@ -63,10 +63,15 @@ class OLVATrainer(align_IBNtrainer):
             T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
             with  fix_all_seed_within_context(seed=cur_batch):
-                pred_S, pred_T = torch.chunk(self.model(torch.cat([S_img, T_img])).softmax(1), 2)
-            source_latent_mean, target_latent_mean = torch.chunk(self.model.latent_code_mean, 2)
-            source_latent_logvar, target_latent_logvar = torch.chunk(self.model.latent_code_log_var, 2)
-            source_latent_sampled, target_latent_sampled = torch.chunk(self.model.latent_code_sampled, 2)
+                source_latent_sample, features = self.model.forward_encoder(S_img)
+            source_latent_mean = self.model.latent_code_mean
+            source_latent_logvar = self.model.latent_code_log_var
+            pred_S = self.model.forward_decoder(source_latent_sample, **features).softmax(1)
+
+            with  fix_all_seed_within_context(seed=cur_batch * 2):
+                target_latent_sample, _ = self.model.forward_encoder(T_img)
+            target_latent_mean = self.model.latent_code_mean
+            target_latent_logvar = self.model.latent_code_log_var
 
             onehot_targetS = class2one_hot(S_target.squeeze(1), C)
             s_loss = self.crossentropy(pred_S, onehot_targetS)
@@ -79,7 +84,7 @@ class OLVATrainer(align_IBNtrainer):
             kl_loss = 0.5 * self.vae_kl_divergence(source_latent_mean, source_latent_logvar) \
                       + 0.5 * self.vae_kl_divergence(target_latent_mean, target_latent_logvar)
 
-            ot_loss, T = self.ot_loss(source_latent_sampled, target_latent_sampled, alpha=10.0)
+            ot_loss, T, pairwise_penalty = self.ot_loss(source_latent_sample, target_latent_sample, alpha=1.0)
 
             with self.meters.focus_on("olva"):
                 self.meters["kl"].add(kl_loss.item())
@@ -162,4 +167,4 @@ class OLVATrainer(align_IBNtrainer):
         with torch.no_grad():
             T = ot.emd(torch.ones(B) / B, torch.ones(B) / B, pairwise_distance)
         return min((pairwise_distance * T).mean(),
-                   torch.tensor(1e3, dtype=torch.float, device=source_sampled.device)), T
+                   torch.tensor(1e3, dtype=torch.float, device=source_sampled.device)), T, pairwise_distance
