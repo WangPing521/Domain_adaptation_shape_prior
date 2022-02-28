@@ -1,0 +1,82 @@
+from typing import Union
+
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from torch.utils.data.dataloader import _BaseDataLoaderIter
+
+from arch.projectors import DenseClusterHead
+from arch.utils import FeatureExtractor
+from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
+from loss.entropy import Entropy
+from scheduler.customized_scheduler import RampScheduler
+from trainers.SourceTrainer import SourcebaselineTrainer
+from utils.general import class2one_hot, average_list, simplex
+from utils.image_save_utils import plot_joint_matrix, FeatureMapSaver, plot_seg
+
+
+class entPlusPriorTrainer(SourcebaselineTrainer):
+
+    def __init__(self, TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
+                 TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
+                 valS_loader: Union[DataLoader, _BaseDataLoaderIter],
+                 valT_loader: Union[DataLoader, _BaseDataLoaderIter], weight_scheduler: RampScheduler,
+                 weight_cluster: RampScheduler,
+                 model: nn.Module,
+                 optimizer, scheduler, *args, **kwargs) -> None:
+
+        super().__init__(model, optimizer, scheduler, TrainS_loader, TrainT_loader, valS_loader, valT_loader,
+                         weight_scheduler, weight_cluster, *args, **kwargs)
+        self._trainS_loader = TrainS_loader
+        self._trainT_loader = TrainT_loader
+        self._valS_loader = valS_loader
+        self._valT_loader = valT_loader
+        self._weight_scheduler = weight_scheduler
+        self._weight_cluster = weight_cluster
+        self.ent_loss = Entropy()
+
+    def run_step(self, s_data, t_data, cur_batch: int):
+        C = int(self._config['Data_input']['num_class'])
+        S_img, S_target, S_filename = (
+            s_data[0][0].to(self.device),
+            s_data[0][1].to(self.device),
+            s_data[1],
+        )
+        T_img, T_target, T_filename = (
+            t_data[0][0].to(self.device),
+            t_data[0][1].to(self.device),
+            t_data[1],
+        )
+        S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
+        S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
+        T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
+        # T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
+
+        with self.switch_bn(self.model, 0):
+            pred_S = self.model(S_img).softmax(1)
+
+        onehot_targetS = class2one_hot(S_target.squeeze(1), C)
+        s_loss = self.crossentropy(pred_S, onehot_targetS)
+
+        with self.switch_bn(self.model, 1):
+            pred_T = self.model(T_img).softmax(1)
+
+        align_loss = self.ent_loss(pred_T)
+        S_mask = pred_S.max(1)[1]
+        T_mask = pred_T.max(1)[1]
+        prior_l = []
+        for c1 in range(1, pred_S.shape[1]):
+            count_s = (S_mask==torch.Tensor[c1]).float().sum()
+            count_t = (T_mask==torch.Tensor([c1])).float().sum()
+            l1 = torch.abs(count_s - count_t)
+            prior_l.append(l1)
+        cluster_loss = sum(prior_l) / len(prior_l)
+
+        self.meters[f"train_dice"].add(
+            pred_S.max(1)[1],
+            S_target.squeeze(1),
+            group_name=["_".join(x.split("_")[:-1]) for x in S_filename],
+        )
+
+
+        return s_loss, cluster_loss, align_loss
