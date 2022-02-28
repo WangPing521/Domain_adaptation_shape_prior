@@ -12,6 +12,7 @@ from trainers.OLVA import OLVATrainer
 from trainers.SourceTrainer import SourcebaselineTrainer
 from trainers.align_IBN_trainer import align_IBNtrainer
 from trainers.align_combinationlayer_trainer import mutli_aligntrainer
+from trainers.ent_prior_trainer import entPlusPriorTrainer
 from trainers.entropy_DA_trainer import EntropyDA
 from trainers.olva_helper import unet2vaeunet
 from trainers.upper_supervised_Trainer import UpperbaselineTrainer
@@ -84,7 +85,8 @@ Trainer_container = {
     "entda": EntropyDA,
     "align_IndividualBN": align_IBNtrainer,
     "combinationlayer": mutli_aligntrainer,
-    "ottrainer": OLVATrainer
+    "ottrainer": OLVATrainer,
+    "priorbased": entPlusPriorTrainer
 }
 trainer_name = Trainer_container.get(config['Trainer'].get('name'))
 if trainer_name == OLVATrainer:
@@ -104,7 +106,7 @@ trainer = trainer_name(
     config=config,
     **config['Trainer']
 )
-checkpoint_path = config["Trainer"].get('checkpoint_path')
+# checkpoint_path = config["Trainer"].get('checkpoint_path')
 #if checkpoint_path:
 #    trainer.load_checkpoint_from_path(checkpoint_path)
 # trainer.inference(identifier='last.pth')

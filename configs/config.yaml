@@ -28,7 +28,7 @@ Scheduler:
     max_value: 0
 
 Trainer:
-  name: ottrainer # baseline entda  supervised  align_IndividualBN upperbaseline, combinationlayer, ottrainer
+  name: align_IndividualBN # baseline entda  supervised  align_IndividualBN upperbaseline, combinationlayer, ottrainer, priorbased
   device: cuda
   save_dir: runs
   checkpoint_path: runs
