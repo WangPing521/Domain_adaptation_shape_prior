@@ -128,8 +128,8 @@ class Pseudo_labelingDATrainer:
         preds = np.concatenate(pred_t_list, axis=0)
         output_segs = np.mean(preds, axis=0)
         output_stds = np.std(preds, axis=0)
-        idx_pos = output_segs >= 0.5
-        idx_neg = output_segs < 0.5
+        idx_pos = output_segs >= 0.6
+        idx_neg = output_segs < 0.6
         stds_pos = output_stds[idx_pos]
         stds_neg = output_stds[idx_neg]
         percent = 90
