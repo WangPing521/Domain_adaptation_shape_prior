@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple, Any
 
 import ot
 import torch
@@ -9,7 +9,9 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 from meters import AverageValueMeter
 from scheduler.customized_scheduler import RampScheduler
 from scheduler.warmup_scheduler import GradualWarmupScheduler
+from utils import tqdm
 from utils.general import class2one_hot
+from utils.image_save_utils import plot_seg
 from utils.radam import RAdam
 from utils.utils import fix_all_seed_within_context
 from .align_IBN_trainer import align_IBNtrainer
@@ -29,7 +31,7 @@ class OLVATrainer(align_IBNtrainer):
         super().__init__(TrainS_loader, TrainT_loader, valS_loader, valT_loader, weight_scheduler, weight_cluster,
                          model, optimizer, scheduler, *args, config=config, **kwargs)
         del self.projector
-        self.optimizer = RAdam(model.parameters(), lr=config["Optim"]["lr"])
+        self.optimizer = RAdam(self.model.parameters(), lr=config["Optim"]["lr"])
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=max(90, 1), eta_min=1e-7)
         self.scheduler = GradualWarmupScheduler(self.optimizer, multiplier=300, total_epoch=10,
                                                 after_scheduler=scheduler)
@@ -57,7 +59,7 @@ class OLVATrainer(align_IBNtrainer):
             S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
             S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
             T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
-            # T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
+            T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
             with self.switch_bn(self.model, 0), fix_all_seed_within_context(seed=cur_batch):
                 pred_S = self.model(S_img).softmax(1)
@@ -68,8 +70,8 @@ class OLVATrainer(align_IBNtrainer):
             onehot_targetS = class2one_hot(S_target.squeeze(1), C)
             s_loss = self.crossentropy(pred_S, onehot_targetS)
 
-            with self.switch_bn(self.model, 1), fix_all_seed_within_context(seed=cur_batch+1):
-                _ = self.model(T_img).softmax(1)
+            with self.switch_bn(self.model, 0), fix_all_seed_within_context(seed=cur_batch + 1):
+                pred_T = self.model(T_img).softmax(1)
             target_latent_mean = self.model.latent_code_mean
             target_latent_logvar = self.model.latent_code_log_var
             target_latent_sampled = self.model.latent_code_sampled
@@ -79,7 +81,6 @@ class OLVATrainer(align_IBNtrainer):
                 S_target.squeeze(1),
                 group_name=["_".join(x.split("_")[:-1]) for x in S_filename],
             )
-
             kl_loss = 0.5 * self.vae_kl_divergence(source_latent_mean, source_latent_logvar) \
                       + 0.5 * self.vae_kl_divergence(target_latent_mean, target_latent_logvar)
 
@@ -90,17 +91,78 @@ class OLVATrainer(align_IBNtrainer):
                 self.meters["ot"].add(ot_loss.item())
         return s_loss, kl_loss, ot_loss
 
+    def eval_loop(
+            self,
+            valS_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
+            valT_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
+            epoch: int = 0,
+            *args,
+            **kwargs,
+    ) -> Tuple[Any, Any]:
+        self.model.eval()
+        valS_indicator = tqdm(valS_loader)
+        valS_indicator.set_description(f"ValS_Epoch {epoch:03d}")
+        valT_indicator = tqdm(valT_loader)
+        valT_indicator.set_description(f"ValT_Epoch {epoch:03d}")
+        report_dict = {}
+        for batch_idS, data_S in enumerate(valS_indicator):
+            imageS, targetS, filenameS = (
+                data_S[0][0].to(self.device),
+                data_S[0][1].to(self.device),
+                data_S[1]
+            )
+            with self.switch_bn(self.model, 0):
+                preds_S = self.model(imageS).softmax(1)
+            self.meters[f"valS_dice"].add(
+                preds_S.max(1)[1],
+                targetS.squeeze(1),
+                group_name=["_".join(x.split("_")[:-1]) for x in filenameS])
+
+            report_dict = self.meters.statistics()
+            valS_indicator.set_postfix_statics(report_dict, cache_time=20)
+            if batch_idS == 28:
+                source_seg = plot_seg(imageS.squeeze(0), preds_S.max(1)[1].squeeze(0))
+                self.writer.add_figure(tag=f"val_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
+
+        valS_indicator.close()
+
+        for batch_idT, data_T in enumerate(valT_indicator):
+            imageT, targetT, filenameT = (
+                data_T[0][0].to(self.device),
+                data_T[0][1].to(self.device),
+                data_T[1]
+            )
+            if self._config['Trainer']['name'] in ['baseline', 'upperbaseline']:
+                preds_T = self.model(imageT).softmax(1)
+            else:
+                with self.switch_bn(self.model, 0):
+                    preds_T = self.model(imageT).softmax(1)
+            self.meters[f"valT_dice"].add(
+                preds_T.max(1)[1],
+                targetT.squeeze(1),
+                group_name=["_".join(x.split("_")[:-1]) for x in filenameT])
+
+            report_dict = self.meters.statistics()
+            valT_indicator.set_postfix_statics(report_dict, cache_time=20)
+            if batch_idT == 28:
+                target_seg = plot_seg(imageT.squeeze(0), preds_T.max(1)[1].squeeze(0))
+                self.writer.add_figure(tag=f"val_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
+
+        valT_indicator.close()
+        assert report_dict is not None
+        return dict(report_dict), self.meters["valT_dice"].summary()["DSC_mean"]
+
     def vae_kl_divergence(self, mean, log_var) -> Tensor:
         mean, log_var = [torch.flatten(x, start_dim=1) for x in (mean, log_var)]
         # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-        kld_loss = torch.mean(-0.5 * torch.mean(1 + log_var - mean ** 2 - log_var.exp(), dim=1), dim=0)
+        kld_loss = torch.mean(0.5 * torch.mean(-1 - log_var + mean ** 2 + log_var.exp(), dim=1), dim=0)
         return min(kld_loss, torch.tensor(1e3, dtype=torch.float, device=mean.device))
 
     def ot_loss(self, source_sampled: Tensor, target_sampled: Tensor, *, alpha: float = 1.0):
         assert source_sampled.shape == target_sampled.shape
         B = source_sampled.shape[0]
         source_sampled, target_sampled = [torch.flatten(x, start_dim=1) for x in (source_sampled, target_sampled)]
-        pairwise_distance = torch.cdist(source_sampled, target_sampled) * alpha
+        pairwise_distance: Tensor = torch.cdist(source_sampled, target_sampled) * alpha
         assert pairwise_distance.shape == torch.Size([B, B])
         with torch.no_grad():
             T = ot.emd(torch.ones(B) / B, torch.ones(B) / B, pairwise_distance)
