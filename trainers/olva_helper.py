@@ -75,7 +75,7 @@ class VAEUNet(UNet):
     def forward_decoder(self, e5, *, e4, e3, e2, e1, until: str = None) -> Tensor:
         # decoding + concat path
         d5 = self._Up5(e5)
-        d5 = torch.cat((e4, d5), dim=1)
+        d5 = torch.cat((torch.zeros_like(e4), d5), dim=1)
 
         d5 = self._Up_conv5(d5)  # 128 28 28
         # d5->Up5+Up_conv5
@@ -84,7 +84,7 @@ class VAEUNet(UNet):
             return d5
 
         d4 = self._Up4(d5)
-        d4 = torch.cat((e3, d4), dim=1)
+        d4 = torch.cat((torch.zeros_like(e3), d4), dim=1)
         d4 = self._Up_conv4(d4)  # 64 56 56
 
         if until == "Up_conv4":
@@ -93,7 +93,7 @@ class VAEUNet(UNet):
         # d4->Up4+Up_conv4
 
         d3 = self._Up3(d4)
-        d3 = torch.cat((e2, d3), dim=1)
+        d3 = torch.cat((torch.zeros_like(e2), d3), dim=1)
         d3 = self._Up_conv3(d3)  # 32 112 112
 
         if until == "Up_conv3":
@@ -102,7 +102,7 @@ class VAEUNet(UNet):
         # d3->Up3+upconv3
 
         d2 = self._Up2(d3)
-        d2 = torch.cat((e1, d2), dim=1)
+        d2 = torch.cat((torch.zeros_like(e1), d2), dim=1)
         d2 = self._Up_conv2(d2)  # 16 224 224
 
         if until == "Up_conv2":
