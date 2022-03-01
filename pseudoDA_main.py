@@ -1,6 +1,8 @@
 from collections import OrderedDict
 
 import torch
+
+from arch.DomainSpecificBNUnet import convert2TwinBN
 from arch.unet import UNet
 from configure import ConfigManager
 from dataset.mmwhs import mmWHSMRInterface, mmWHSCTInterface
@@ -15,6 +17,7 @@ cmanager = ConfigManager("configs/config.yaml", strict=True)
 config = cmanager.config
 
 Smodel = UNet(num_classes=config['Data_input']['num_class'], input_dim=1)
+Smodel = convert2TwinBN(Smodel)
 Smodel = Smodel.eval()
 weight = f'runs/psuedoDA/last.pth'
 new_state_dict = OrderedDict()

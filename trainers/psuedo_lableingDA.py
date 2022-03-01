@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Union, Dict, Any, Tuple
-
+from arch.DomainSpecificBNUnet import switch_bn
 import rising.random as rr
 import rising.transforms as rt
 import torch
@@ -121,15 +121,16 @@ class Pseudo_labelingDATrainer:
 
         pred_t_list = []
         with torch.no_grad():
-            for i in range(10):
-                pred_tt = self.Smodel(T_img).softmax(1)
-                pred_t_list.append(pred_tt.unsqueeze(0).cpu().numpy())
+            with switch_bn(self.Smodel, 1):
+                for i in range(10):
+                    pred_tt = self.Smodel(T_img).softmax(1)
+                    pred_t_list.append(pred_tt.unsqueeze(0).cpu().numpy())
 
         preds = np.concatenate(pred_t_list, axis=0)
         output_segs = np.mean(preds, axis=0)
         output_stds = np.std(preds, axis=0)
-        idx_pos = output_segs >= 0.6
-        idx_neg = output_segs < 0.6
+        idx_pos = output_segs >= 0.5
+        idx_neg = output_segs < 0.5
         stds_pos = output_stds[idx_pos]
         stds_neg = output_stds[idx_neg]
         percent = 90
