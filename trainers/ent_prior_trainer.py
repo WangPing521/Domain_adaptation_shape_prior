@@ -66,8 +66,9 @@ class entPlusPriorTrainer(SourcebaselineTrainer):
             pred_T = self.model(T_img).softmax(1)
 
         align_loss = self.ent_loss(pred_T)
-        cluster_loss = self.KL_loss(pred_T.mean(dim=[0, 2, 3])[None,...], self.prior[None,...])
 
+        # cluster_loss = self.KL_loss(pred_T.mean(dim=[0, 2, 3])[None,...], self.prior[None,...])
+        cluster_loss = torch.abs(pred_T.mean(dim=[0, 2, 3])[None, ...] - self.prior[None,...]).mean()
         self.meters[f"train_dice"].add(
             pred_S.max(1)[1],
             S_target.squeeze(1),
