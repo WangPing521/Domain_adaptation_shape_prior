@@ -6,7 +6,7 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 
-time=3
+time=2
 account=rrg-ebrahimi
 save_dir=test_prioebased_disp0
 declare -a StringArray=(
