@@ -8,7 +8,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
 
-from loss.entropy import SimplexCrossEntropyLoss
+from loss.entropy import SimplexCrossEntropyLoss, Entropy, KL_div
 from meters import Storage
 from meters.SummaryWriter import SummaryWriter
 from scheduler.customized_scheduler import RampScheduler
@@ -101,6 +101,8 @@ class SourcebaselineTrainer:
         self._rising_augmentation = RisingWrapper(
             geometry_transform=geometric_transform, intensity_transform=intensity_transform
         )
+        self.ent_loss = Entropy()
+        self.KL_loss = KL_div()
 
     def to(self, device):
         self.model.to(device=device)

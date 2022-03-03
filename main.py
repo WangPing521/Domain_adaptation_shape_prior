@@ -14,7 +14,7 @@ from trainers.align_IBN_trainer import align_IBNtrainer
 from trainers.align_combinationlayer_trainer import mutli_aligntrainer
 from trainers.ent_prior_trainer import entPlusPriorTrainer
 from trainers.entropy_DA_trainer import EntropyDA
-from trainers.olva_helper import unet2vaeunet
+# from trainers.olva_helper import unet2vaeunet
 from trainers.upper_supervised_Trainer import UpperbaselineTrainer
 from utils.radam import RAdam
 from utils.utils import fix_all_seed_within_context
@@ -89,8 +89,8 @@ Trainer_container = {
     "priorbased": entPlusPriorTrainer
 }
 trainer_name = Trainer_container.get(config['Trainer'].get('name'))
-if trainer_name == OLVATrainer:
-    model = unet2vaeunet(model, seed=config['seed'])
+# if trainer_name == OLVATrainer:
+#     model = unet2vaeunet(model, seed=config['seed'])
 
 trainer = trainer_name(
     model=model,

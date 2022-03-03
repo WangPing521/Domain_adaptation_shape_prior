@@ -36,8 +36,7 @@ class entPlusPriorTrainer(SourcebaselineTrainer):
         self._valT_loader = valT_loader
         self._weight_scheduler = weight_scheduler
         self._weight_cluster = weight_cluster
-        self.ent_loss = Entropy()
-        self.KL_loss = KL_div()
+
         self.prior = self.compute_prior(TrainS_loader)
 
     def run_step(self, s_data, t_data, cur_batch: int):

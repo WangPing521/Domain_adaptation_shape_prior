@@ -8,7 +8,7 @@ import torch.nn as nn
 from loguru import logger
 from torch import Tensor
 from torch.nn import functional as F
-
+from loss.entropy import KL_div
 from utils.general import average_list, simplex
 
 
@@ -91,7 +91,7 @@ class IIDSegmentationLoss(nn.Module):
 
 
 IICLoss = IIDSegmentationLoss()
-
+KL_loss =KL_div()
 
 def compute_joint_2D(x_out: Tensor, x_out_disp: Tensor, *, symmetric: bool = True, padding: int = 0):
     x_out = x_out.swapaxes(0, 1).contiguous()
@@ -157,7 +157,7 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
     return p_i_j.contiguous()
 
 
-def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]]):
+def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], alignment_type):
     cluster_loss = IICLoss(clustert, clustert)
     assert simplex(clustert) and simplex(clusters)
 
@@ -173,7 +173,11 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
                               dis_map[1]))
         # cluster loss
         # align
-        align_1disp_loss = torch.mean(torch.abs((p_joint_S - p_joint_T)))
+        if alignment_type in ['MAE']:
+            align_1disp_loss = torch.mean(torch.abs((p_joint_S - p_joint_T)))
+        elif alignment_type in ['kl']:
+            align_1disp_loss = KL_loss(p_joint_T.view(1,25), p_joint_T.view(1,25))
+
         align_loss_list.append(align_1disp_loss)
     align_loss = average_list(align_loss_list)
     # todo: visualization.
