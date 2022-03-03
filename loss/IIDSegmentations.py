@@ -176,7 +176,7 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
         if alignment_type in ['MAE']:
             align_1disp_loss = torch.mean(torch.abs((p_joint_S - p_joint_T)))
         elif alignment_type in ['kl']:
-            align_1disp_loss = KL_loss(p_joint_T.view(1,25), p_joint_T.view(1,25))
+            align_1disp_loss = KL_loss(p_joint_T.view(1,25), p_joint_S.view(1,25).detach())
 
         align_loss_list.append(align_1disp_loss)
     align_loss = average_list(align_loss_list)
