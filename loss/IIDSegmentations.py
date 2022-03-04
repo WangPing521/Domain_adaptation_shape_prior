@@ -158,11 +158,11 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
     return p_i_j.contiguous()
 
 
-def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], alignment_type, ent_on_joint=False):
+def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], alignment_type):
     cluster_loss = IICLoss(clustert, clustert)
     assert simplex(clustert) and simplex(clusters)
 
-    align_loss_list, ent_joint_loss_list = [], []
+    align_loss_list = []
     for dis_map in displacement_maps:
         p_joint_S = compute_joint_distribution(
             x_out=clusters,
@@ -175,20 +175,16 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
         # cluster loss
         # align
         if alignment_type in ['MAE']:
-            align_1disp_loss = torch.mean(torch.abs((p_joint_S - p_joint_T)))
+            align_1disp_loss = torch.mean(torch.abs((p_joint_S.detach() - p_joint_T)))
         elif alignment_type in ['kl']:
             align_1disp_loss = KL_loss(p_joint_T.view(1,25), p_joint_S.view(1,25).detach())
-        if ent_on_joint:
-            entloss  = ent_loss(p_joint_T.view(1,25))
-        else:
-            entloss = torch.tensor(0, dtype=torch.float, device=p_joint_T.device)
-        ent_joint_loss_list.append(entloss)
+
+
         align_loss_list.append(align_1disp_loss)
-    entjoint = average_list(ent_joint_loss_list)
     align_loss = average_list(align_loss_list)
     # todo: visualization.
 
-    return align_loss, cluster_loss, entjoint, p_joint_S, p_joint_T
+    return align_loss, cluster_loss, p_joint_S, p_joint_T
 
 
 def multi_resilution_cluster(clusters_S: t.List, clusters_T: t.List):

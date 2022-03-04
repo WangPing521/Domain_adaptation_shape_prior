@@ -42,7 +42,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
         self.extractor.bind()
         self.saver = FeatureMapSaver(save_dir=self._save_dir)
         self.align_type = self._config['DA']['align_type']
-        self.entjoint = self._config['DA']['entjoint']
+
 
     def run_step(self, s_data, t_data, cur_batch: int):
         extracted_layer = self.extractor.feature_names[0]
@@ -88,22 +88,22 @@ class align_IBNtrainer(SourcebaselineTrainer):
 
         assert simplex(clusters_S[0]) and simplex(clusters_T[0])
         assert len(clusters_S) == len(clusters_T)
-        align_loss_multires, cluster_losses_multires, entjoint_losses_multires = [], [], []
+        align_loss_multires, cluster_losses_multires = [], []
         p_jointS_list, p_jointT_list = [], []
 
         for rs in range(self._config['DA']['multi_scale']):
             if rs:
                 clusters_S, clusters_T = multi_resilution_cluster(clusters_S, clusters_T)
 
-            align_losses, cluster_losses, entjoint, p_joint_Ss, p_joint_Ts = \
-                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, alignment_type=self.align_type, ent_on_joint=self.entjoint) for
+            align_losses, cluster_losses, p_joint_Ss, p_joint_Ts = \
+                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, alignment_type=self.align_type) for
                       clusters, clustert in zip(clusters_S, clusters_T)])
             align_loss = sum(align_losses) / len(align_losses)
             cluster_loss = sum(cluster_losses) / len(cluster_losses)
-            entjoint_loss = sum(entjoint) / len(entjoint)
+
             align_loss_multires.append(align_loss)
             cluster_losses_multires.append(cluster_loss)
-            entjoint_losses_multires.append(entjoint_loss)
+
 
             p_jointS_list.append(p_joint_Ss[-1])
             p_jointT_list.append(p_joint_Ts[-1])
@@ -111,10 +111,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
         align_loss = average_list(align_loss_multires)
 
         cluster_loss = average_list(cluster_losses_multires)
-        if self.entjoint:
-            entT_loss = average_list(entjoint_losses_multires) # entropy on joint of Target
-        else:
-            entT_loss = self.ent_loss(pred_T) # entropy on target
+        entT_loss = self.ent_loss(pred_T) # entropy on target
 
         # for visualization
         p_joint_S = sum(p_jointS_list) / len(p_jointS_list)
