@@ -179,7 +179,7 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
         elif alignment_type in ['kl']:
             align_1disp_loss = KL_loss(p_joint_T.view(1,25), p_joint_S.view(1,25).detach())
         if ent_on_joint:
-            entloss  = ent_loss(p_joint_T)
+            entloss  = ent_loss(p_joint_T.view(1,25))
         ent_joint_loss_list.append(entloss)
         align_loss_list.append(align_1disp_loss)
     entjoint = average_list(ent_joint_loss_list)
