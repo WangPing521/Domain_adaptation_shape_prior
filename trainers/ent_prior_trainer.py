@@ -5,8 +5,6 @@ import torch.nn as nn
 from loguru import logger
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
-
-from loss.entropy import Entropy, KL_div
 from meters import AverageValueMeter
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
@@ -64,9 +62,9 @@ class entPlusPriorTrainer(SourcebaselineTrainer):
         with self.switch_bn(self.model, 1):
             pred_T = self.model(T_img).softmax(1)
 
-        align_loss = self.ent_loss(pred_T)
+        ent_loss = self.ent_loss(pred_T)
 
-        cluster_loss = self.KL_loss(pred_T.mean(dim=[0, 2, 3])[None,...], self.prior[None,...])
+        prior_loss = self.KL_loss(pred_T.mean(dim=[0, 2, 3])[None,...], self.prior[None,...])
         # cluster_loss = torch.abs(pred_T.mean(dim=[0, 2, 3])[None, ...] - self.prior[None,...]).mean()
         self.meters[f"train_dice"].add(
             pred_S.max(1)[1],
@@ -74,7 +72,7 @@ class entPlusPriorTrainer(SourcebaselineTrainer):
             group_name=["_".join(x.split("_")[:-1]) for x in S_filename],
         )
 
-        return s_loss, cluster_loss, align_loss
+        return s_loss, ent_loss, prior_loss
 
     @property
     def C(self): return int(self._config['Data_input']['num_class'])
