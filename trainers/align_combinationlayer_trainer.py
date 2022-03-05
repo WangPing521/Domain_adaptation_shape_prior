@@ -42,6 +42,7 @@ class mutli_aligntrainer(SourcebaselineTrainer):
         self.extractor = FeatureExtractor(self.model, feature_names=self._config['DA']['align_layer']['name'])
         self.extractor.bind()
         self.saver = FeatureMapSaver(save_dir=self._save_dir)
+        self.align_type = self._config['DA']['align_type']
 
     def run_step(self, s_data, t_data, cur_batch: int):
         extracted_layer = self.extractor.feature_names[0]
@@ -93,10 +94,10 @@ class mutli_aligntrainer(SourcebaselineTrainer):
                 clusters_S1, clusters_T1 = multi_resilution_cluster(clusters_S1, clusters_T1)
                 clusters_S2, clusters_T2 = multi_resilution_cluster(clusters_S2, clusters_T2)
             align_losses1, cluster_losses1, p_joint_Ss1, p_joint_Ts1 = \
-                zip(*[single_head_loss(clusters1, clustert1, displacement_maps=self.displacement_map_list) for
+                zip(*[single_head_loss(clusters1, clustert1, displacement_maps=self.displacement_map_list, alignment_type=self.align_type) for
                       clusters1, clustert1 in zip(clusters_S1, clusters_T1)])
             align_losses2, cluster_losses2, p_joint_Ss2, p_joint_Ts2 = \
-                zip(*[single_head_loss(clusters2, clustert2, displacement_maps=self.displacement_map_list) for
+                zip(*[single_head_loss(clusters2, clustert2, displacement_maps=self.displacement_map_list, alignment_type=self.align_type) for
                       clusters2, clustert2 in zip(clusters_S2, clusters_T2)])
 
             align_loss1 = sum(align_losses1) / len(align_losses1)
