@@ -120,6 +120,8 @@ class mutli_aligntrainer(SourcebaselineTrainer):
 
         cluster_loss = cluster_loss1 + self._config['DA']['weight1'] * cluster_loss2
         align_loss = align_loss1 + self._config['DA']['weight2'] * align_loss2
+        entT_loss = self.ent_loss(pred_T) # entropy on target
+
         # for visualization
         p_joint_S = sum(p_jointS_list2) / len(p_jointS_list2)
         p_joint_T = sum(p_jointT_list2) / len(p_jointT_list2)
@@ -147,4 +149,4 @@ class mutli_aligntrainer(SourcebaselineTrainer):
             self.writer.add_figure(tag=f"train_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
             self.writer.add_figure(tag=f"train_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
 
-        return s_loss, cluster_loss, align_loss
+        return s_loss, entT_loss, align_loss
