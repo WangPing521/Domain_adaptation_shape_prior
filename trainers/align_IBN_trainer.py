@@ -1,5 +1,5 @@
 from typing import Union
-
+import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
@@ -116,6 +116,8 @@ class align_IBNtrainer(SourcebaselineTrainer):
         # for visualization
         p_joint_S = sum(p_jointS_list) / len(p_jointS_list)
         p_joint_T = sum(p_jointT_list) / len(p_jointT_list)
+        joint_error = torch.abs(p_joint_S - p_joint_T)
+        joint_error_shift = torch.log(1 + joint_error)
         clusters = clusters_S[-1]
         clustert = clusters_T[-1]
 
@@ -126,12 +128,16 @@ class align_IBNtrainer(SourcebaselineTrainer):
         )
 
         if cur_batch == 0:
-            source_joint_fig = plot_joint_matrix(p_joint_S)
-            target_joint_fig = plot_joint_matrix(p_joint_T)
-            self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,
+            # source_joint_fig = plot_joint_matrix(p_joint_S)
+            # target_joint_fig = plot_joint_matrix(p_joint_T)
+            # self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,
+            #                        close=True, )
+            # self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
+            #                        close=True, )
+            joint_error_fig = plot_joint_matrix(joint_error_shift)
+            self.writer.add_figure(tag=f"source_joint", figure=joint_error_fig, global_step=self.cur_epoch,
                                    close=True, )
-            self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
-                                   close=True, )
+
             self.saver.save_map(imageS=S_img, imageT=T_img, feature_mapS=clusters, feature_mapT=clustert,
                                 cur_epoch=self.cur_epoch, cur_batch_num=cur_batch, save_name="cluster"
                                 )
