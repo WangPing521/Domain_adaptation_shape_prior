@@ -6,9 +6,9 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 
-time=3
+time=5
 account=rrg-ebrahimi
-save_dir=NoGradS_disp0_0307_63runs
+save_dir=NoGradS_disp0_63runs
 declare -a StringArray=(
 
 #"python main.py seed=123 Optim.lr=0.00001 Trainer.name=align_IndividualBN DA.double_bn=True DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.align_layer.name=Deconv_1x1 DA.multi_scale=1 DA.displacement=False DA.align_type=MAE Scheduler.RegScheduler.max_value=0.0001    Scheduler.ClusterScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/disp0_21bs_501Ent_301MAEreg_seed1"
