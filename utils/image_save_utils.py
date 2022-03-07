@@ -33,6 +33,18 @@ def plot_joint_matrix(joint: Tensor):
             img = joint[i1 - 1, i2 - 1]
             im_ = ax.imshow(img)
             fig.colorbar(im_, ax=ax, orientation='vertical')
+            plt.clim(0,0.01)
+    return fig
+
+def plot_joint_matrix1(joint: Tensor):
+    assert joint.dim() == 4, joint.shape
+    n1, n2 = joint.shape[0:2]
+    fig = plt.figure()
+    # fig = fig.add_subplot(n1, n2)
+    joint = joint.detach().squeeze(0).squeeze(0).cpu().float().numpy()
+    plt.imshow(joint)
+    plt.colorbar(orientation='vertical')
+    plt.clim(0,0.01)
     return fig
 
 def plot_seg(img, label):
