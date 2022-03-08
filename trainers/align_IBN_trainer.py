@@ -10,7 +10,7 @@ from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list, simplex
-from utils.image_save_utils import plot_joint_matrix, FeatureMapSaver, plot_seg
+from utils.image_save_utils import plot_joint_matrix, FeatureMapSaver, plot_seg, plot_joint_matrix1
 
 
 class align_IBNtrainer(SourcebaselineTrainer):
@@ -117,7 +117,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
         p_joint_S = sum(p_jointS_list) / len(p_jointS_list)
         p_joint_T = sum(p_jointT_list) / len(p_jointT_list)
         joint_error = torch.abs(p_joint_S - p_joint_T)
-        joint_error_shift = torch.log(1 + joint_error)
+        # joint_error_shift = torch.log(1 + joint_error)
         clusters = clusters_S[-1]
         clustert = clusters_T[-1]
 
@@ -134,7 +134,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
             #                        close=True, )
             # self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
             #                        close=True, )
-            joint_error_fig = plot_joint_matrix(joint_error_shift)
+            joint_error_fig = plot_joint_matrix1(joint_error)
             self.writer.add_figure(tag=f"source_joint", figure=joint_error_fig, global_step=self.cur_epoch,
                                    close=True, )
 
