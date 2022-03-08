@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
 
-set -e -u -o pipefail
+#set -e -u -o pipefail
 
-CC_WRAPPER_PATH="CC_wrapper.sh"
-
-source $CC_WRAPPER_PATH
-
-time=3
-account=rrg-ebrahimi
 save_dir=NoGradS_visjoint
 declare -a StringArray=(
 
@@ -18,8 +12,4 @@ declare -a StringArray=(
 
 )
 
-for cmd in "${StringArray[@]}"; do
-  echo ${cmd}
-  CC_wrapper "${time}" "${account}" "${cmd}" 16
-
-done
+gpuqueue "${StringArray[@]}" --available_gpus 2 6
