@@ -7,6 +7,7 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 from arch.projectors import DenseClusterHead
 from arch.utils import FeatureExtractor
 from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
+from loss.barlow_twin_loss import BarlowTwins
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list, simplex
@@ -36,7 +37,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
             self.projector = DenseClusterHead(
                 input_dim=self.model.get_channel_dim(self._config['DA']['align_layer']['name']),
                 num_clusters=self._config['DA']['align_layer']['clusters'])
-
         self.optimizer.add_param_group({'params': self.projector.parameters(),
                                         })
 
