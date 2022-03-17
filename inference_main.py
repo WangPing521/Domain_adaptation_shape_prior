@@ -24,14 +24,14 @@ def save_images(segs: Tensor, names: Iterable[str], root: Union[str, Path], mode
 
             imsave(str(save_path), seg.cpu().numpy().astype(np.uint8))
 
-double_bn = False
+double_bn = True
 Smodel = UNet(num_classes=5, input_dim=1)
 if double_bn:
     Smodel = convert2TwinBN(Smodel)
 Smodel = Smodel.eval()
-weight = f'../../PHD_documents/papers_work/domain_adaptation/visualization_models/pseudoDA/last.pth'
+weight = f'../../PHD_documents/papers_work/domain_adaptation/visualization_models/entprior/last.pth'
 new_state_dict = OrderedDict()
-state_dict = torch.load(weight)
+state_dict = torch.load(weight, map_location=torch.device('cpu'))
 Smodel.load_state_dict(state_dict.get('model'))
 
 
@@ -61,7 +61,7 @@ for batch_idT, data_T in enumerate(valT_loader):
     else:
         preds_T = Smodel(imageT).softmax(1)
 
-    save_images(preds_T.max(1)[1], names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/visualization_models/pseudoDA/segs', mode='predictions',
+    save_images(preds_T.max(1)[1], names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/visualization_models/entprior/segs', mode='predictions',
             iter=100)
 
 

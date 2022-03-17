@@ -124,8 +124,8 @@ class mutli_aligntrainer(SourcebaselineTrainer):
         entT_loss = self.ent_loss(pred_T) # entropy on target
 
         # for visualization
-        p_joint_S = sum(p_jointS_list2) / len(p_jointS_list2)
-        p_joint_T = sum(p_jointT_list2) / len(p_jointT_list2)
+        # p_joint_S = sum(p_jointS_list2) / len(p_jointS_list2)
+        # p_joint_T = sum(p_jointT_list2) / len(p_jointT_list2)
         clusters = clusters_S1[-1]
         clustert = clusters_T1[-1]
 
@@ -136,17 +136,17 @@ class mutli_aligntrainer(SourcebaselineTrainer):
         )
 
         if cur_batch == 0:
-            source_joint_fig = plot_joint_matrix(p_joint_S)
-            target_joint_fig = plot_joint_matrix(p_joint_T)
-            self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,
-                                   close=True, )
-            self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
-                                   close=True, )
-            self.saver.save_map(imageS=S_img, imageT=T_img, feature_mapS=clusters, feature_mapT=clustert,
+            # source_joint_fig = plot_joint_matrix(p_joint_S)
+            # target_joint_fig = plot_joint_matrix(p_joint_T)
+            # self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,
+            #                        close=True, )
+            # self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
+            #                        close=True, )
+            self.saver.save_map(imageS=S_img[-1], imageT=T_img[-1], feature_mapS=clusters[-1], feature_mapT=clustert[-1],
                                 cur_epoch=self.cur_epoch, cur_batch_num=cur_batch, save_name="cluster"
                                 )
-            source_seg = plot_seg(S_img[10], pred_S.max(1)[1][10])
-            target_seg = plot_seg(T_img[10], pred_T.max(1)[1][10])
+            source_seg = plot_seg(S_img[-1], pred_S.max(1)[1][-1])
+            target_seg = plot_seg(T_img[-1], pred_T.max(1)[1][-1])
             self.writer.add_figure(tag=f"train_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
             self.writer.add_figure(tag=f"train_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
 

@@ -11,6 +11,7 @@ from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list, simplex
 from utils.image_save_utils import plot_joint_matrix, FeatureMapSaver, plot_seg, plot_joint_matrix1
+from utils.utils import fix_all_seed_within_context
 
 
 class align_IBNtrainer(SourcebaselineTrainer):
@@ -31,9 +32,10 @@ class align_IBNtrainer(SourcebaselineTrainer):
         self._valT_loader = valT_loader
         self._weight_scheduler = weight_scheduler
         self._weight_cluster = weight_cluster
-        self.projector = DenseClusterHead(
-            input_dim=self.model.get_channel_dim(self._config['DA']['align_layer']['name']),
-            num_clusters=self._config['DA']['align_layer']['clusters'])
+        with fix_all_seed_within_context(self._config['seed']):
+            self.projector = DenseClusterHead(
+                input_dim=self.model.get_channel_dim(self._config['DA']['align_layer']['name']),
+                num_clusters=self._config['DA']['align_layer']['clusters'])
 
         self.optimizer.add_param_group({'params': self.projector.parameters(),
                                         })
@@ -135,17 +137,15 @@ class align_IBNtrainer(SourcebaselineTrainer):
             # self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
             #                        close=True, )
             joint_error_fig = plot_joint_matrix1(joint_error)
-            self.writer.add_figure(tag=f"source_joint", figure=joint_error_fig, global_step=self.cur_epoch,
+            self.writer.add_figure(tag=f"error_joint", figure=joint_error_fig, global_step=self.cur_epoch,
                                    close=True, )
 
-            self.saver.save_map(imageS=S_img, imageT=T_img, feature_mapS=clusters, feature_mapT=clustert,
+            self.saver.save_map(imageS=S_img[-1], imageT=T_img[-1], feature_mapS=clusters[-1], feature_mapT=clustert[-1],
                                 cur_epoch=self.cur_epoch, cur_batch_num=cur_batch, save_name="cluster"
                                 )
-            source_seg = plot_seg(S_img[10], pred_S.max(1)[1][10])
-            target_seg = plot_seg(T_img[10], pred_T.max(1)[1][10])
+            source_seg = plot_seg(S_img[-1], pred_S.max(1)[1][-1])
+            target_seg = plot_seg(T_img[-1], pred_T.max(1)[1][-1])
             self.writer.add_figure(tag=f"train_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
             self.writer.add_figure(tag=f"train_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
-
-
 
         return s_loss, entT_loss, align_loss
