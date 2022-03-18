@@ -86,48 +86,38 @@ class mutli_aligntrainer(SourcebaselineTrainer):
         assert len(clusters_S1) == len(clusters_T1)
         assert len(clusters_S2) == len(clusters_T2)
 
-        align_loss_multires1, cluster_losses_multires1, align_loss_multires2, cluster_losses_multires2 = [], [], [], []
+        align_loss_multires1, align_loss_multires2 = [], []
         p_jointS_list2, p_jointT_list2 = [], []
 
         for rs in range(self._config['DA']['multi_scale']):
             if rs:
                 clusters_S1, clusters_T1 = multi_resilution_cluster(clusters_S1, clusters_T1)
                 clusters_S2, clusters_T2 = multi_resilution_cluster(clusters_S2, clusters_T2)
-            align_losses1, cluster_losses1, p_joint_Ss1, p_joint_Ts1 = \
+            align_losses1, p_joint_Ss1, p_joint_Ts1 = \
                 zip(*[single_head_loss(clusters1, clustert1, displacement_maps=self.displacement_map_list, alignment_type=self.align_type) for
                       clusters1, clustert1 in zip(clusters_S1, clusters_T1)])
-            align_losses2, cluster_losses2, p_joint_Ss2, p_joint_Ts2 = \
+            align_losses2, p_joint_Ss2, p_joint_Ts2 = \
                 zip(*[single_head_loss(clusters2, clustert2, displacement_maps=self.displacement_map_list, alignment_type=self.align_type) for
                       clusters2, clustert2 in zip(clusters_S2, clusters_T2)])
 
             align_loss1 = sum(align_losses1) / len(align_losses1)
-            cluster_loss1 = sum(cluster_losses1) / len(cluster_losses1)
             align_loss_multires1.append(align_loss1)
-            cluster_losses_multires1.append(cluster_loss1)
 
             align_loss2 = sum(align_losses2) / len(align_losses2)
-            cluster_loss2 = sum(cluster_losses2) / len(cluster_losses2)
             align_loss_multires2.append(align_loss2)
-            cluster_losses_multires2.append(cluster_loss2)
 
             p_jointS_list2.append(p_joint_Ss1[-1])
             p_jointT_list2.append(p_joint_Ts1[-1])
 
         align_loss1 = average_list(align_loss_multires1)
-        cluster_loss1 = average_list(cluster_losses_multires1)
-
         align_loss2 = average_list(align_loss_multires2)
-        cluster_loss2 = average_list(cluster_losses_multires2)
 
-        cluster_loss = cluster_loss1 + self._config['DA']['weight1'] * cluster_loss2
         align_loss = align_loss1 + self._config['DA']['weight2'] * align_loss2
         entT_loss = self.ent_loss(pred_T) # entropy on target
 
         # for visualization
         # p_joint_S = sum(p_jointS_list2) / len(p_jointS_list2)
         # p_joint_T = sum(p_jointT_list2) / len(p_jointT_list2)
-        clusters = clusters_S1[-1]
-        clustert = clusters_T1[-1]
 
         self.meters[f"train_dice"].add(
             pred_S.max(1)[1],
@@ -142,9 +132,6 @@ class mutli_aligntrainer(SourcebaselineTrainer):
             #                        close=True, )
             # self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
             #                        close=True, )
-            self.saver.save_map(imageS=S_img[-1], imageT=T_img[-1], feature_mapS=clusters[-1], feature_mapT=clustert[-1],
-                                cur_epoch=self.cur_epoch, cur_batch_num=cur_batch, save_name="cluster"
-                                )
             source_seg = plot_seg(S_img[-1], pred_S.max(1)[1][-1])
             target_seg = plot_seg(T_img[-1], pred_T.max(1)[1][-1])
             self.writer.add_figure(tag=f"train_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)

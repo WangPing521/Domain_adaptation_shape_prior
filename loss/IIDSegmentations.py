@@ -90,7 +90,6 @@ class IIDSegmentationLoss(nn.Module):
         return self._p_i_j.detach().cpu().numpy()
 
 
-IICLoss = IIDSegmentationLoss()
 KL_loss =KL_div()
 ent_loss = Entropy()
 
@@ -159,7 +158,6 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
 
 
 def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], alignment_type):
-    cluster_loss = IICLoss(clustert, clustert)
     assert simplex(clustert) and simplex(clusters)
 
     align_loss_list = []
@@ -172,7 +170,6 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
             x_out=clustert,
             displacement_map=(dis_map[0],
                               dis_map[1]))
-        # cluster loss
         # align
         if alignment_type in ['MAE']:
             align_1disp_loss = torch.mean(torch.abs((p_joint_S.detach() - p_joint_T)))
@@ -184,7 +181,7 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
     align_loss = average_list(align_loss_list)
     # todo: visualization.
 
-    return align_loss, cluster_loss, p_joint_S, p_joint_T
+    return align_loss, p_joint_S, p_joint_T
 
 
 def multi_resilution_cluster(clusters_S: t.List, clusters_T: t.List):
