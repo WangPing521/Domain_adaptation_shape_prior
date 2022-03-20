@@ -8,6 +8,8 @@ import torch.nn as nn
 from loguru import logger
 from torch import Tensor
 from torch.nn import functional as F
+
+from loss.barlow_twin_loss import BarlowTwins
 from loss.entropy import KL_div, Entropy
 from utils.general import average_list, simplex
 
@@ -183,6 +185,53 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
 
     return align_loss, p_joint_S, p_joint_T
 
+def compute_cross_correlation(x_out, displacement_map: (int, int)):
+    n, d, h, w = x_out.shape
+    padding_max = max(np.abs(displacement_map))
+    padding_amount = (
+        padding_max, padding_max, padding_max, padding_max)  # pad last dim by (1, 1) and 2nd to last by (2, 2)
+    out = F.pad(x_out, padding_amount, "constant", 0)
+    after_displacement = out[:, :, padding_max - displacement_map[0]:padding_max - displacement_map[0] + h,
+                         padding_max - displacement_map[1]:padding_max - displacement_map[1] + w]
+
+    assert x_out.shape[1] == after_displacement.shape[1]
+    feature_dim = x_out.shape[1]
+    # normalization layer for the representations z1 and z2
+    bn = nn.BatchNorm1d(feature_dim, affine=False)
+    x_out = x_out.view(n,d,h*w)
+    after_displacement = after_displacement.view(n,d,h*w)
+    # empirical cross-correlation matrix
+    c = bn(x_out).sum(0) @ bn(after_displacement).sum(0).T
+
+    # sum the cross-correlation matrix between all gpus
+    c.div_(n*h*w)
+    return c
+
+
+def cross_correlation_align(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], alignment_type):
+
+    align_loss_list = []
+    for dis_map in displacement_maps:
+        p_cc_S = compute_cross_correlation(
+            x_out=clusters,
+            displacement_map=(dis_map[0],
+                              dis_map[1]))
+        p_cc_T = compute_cross_correlation(
+            x_out=clustert,
+            displacement_map=(dis_map[0],
+                              dis_map[1]))
+        # align
+        if alignment_type in ['MAE']:
+            align_1disp_loss = torch.mean(torch.abs((p_cc_S.detach() - p_cc_T)))
+        elif alignment_type in ['kl']:
+            align_1disp_loss = KL_loss(p_cc_T.view(1,25), p_cc_S.view(1,25).detach())
+
+
+        align_loss_list.append(align_1disp_loss)
+    align_loss = average_list(align_loss_list)
+    # todo: visualization.
+
+    return align_loss, p_cc_S, p_cc_T
 
 def multi_resilution_cluster(clusters_S: t.List, clusters_T: t.List):
     low_res_clusters_S, low_res_clusters_T = [], []

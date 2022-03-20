@@ -6,7 +6,7 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 
 from arch.projectors import DenseClusterHead
 from arch.utils import FeatureExtractor
-from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
+from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster, cross_correlation_align
 from loss.barlow_twin_loss import BarlowTwins
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
@@ -77,7 +77,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
                 pred_T = self.model(T_img).softmax(1)
             clusters_S = [pred_S]
             clusters_T = [pred_T]
-
+            assert simplex(clusters_S[0]) and simplex(clusters_T[0])
         else:
             with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
                 self.extractor.clear()
@@ -85,11 +85,15 @@ class align_IBNtrainer(SourcebaselineTrainer):
                 feature_T = next(self.extractor.features())
 
             # projector cluster --->joint
-            clusters_S = self.projector(feature_S)
-            clusters_T = self.projector(feature_T)
+            # clusters_S = self.projector(feature_S)
+            # clusters_T = self.projector(feature_T)
 
-        assert simplex(clusters_S[0]) and simplex(clusters_T[0])
+            # cross_correlation
+            clusters_S = [feature_S]
+            clusters_T = [feature_T]
+
         assert len(clusters_S) == len(clusters_T)
+
         align_loss_multires = []
         p_jointS_list, p_jointT_list = [], []
 
@@ -97,9 +101,16 @@ class align_IBNtrainer(SourcebaselineTrainer):
             if rs:
                 clusters_S, clusters_T = multi_resilution_cluster(clusters_S, clusters_T)
 
+            # align joint
+            # align_losses, p_joint_Ss, p_joint_Ts = \
+            #     zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, alignment_type=self.align_type) for
+            #           clusters, clustert in zip(clusters_S, clusters_T)])
+            # align cc
             align_losses, p_joint_Ss, p_joint_Ts = \
-                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, alignment_type=self.align_type) for
+                zip(*[cross_correlation_align(clusters, clustert, displacement_maps=self.displacement_map_list,
+                                       alignment_type=self.align_type) for
                       clusters, clustert in zip(clusters_S, clusters_T)])
+
             align_loss = sum(align_losses) / len(align_losses)
 
             align_loss_multires.append(align_loss)
