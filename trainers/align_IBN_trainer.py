@@ -7,7 +7,6 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 from arch.projectors import DenseClusterHead
 from arch.utils import FeatureExtractor
 from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster, cross_correlation_align
-from loss.barlow_twin_loss import BarlowTwins
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list, simplex
