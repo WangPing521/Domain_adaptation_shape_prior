@@ -37,8 +37,10 @@ def plot_joint_matrix(joint: Tensor):
     return fig
 
 def plot_joint_matrix1(joint: Tensor):
+    if joint.dim() == 2:
+        joint = joint.unsqueeze(0).unsqueeze(0)
     assert joint.dim() == 4, joint.shape
-    n1, n2 = joint.shape[0:2]
+    # n1, n2 = joint.shape[0:2]
     fig = plt.figure()
     # fig = fig.add_subplot(n1, n2)
     joint = joint.detach().squeeze(0).squeeze(0).cpu().float().numpy()
