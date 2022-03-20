@@ -197,7 +197,7 @@ def compute_cross_correlation(x_out, displacement_map: (int, int)):
     assert x_out.shape[1] == after_displacement.shape[1]
     feature_dim = x_out.shape[1]
     # normalization layer for the representations z1 and z2
-    bn = nn.BatchNorm1d(feature_dim, affine=False)
+    bn = nn.BatchNorm1d(feature_dim, affine=False).to('cuda')
     x_out = x_out.view(n,d,h*w)
     after_displacement = after_displacement.view(n,d,h*w)
     # empirical cross-correlation matrix
