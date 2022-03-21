@@ -91,7 +91,6 @@ class IIDSegmentationLoss(nn.Module):
             raise RuntimeError()
         return self._p_i_j.detach().cpu().numpy()
 
-
 KL_loss =KL_div()
 ent_loss = Entropy()
 
@@ -159,7 +158,7 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
     return p_i_j.contiguous()
 
 
-def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], alignment_type):
+def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]]):
     assert simplex(clustert) and simplex(clusters)
 
     align_loss_list = []
@@ -173,11 +172,7 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
             displacement_map=(dis_map[0],
                               dis_map[1]))
         # align
-        if alignment_type in ['MAE']:
-            align_1disp_loss = torch.mean(torch.abs((p_joint_S.detach() - p_joint_T)))
-        elif alignment_type in ['kl']:
-            align_1disp_loss = KL_loss(p_joint_T.view(1,25), p_joint_S.view(1,25).detach())
-
+        align_1disp_loss = torch.mean(torch.abs((p_joint_S.detach() - p_joint_T)))
 
         align_loss_list.append(align_1disp_loss)
     align_loss = average_list(align_loss_list)
@@ -195,17 +190,14 @@ def compute_cross_correlation(x_out, displacement_map: (int, int)):
                          padding_max - displacement_map[1]:padding_max - displacement_map[1] + w]
 
     assert x_out.shape[1] == after_displacement.shape[1]
-    feature_dim = x_out.shape[1]
-    # normalization layer for the representations z1 and z2
-    bn = nn.BatchNorm1d(feature_dim, affine=False).to('cuda')
-    x_out = x_out.reshape(n,d,h*w)
-    after_displacement = after_displacement.reshape(n,d,h*w)
-    # empirical cross-correlation matrix
-    c = bn(x_out).sum(0) @ bn(after_displacement).sum(0).T
 
-    # sum the cross-correlation matrix between all gpus
-    c.div_(n*h*w)
-    return c
+    x_out_norm = (x_out - x_out.mean(0)) / (x_out.std(0) + 1e-16) # NXDXhw
+    after_displacement_norm = (after_displacement - after_displacement.mean(0)) / (after_displacement.std(0) + 1e-16)
+
+    cc = x_out_norm.transpose(1,0).reshape(d,n*h*w) @ after_displacement_norm.transpose(1,0).reshape(d,n*h*w).T
+
+
+    return cc
 
 
 def cross_correlation_align(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], alignment_type):
