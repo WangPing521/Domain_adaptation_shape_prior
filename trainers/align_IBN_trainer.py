@@ -42,8 +42,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
         self.extractor = FeatureExtractor(self.model, feature_names=self._config['DA']['align_layer']['name'])
         self.extractor.bind()
         self.saver = FeatureMapSaver(save_dir=self._save_dir)
-        self.align_type = self._config['DA']['align_type']
-
 
     def run_step(self, s_data, t_data, cur_batch: int):
         extracted_layer = self.extractor.feature_names[0]
@@ -74,7 +72,10 @@ class align_IBNtrainer(SourcebaselineTrainer):
         if extracted_layer == 'Deconv_1x1':
             with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
                 pred_T = self.model(T_img).softmax(1)
-            clusters_S = [pred_S]
+            if self._config['DA']['statistic']:
+                clusters_S = [onehot_targetS]
+            else:
+                clusters_S = [pred_S]
             clusters_T = [pred_T]
             assert simplex(clusters_S[0]) and simplex(clusters_T[0])
         else:
@@ -102,12 +103,11 @@ class align_IBNtrainer(SourcebaselineTrainer):
 
             # align joint
             align_losses, p_joint_Ss, p_joint_Ts = \
-                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, alignment_type=self.align_type) for
+                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list) for
                       clusters, clustert in zip(clusters_S, clusters_T)])
             # align cc
             # align_losses, p_joint_Ss, p_joint_Ts = \
-            #     zip(*[cross_correlation_align(clusters, clustert, displacement_maps=self.displacement_map_list,
-            #                            alignment_type=self.align_type) for
+            #     zip(*[cross_correlation_align(clusters, clustert, displacement_maps=self.displacement_map_list) for
             #           clusters, clustert in zip(clusters_S, clusters_T)])
 
             align_loss = sum(align_losses) / len(align_losses)
