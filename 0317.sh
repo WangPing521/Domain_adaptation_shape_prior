@@ -11,16 +11,24 @@ account=rrg-ebrahimi
 save_dir=0317_baseline_BS
 declare -a StringArray=(
 
+# 1:3 3:12 6:21 15:48 20:63 25:78 30:93 40:123
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=1  Trainer.name=baseline Trainer.save_dir=${save_dir}/MRI2CT_lower_baseline3_seed1"
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=3  Trainer.name=baseline Trainer.save_dir=${save_dir}/MRI2CT_lower_baseline12_seed1"
 "python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=6  Trainer.name=baseline Trainer.save_dir=${save_dir}/MRI2CT_lower_baseline21_seed1"
-"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=10 Trainer.name=baseline Trainer.save_dir=${save_dir}/MRI2CT_lower_baseline33_seed1"
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=15 Trainer.name=baseline Trainer.save_dir=${save_dir}/MRI2CT_lower_baseline48_seed1"
 "python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=20 Trainer.name=baseline Trainer.save_dir=${save_dir}/MRI2CT_lower_baseline63_seed1"
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=25 Trainer.name=baseline Trainer.save_dir=${save_dir}/MRI2CT_lower_baseline78_seed1"
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=30 Trainer.name=baseline Trainer.save_dir=${save_dir}/MRI2CT_lower_baseline93_seed1"
 "python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=40 Trainer.name=baseline Trainer.save_dir=${save_dir}/MRI2CT_lower_baseline123_seed1"
 
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=1  Trainer.name=upperbaseline Trainer.save_dir=${save_dir}/MRI2CT_upper_baseline3_seed1"
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=3  Trainer.name=upperbaseline Trainer.save_dir=${save_dir}/MRI2CT_upper_baseline12_seed1"
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=6  Trainer.name=upperbaseline Trainer.save_dir=${save_dir}/MRI2CT_upper_baseline21_seed1"
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=15 Trainer.name=upperbaseline Trainer.save_dir=${save_dir}/MRI2CT_upper_baseline48_seed1"
 "python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=20 Trainer.name=upperbaseline Trainer.save_dir=${save_dir}/MRI2CT_upper_baseline63_seed1"
-
-#"python main.py seed=123 Optim.lr=0.00001 Trainer.name=align_IndividualBN DA.double_bn=True DA.source=MRI DA.target=CT DA.batchsize_indicator=20 DA.align_layer.name=Deconv_1x1 DA.multi_scale=1 DA.displacement=False Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/disp0_63bs_0Ent_301MAEreg_seed1"
-#"python main.py seed=123 Optim.lr=0.00001 Trainer.name=align_IndividualBN DA.double_bn=True DA.source=MRI DA.target=CT DA.batchsize_indicator=20 DA.align_layer.name=Deconv_1x1 DA.multi_scale=1 DA.displacement=True Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/disp1_63bs_501Ent_401MAEreg_seed1"
-#"python main.py seed=231 Optim.lr=0.00001 Trainer.name=align_IndividualBN DA.double_bn=True DA.source=MRI DA.target=CT DA.batchsize_indicator=20 DA.align_layer.name=Deconv_1x1 DA.multi_scale=1 DA.displacement=True Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/disp1_63bs_501Ent_401MAEreg_seed2"
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=25 Trainer.name=upperbaseline Trainer.save_dir=${save_dir}/MRI2CT_upper_baseline78_seed1"
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=30 Trainer.name=upperbaseline Trainer.save_dir=${save_dir}/MRI2CT_upper_baseline93_seed1"
+"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=MRI DA.target=CT DA.batchsize_indicator=40 Trainer.name=upperbaseline Trainer.save_dir=${save_dir}/MRI2CT_upper_baseline123_seed1"
 
 )
 
