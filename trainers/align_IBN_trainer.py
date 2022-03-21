@@ -101,14 +101,14 @@ class align_IBNtrainer(SourcebaselineTrainer):
                 clusters_S, clusters_T = multi_resilution_cluster(clusters_S, clusters_T)
 
             # align joint
-            # align_losses, p_joint_Ss, p_joint_Ts = \
-            #     zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, alignment_type=self.align_type) for
-            #           clusters, clustert in zip(clusters_S, clusters_T)])
-            # align cc
             align_losses, p_joint_Ss, p_joint_Ts = \
-                zip(*[cross_correlation_align(clusters, clustert, displacement_maps=self.displacement_map_list,
-                                       alignment_type=self.align_type) for
+                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, alignment_type=self.align_type) for
                       clusters, clustert in zip(clusters_S, clusters_T)])
+            # align cc
+            # align_losses, p_joint_Ss, p_joint_Ts = \
+            #     zip(*[cross_correlation_align(clusters, clustert, displacement_maps=self.displacement_map_list,
+            #                            alignment_type=self.align_type) for
+            #           clusters, clustert in zip(clusters_S, clusters_T)])
 
             align_loss = sum(align_losses) / len(align_losses)
 
