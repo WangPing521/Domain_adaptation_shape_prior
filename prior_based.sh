@@ -8,76 +8,20 @@ source $CC_WRAPPER_PATH
 
 time=3
 account=rrg-ebrahimi
-save_dir=priorbased222
+save_dir=priorbased_BS
 
 declare -a StringArray=(
 
 #------------------MR2CT
 #cluster: prior
 #echeduler: ent
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/prior_301Ent_501prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/prior_301Ent_501prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/prior_301Ent_501prior3"
 
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.0000001 Trainer.save_dir=${save_dir}/prior_301Ent_601prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.0000001 Trainer.save_dir=${save_dir}/prior_301Ent_601prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.0000001 Trainer.save_dir=${save_dir}/prior_301Ent_601prior3"
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.00000001 Trainer.save_dir=${save_dir}/prior_301Ent_701prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.00000001 Trainer.save_dir=${save_dir}/prior_301Ent_701prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.00000001 Trainer.save_dir=${save_dir}/prior_301Ent_701prior3"
-
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/prior_401Ent_501prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/prior_401Ent_501prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/prior_401Ent_501prior3"
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.0000001  Trainer.save_dir=${save_dir}/prior_401Ent_601prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.0000001  Trainer.save_dir=${save_dir}/prior_401Ent_601prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.0000001  Trainer.save_dir=${save_dir}/prior_401Ent_601prior3"
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.00000001  Trainer.save_dir=${save_dir}/prior_401Ent_701prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.00000001  Trainer.save_dir=${save_dir}/prior_401Ent_701prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.00000001  Trainer.save_dir=${save_dir}/prior_401Ent_701prior3"
-
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.000001 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/prior_501Ent_501prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.000001 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/prior_501Ent_501prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.000001 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/prior_501Ent_501prior3"
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.000001 Scheduler.ClusterScheduler.max_value=0.0000001  Trainer.save_dir=${save_dir}/prior_501Ent_601prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.000001 Scheduler.ClusterScheduler.max_value=0.0000001  Trainer.save_dir=${save_dir}/prior_501Ent_601prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.000001 Scheduler.ClusterScheduler.max_value=0.0000001  Trainer.save_dir=${save_dir}/prior_501Ent_601prior3"
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.000001 Scheduler.ClusterScheduler.max_value=0.00000001  Trainer.save_dir=${save_dir}/prior_501Ent_701prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.000001 Scheduler.ClusterScheduler.max_value=0.00000001  Trainer.save_dir=${save_dir}/prior_501Ent_701prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.000001 Scheduler.ClusterScheduler.max_value=0.00000001  Trainer.save_dir=${save_dir}/prior_501Ent_701prior3"
-
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0000001 Scheduler.ClusterScheduler.max_value=0.000001   Trainer.save_dir=${save_dir}/prior_601Ent_501prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0000001 Scheduler.ClusterScheduler.max_value=0.000001   Trainer.save_dir=${save_dir}/prior_601Ent_501prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0000001 Scheduler.ClusterScheduler.max_value=0.000001   Trainer.save_dir=${save_dir}/prior_601Ent_501prior3"
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0000001 Scheduler.ClusterScheduler.max_value=0.0000001   Trainer.save_dir=${save_dir}/prior_601Ent_601prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0000001 Scheduler.ClusterScheduler.max_value=0.0000001   Trainer.save_dir=${save_dir}/prior_601Ent_601prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0000001 Scheduler.ClusterScheduler.max_value=0.0000001   Trainer.save_dir=${save_dir}/prior_601Ent_601prior3"
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0000001 Scheduler.ClusterScheduler.max_value=0.00000001   Trainer.save_dir=${save_dir}/prior_601Ent_701prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0000001 Scheduler.ClusterScheduler.max_value=0.00000001   Trainer.save_dir=${save_dir}/prior_601Ent_701prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.0000001 Scheduler.ClusterScheduler.max_value=0.00000001   Trainer.save_dir=${save_dir}/prior_601Ent_701prior3"
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00000001 Scheduler.ClusterScheduler.max_value=0.000001   Trainer.save_dir=${save_dir}/prior_701Ent_501prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00000001 Scheduler.ClusterScheduler.max_value=0.000001   Trainer.save_dir=${save_dir}/prior_701Ent_501prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00000001 Scheduler.ClusterScheduler.max_value=0.000001   Trainer.save_dir=${save_dir}/prior_701Ent_501prior3"
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00000001 Scheduler.ClusterScheduler.max_value=0.0000001   Trainer.save_dir=${save_dir}/prior_701Ent_601prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00000001 Scheduler.ClusterScheduler.max_value=0.0000001   Trainer.save_dir=${save_dir}/prior_701Ent_601prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00000001 Scheduler.ClusterScheduler.max_value=0.0000001   Trainer.save_dir=${save_dir}/prior_701Ent_601prior3"
-
-"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00000001 Scheduler.ClusterScheduler.max_value=0.00000001   Trainer.save_dir=${save_dir}/prior_701Ent_701prior"
-"python main.py seed=231 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00000001 Scheduler.ClusterScheduler.max_value=0.00000001   Trainer.save_dir=${save_dir}/prior_701Ent_701prior2"
-"python main.py seed=321 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00000001 Scheduler.ClusterScheduler.max_value=0.00000001   Trainer.save_dir=${save_dir}/prior_701Ent_701prior3"
-
+"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=6 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.00001  Trainer.save_dir=${save_dir}/prior21_401Ent_401prior"
+"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=15 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.00001  Trainer.save_dir=${save_dir}/prior48_401Ent_401prior"
+"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=20 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.00001  Trainer.save_dir=${save_dir}/prior63_401Ent_401prior"
+"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=15 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.00001  Trainer.save_dir=${save_dir}/prior78_401Ent_401prior"
+"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=30 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.00001  Trainer.save_dir=${save_dir}/prior93_401Ent_401prior"
+"python main.py seed=123 Optim.lr=0.00001 Trainer.name=priorbased DA.source=MRI DA.target=CT DA.batchsize_indicator=40 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.00001  Trainer.save_dir=${save_dir}/prior123_401Ent_401prior"
 
 )
 
