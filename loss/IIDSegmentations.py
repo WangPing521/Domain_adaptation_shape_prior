@@ -134,28 +134,39 @@ def compute_joint_2D_with_padding_zeros(x_out: Tensor, x_tf_out: Tensor, *, symm
 
 
 def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=True):
-    _, _, h, w = x_out.shape
+    n, d, h, w = x_out.shape
     padding_max = max(np.abs(displacement_map))
     padding_amount = (
         padding_max, padding_max, padding_max, padding_max)  # pad last dim by (1, 1) and 2nd to last by (2, 2)
     out = F.pad(x_out, padding_amount, "constant", 0)
     after_displacement = out[:, :, padding_max - displacement_map[0]:padding_max - displacement_map[0] + h,
                          padding_max - displacement_map[1]:padding_max - displacement_map[1] + w]
-    x_out = x_out.swapaxes(0, 1).contiguous()
-    after_displacement = after_displacement.swapaxes(0, 1).contiguous()
-    p_i_j = F.conv2d(input=x_out, weight=after_displacement, padding=(0, 0))
+
+    x_out = x_out.reshape(n,d, h*w)
+    after_displacement = after_displacement.reshape(n,d, h*w).transpose(2,1)
+
+    # p_i_j = (x_out @ after_displacement).mean(0).unsqueeze(0).unsqueeze(0)
+    p_i_j = (x_out @ after_displacement).unsqueeze(0).transpose(1,0)
 
     p_i_j = p_i_j - p_i_j.min().detach() + 1e-8
-
     # T x T x k x k
-    p_i_j = p_i_j.permute(2, 3, 0, 1)
     p_i_j /= p_i_j.sum(dim=[2, 3], keepdim=True)  # norm
 
     # symmetrise, transpose the k x k part
     if symmetric:
         p_i_j = (p_i_j + p_i_j.permute(0, 1, 3, 2)) / 2.0
-    p_i_j /= p_i_j.sum()  # norm
-    return p_i_j.contiguous()
+    # p_i_j /= p_i_j.sum()  # norm
+
+    # exlude batchsize
+    p_joint_posbs = []
+    for idx in range(int(n/3)):
+        p_joint_pos = torch.zeros_like(p_i_j[0])
+        for pos_idx in range(idx, n, int(n/3)):
+            p_joint_pos = p_joint_pos + p_i_j[pos_idx,:,:,:]
+        p_joint_pos = p_joint_pos / 3 # 3 patients in one batch
+        p_joint_posbs.append(p_joint_pos)
+
+    return p_joint_posbs # p_i_j.contiguous()
 
 
 def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]]):
@@ -164,7 +175,7 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
     align_loss_list = []
     for dis_map in displacement_maps:
         p_joint_S = compute_joint_distribution(
-            x_out=clusters,
+            x_out=clusters.detach(),
             displacement_map=(dis_map[0],
                               dis_map[1]))
         p_joint_T = compute_joint_distribution(
@@ -172,13 +183,14 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
             displacement_map=(dis_map[0],
                               dis_map[1]))
         # align
-        align_1disp_loss = torch.mean(torch.abs((p_joint_S.detach() - p_joint_T)))
+        # align_1disp_loss = torch.mean(torch.abs((p_joint_S.detach() - p_joint_T)))
+        align_1disp_loss = torch.abs(torch.cat(p_joint_S)  - torch.cat(p_joint_T)).mean()
 
         align_loss_list.append(align_1disp_loss)
     align_loss = average_list(align_loss_list)
     # todo: visualization.
 
-    return align_loss, p_joint_S, p_joint_T
+    return align_loss, torch.cat(p_joint_S), torch.cat(p_joint_T)
 
 def compute_cross_correlation(x_out, displacement_map: (int, int)):
     n, d, h, w = x_out.shape
@@ -195,35 +207,7 @@ def compute_cross_correlation(x_out, displacement_map: (int, int)):
     after_displacement_norm = (after_displacement - after_displacement.mean(0)) / (after_displacement.std(0) + 1e-16)
 
     cc = x_out_norm.transpose(1,0).reshape(d,n*h*w) @ after_displacement_norm.transpose(1,0).reshape(d,n*h*w).T
-
-
     return cc
-
-
-def cross_correlation_align(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], alignment_type):
-
-    align_loss_list = []
-    for dis_map in displacement_maps:
-        p_cc_S = compute_cross_correlation(
-            x_out=clusters,
-            displacement_map=(dis_map[0],
-                              dis_map[1]))
-        p_cc_T = compute_cross_correlation(
-            x_out=clustert,
-            displacement_map=(dis_map[0],
-                              dis_map[1]))
-        # align
-        if alignment_type in ['MAE']:
-            align_1disp_loss = torch.mean(torch.abs((p_cc_S.detach() - p_cc_T)))
-        elif alignment_type in ['kl']:
-            align_1disp_loss = KL_loss(p_cc_T.view(1,25), p_cc_S.view(1,25).detach())
-
-
-        align_loss_list.append(align_1disp_loss)
-    align_loss = average_list(align_loss_list)
-    # todo: visualization.
-
-    return align_loss, p_cc_S, p_cc_T
 
 def multi_resilution_cluster(clusters_S: t.List, clusters_T: t.List):
     low_res_clusters_S, low_res_clusters_T = [], []

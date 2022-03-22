@@ -6,7 +6,7 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 
 from arch.projectors import DenseClusterHead
 from arch.utils import FeatureExtractor
-from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster, cross_correlation_align
+from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list, simplex
@@ -105,10 +105,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
             align_losses, p_joint_Ss, p_joint_Ts = \
                 zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list) for
                       clusters, clustert in zip(clusters_S, clusters_T)])
-            # align cc
-            # align_losses, p_joint_Ss, p_joint_Ts = \
-            #     zip(*[cross_correlation_align(clusters, clustert, displacement_maps=self.displacement_map_list) for
-            #           clusters, clustert in zip(clusters_S, clusters_T)])
 
             align_loss = sum(align_losses) / len(align_losses)
 
@@ -124,7 +120,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
         # for visualization
         p_joint_S = sum(p_jointS_list) / len(p_jointS_list)
         p_joint_T = sum(p_jointT_list) / len(p_jointT_list)
-        joint_error = torch.abs(p_joint_S - p_joint_T)
+        joint_error = torch.abs(p_joint_S - p_joint_T).mean(0)
         # joint_error_shift = torch.log(1 + joint_error)
 
         self.meters[f"train_dice"].add(
