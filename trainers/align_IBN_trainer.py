@@ -73,7 +73,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
             with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
                 pred_T = self.model(T_img).softmax(1)
             if self._config['DA']['statistic']:
-                clusters_S = [onehot_targetS]
+                clusters_S = [onehot_targetS.float()]
             else:
                 clusters_S = [pred_S]
             clusters_T = [pred_T]

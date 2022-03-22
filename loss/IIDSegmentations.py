@@ -143,7 +143,7 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
                          padding_max - displacement_map[1]:padding_max - displacement_map[1] + w]
     x_out = x_out.swapaxes(0, 1).contiguous()
     after_displacement = after_displacement.swapaxes(0, 1).contiguous()
-    p_i_j = F.conv2d(input=x_out, weight=after_displacement, padding=(0, 0)).float()
+    p_i_j = F.conv2d(input=x_out, weight=after_displacement, padding=(0, 0))
 
     p_i_j = p_i_j - p_i_j.min().detach() + 1e-8
 
