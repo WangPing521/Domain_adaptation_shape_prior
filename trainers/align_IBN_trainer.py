@@ -120,7 +120,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
         # for visualization
         p_joint_S = sum(p_jointS_list) / len(p_jointS_list)
         p_joint_T = sum(p_jointT_list) / len(p_jointT_list)
-        joint_error = torch.abs(p_joint_S - p_joint_T).mean(0)
+        joint_error = torch.abs(p_joint_S - p_joint_T)
         # joint_error_shift = torch.log(1 + joint_error)
 
         self.meters[f"train_dice"].add(

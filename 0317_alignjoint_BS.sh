@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=4
 account=rrg-ebrahimi
-save_dir=0317_alignjoint_pred_strictposition
+save_dir=0323_alignjoint_pred
 declare -a StringArray=(
 
 "python main.py seed=123 Optim.lr=0.00001 Trainer.name=align_IndividualBN DA.double_bn=True DA.source=MRI DA.target=CT DA.batchsize_indicator=6 DA.statistic=False DA.align_layer.name=Deconv_1x1 DA.multi_scale=1 DA.displacement=False Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0 Trainer.save_dir=${save_dir}/disp0_0Ent_301MAEregjoint21_pred"
