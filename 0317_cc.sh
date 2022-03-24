@@ -6,9 +6,9 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 
-time=4
+time=2
 account=rrg-ebrahimi
-save_dir=0324_test_consistent
+save_dir=0324_test_consistent1
 declare -a StringArray=(
 
 "python main.py seed=123 Optim.lr=0.00001 Trainer.name=align_IndividualBN DA.double_bn=True DA.source=MRI DA.target=CT DA.batchsize_indicator=20 DA.statistic=False DA.align_layer.name=Deconv_1x1 DA.multi_scale=1 DA.displacement=False Scheduler.RegScheduler.max_value=0.0001 Scheduler.ClusterScheduler.max_value=0.00001 Trainer.save_dir=${save_dir}/disp0_401Ent_301MAEregjoint63_pred1"
