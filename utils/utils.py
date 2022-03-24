@@ -154,6 +154,8 @@ def fix_all_seed(seed):
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.deterministic = True
 
 
 @contextmanager

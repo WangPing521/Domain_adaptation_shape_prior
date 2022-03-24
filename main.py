@@ -18,8 +18,6 @@ from trainers.upper_supervised_Trainer import UpperbaselineTrainer
 from utils.radam import RAdam
 from utils.utils import fix_all_seed_within_context, fix_all_seed
 
-torch.backends.cudnn.benchmark = True
-
 cmanager = ConfigManager("configs/config.yaml", strict=True)
 config = cmanager.config
 fix_all_seed(config['seed'])
