@@ -147,7 +147,7 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
 
     p_i_j = (x_out @ after_displacement).mean(0).unsqueeze(0).unsqueeze(0)
     # p_i_j = (x_out @ after_displacement).unsqueeze(0).transpose(1,0)
-
+    p_i_j = p_i_j.contiguous()
     p_i_j = p_i_j - p_i_j.min().detach() + 1e-8
     # T x T x k x k
     p_i_j /= p_i_j.sum(dim=[2, 3], keepdim=True)  # norm
