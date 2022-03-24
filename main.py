@@ -14,15 +14,15 @@ from trainers.align_IBN_trainer import align_IBNtrainer
 from trainers.align_combinationlayer_trainer import mutli_aligntrainer
 from trainers.ent_prior_trainer import entPlusPriorTrainer
 from trainers.entropy_DA_trainer import EntropyDA
-# from trainers.olva_helper import unet2vaeunet
 from trainers.upper_supervised_Trainer import UpperbaselineTrainer
 from utils.radam import RAdam
-from utils.utils import fix_all_seed_within_context
+from utils.utils import fix_all_seed_within_context, fix_all_seed
 
 torch.backends.cudnn.benchmark = True
 
 cmanager = ConfigManager("configs/config.yaml", strict=True)
 config = cmanager.config
+fix_all_seed(config['seed'])
 switch_bn = _switch_bn if config['DA']['double_bn'] else nullcontext
 
 with fix_all_seed_within_context(config['seed']):
