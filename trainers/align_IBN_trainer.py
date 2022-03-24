@@ -56,7 +56,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
             t_data[0][1].to(self.device),
             t_data[1],
         )
-        with open(f'{self._config["Trainer"]["save_dir"]}/patient.txt', 'w') as f:
+        with open(f'runs/{self._config["Trainer"]["save_dir"]}/patient.txt', 'w') as f:
             for ids in S_filename:
                 f.write(str(ids))
             f.write('\n')
