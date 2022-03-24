@@ -56,6 +56,8 @@ class align_IBNtrainer(SourcebaselineTrainer):
             t_data[0][1].to(self.device),
             t_data[1],
         )
+        print(S_filename)
+        print(T_filename)
         S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
         S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
         T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
