@@ -201,7 +201,7 @@ class DatasetBase(Dataset):
         self._transforms = transforms
 
 class MedicalImageSegmentationDataset(Dataset):
-    dataset_modes = ["ct_train", "ct_val","mr_train", "mr_val"]
+    dataset_modes = ["ct_train", "ct_val","mr_train", "mr_val", 'train', 'val']
     allow_extension = [".jpg", ".png"]
 
     def __init__(
@@ -381,29 +381,3 @@ class MedicalImageSegmentationDataset(Dataset):
                 print(f"found {len(imgs[subfolder])} images in {subfolder}\t")
         return imgs
 
-
-# def extract_sub_dataset_based_on_scan_names(dataset: DatasetBase, group_names: t.Iterable[str],
-#                                             transforms: SequentialWrapper = None) -> DatasetBase:
-#     loaded: bool = dataset.is_preloaded()
-#     available_group_names = sorted(set(dataset.get_scan_list()))
-#     for g in group_names:
-#         assert g in available_group_names, (g, available_group_names)
-#     memory = dataset.get_memory_dictionary()
-#     get_scan_name = dataset._get_scan_name  # noqa
-#     new_memory = OrderedDict()
-#     for sub_folder, path_list in memory.items():
-#         new_memory[sub_folder] = [x for x in path_list if get_scan_name(stem=get_stem(x)) in group_names]
-#
-#     if loaded:
-#         dataset.deload()
-#
-#     new_dataset = dcopy(dataset)
-#     new_dataset.set_memory_dictionary(new_dictionary=new_memory)
-#     if transforms:
-#         new_dataset.transforms = transforms
-#     assert set(new_dataset.get_scan_list()) == set(group_names)
-#
-#     if loaded:
-#         dataset.preload()
-#         new_dataset.preload()
-#     return new_dataset

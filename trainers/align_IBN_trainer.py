@@ -60,7 +60,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
         S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
         S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
         T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
-        # T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
+        T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
         with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
             self.extractor.clear()
