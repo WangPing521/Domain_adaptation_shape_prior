@@ -3,6 +3,7 @@ import torch
 from arch.DomainSpecificBNUnet import convert2TwinBN, switch_bn as _switch_bn
 from arch.unet import UNet
 from configure import ConfigManager
+from dataset.prostate import ProstateInterface, PromiseInterface
 from dataset.mmwhs import mmWHSMRInterface, mmWHSCTInterface
 from demo.criterions import nullcontext
 from scheduler.customized_scheduler import RampScheduler
@@ -34,39 +35,42 @@ with fix_all_seed_within_context(config['seed']):
     scheduler = GradualWarmupScheduler(optimizer, multiplier=300, total_epoch=10, after_scheduler=scheduler)
 
 if config['Data_input']['dataset'] == 'mmwhs':
-    CT_handler = mmWHSCTInterface(**config["Data"])
-    MR_handler = mmWHSMRInterface(**config["Data"])
+    handler1 = mmWHSCTInterface(**config["Data"])
+    handler2 = mmWHSMRInterface(**config["Data"])
+elif config['Data_input']['dataset'] == 'prostate':
+    handler1 = PromiseInterface(**config["Data"])
+    handler2 = ProstateInterface(**config["Data"])
 else:
     raise NotImplementedError(config['Data_input']['dataset'])
 
-CT_handler.compile_dataloader_params(**config["DataLoader"])
-MR_handler.compile_dataloader_params(**config["DataLoader"])
+handler1.compile_dataloader_params(**config["DataLoader"])
+handler2.compile_dataloader_params(**config["DataLoader"])
 
 with fix_all_seed_within_context(config['Data']['seed']):
-    if config['DA']['source'] == 'CT' and config['DA']['target'] == 'MRI':
-        trainS_loader, valS_loader = CT_handler.DataLoaders(
+    if config['DA']['source'] in ['CT', 'promise'] and config['DA']['target'] in ['MRI','prostate']:
+        trainS_loader, valS_loader = handler1.DataLoaders(
             train_transform=None,
             val_transform=None,
             group_val=False,
             use_infinite_sampler=True,
             batchsize_indicator=config['DA']['batchsize_indicator']
         )
-        trainT_loader, valT_loader = MR_handler.DataLoaders(
+        trainT_loader, valT_loader = handler2.DataLoaders(
             train_transform=None,
             val_transform=None,
             group_val=False,
             use_infinite_sampler=True,
             batchsize_indicator=config['DA']['batchsize_indicator']
         )
-    elif config['DA']['source'] == 'MRI' and config['DA']['target'] == 'CT':
-        trainT_loader, valT_loader = CT_handler.DataLoaders(
+    elif config['DA']['source'] in ['MRI','prostate'] and config['DA']['target'] in ['CT', 'promise']:
+        trainT_loader, valT_loader = handler1.DataLoaders(
             train_transform=None,
             val_transform=None,
             group_val=False,
             use_infinite_sampler=True,
             batchsize_indicator=config['DA']['batchsize_indicator']
         )
-        trainS_loader, valS_loader = MR_handler.DataLoaders(
+        trainS_loader, valS_loader = handler2.DataLoaders(
             train_transform=None,
             val_transform=None,
             group_val=False,

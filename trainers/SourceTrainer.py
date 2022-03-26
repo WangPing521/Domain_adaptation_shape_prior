@@ -179,30 +179,30 @@ class SourcebaselineTrainer:
             **kwargs,
     ) -> Tuple[Any, Any]:
         self.model.eval()
-        # valS_indicator = tqdm(valS_loader)
-        # valS_indicator.set_description(f"ValS_Epoch {epoch:03d}")
+        valS_indicator = tqdm(valS_loader)
+        valS_indicator.set_description(f"ValS_Epoch {epoch:03d}")
         valT_indicator = tqdm(valT_loader)
         valT_indicator.set_description(f"ValT_Epoch {epoch:03d}")
         report_dict = {}
-        # for batch_idS, data_S in enumerate(valS_indicator):
-        #     imageS, targetS, filenameS = (
-        #         data_S[0][0].to(self.device),
-        #         data_S[0][1].to(self.device),
-        #         data_S[1]
-        #     )
-        #     with self.switch_bn(self.model, 0):
-        #         preds_S = self.model(imageS).softmax(1)
-        #     self.meters[f"valS_dice"].add(
-        #         preds_S.max(1)[1],
-        #         targetS.squeeze(1),
-        #         group_name=["_".join(x.split("_")[:-1]) for x in filenameS])
-        #
-        #     report_dict = self.meters.statistics()
-        #     valS_indicator.set_postfix_statics(report_dict, cache_time=20)
+        for batch_idS, data_S in enumerate(valS_indicator):
+            imageS, targetS, filenameS = (
+                data_S[0][0].to(self.device),
+                data_S[0][1].to(self.device),
+                data_S[1]
+            )
+            with self.switch_bn(self.model, 0):
+                preds_S = self.model(imageS).softmax(1)
+            self.meters[f"valS_dice"].add(
+                preds_S.max(1)[1],
+                targetS.squeeze(1),
+                group_name=["_".join(x.split("_")[:-1]) for x in filenameS])
+
+            report_dict = self.meters.statistics()
+            valS_indicator.set_postfix_statics(report_dict, cache_time=20)
         #     if batch_idS == 28:
         #         source_seg = plot_seg(imageS.squeeze(0), preds_S.max(1)[1].squeeze(0))
         #         self.writer.add_figure(tag=f"val_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
-        # valS_indicator.close()
+        valS_indicator.close()
 
         for batch_idT, data_T in enumerate(valT_indicator):
             imageT, targetT, filenameT = (
