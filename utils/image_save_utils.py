@@ -33,7 +33,6 @@ def plot_joint_matrix(joint: Tensor):
             img = joint[i1 - 1, i2 - 1]
             im_ = ax.imshow(img)
             fig.colorbar(im_, ax=ax, orientation='vertical')
-            plt.clim(0,0.01)
     return fig
 
 def plot_joint_matrix1(joint: Tensor):

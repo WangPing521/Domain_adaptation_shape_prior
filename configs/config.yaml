@@ -38,6 +38,7 @@ DA:
   batchsize_indicator: 1 # partition=7, bs=batchsize_indicator * 7
   double_bn: False
   displacement: False
+  displace_scale: 1
   statistic: False
   multi_scale: 1 # 1, 2, 3, 4, 5, 6 Note: 1 refers to without multi_scale resilution
   source: MRI # promise

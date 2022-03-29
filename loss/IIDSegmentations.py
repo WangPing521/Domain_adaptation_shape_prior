@@ -135,12 +135,8 @@ def compute_joint_2D_with_padding_zeros(x_out: Tensor, x_tf_out: Tensor, *, symm
 
 def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=True):
     n, d, h, w = x_out.shape
-    padding_max = max(np.abs(displacement_map))
-    padding_amount = (
-        padding_max, padding_max, padding_max, padding_max)  # pad last dim by (1, 1) and 2nd to last by (2, 2)
-    out = F.pad(x_out, padding_amount, "constant", 0)
-    after_displacement = out[:, :, padding_max - displacement_map[0]:padding_max - displacement_map[0] + h,
-                         padding_max - displacement_map[1]:padding_max - displacement_map[1] + w]
+    after_displacement = x_out.roll(shifts=[displacement_map[0], displacement_map[1]], dims=[2, 3])
+    assert simplex(after_displacement)
 
     x_out = x_out.reshape(n,d, h*w)
     after_displacement = after_displacement.reshape(n,d, h*w).transpose(2,1)
@@ -149,7 +145,6 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
     # p_i_j = (x_out @ after_displacement).unsqueeze(0).transpose(1,0)
     p_i_j = p_i_j.contiguous()
     p_i_j = p_i_j - p_i_j.min().detach() + 1e-8
-    # T x T x k x k
     p_i_j /= p_i_j.sum(dim=[2, 3], keepdim=True)  # norm
 
     # symmetrise, transpose the k x k part
