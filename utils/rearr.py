@@ -52,7 +52,26 @@ class ContrastBatchSampler(Sampler[List[int]]):
                 random.shuffle(batch_index)
             return batch_index
 
-    def __init__(self, dataset, scan_sample_num=4, partition_sample_num=1, shuffle=False, batchsize_indicator=6) -> None:
+            # fixed_one_partition = random.sample(self._partition2index.keys(), k=1)[0]
+            #
+            # # for each group sample, choose at most partition_sample_num slices per partition
+            # for cur_group in cur_group_samples:
+            #     available_slices_given_group = self._group2index[cur_group]
+            #     # for s_available_slices in fixed_one_partition :
+            #     s_available_slices = self._partition2index[fixed_one_partition]
+            #     try:
+            #         sampled_slices = random.sample(
+            #             sorted(set(available_slices_given_group) & set(s_available_slices)),
+            #             self._partition_sample_num
+            #         )
+            #         batch_index.extend(sampled_slices)
+            #     except ValueError:
+            #         return self.__next__()
+            # if self._shuffle:
+            #     random.shuffle(batch_index)
+            # return batch_index
+
+    def __init__(self, dataset, scan_sample_num=4, partition_sample_num=1, shuffle=False) -> None:
         super(ContrastBatchSampler, self).__init__(data_source=dataset)
         self._dataset = dataset
         filenames = dcopy(dataset.get_filenames())
@@ -69,7 +88,7 @@ class ContrastBatchSampler(Sampler[List[int]]):
             scan_name = _get_scan_name(filename)
             slice_num = int(re.compile(r"\d+").findall(os.path.basename(filename))[1])
             total_scan_num = total_scan_dict[scan_name]
-            return min(slice_num // (total_scan_num // batchsize_indicator), batchsize_indicator)
+            return min(slice_num // (total_scan_num // dataset.partition_num), dataset.partition_num-1)
 
         for i, filename in enumerate(filenames):
             group = _get_scan_name(filename)  # noqa

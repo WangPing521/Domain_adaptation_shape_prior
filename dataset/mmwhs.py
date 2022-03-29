@@ -4,6 +4,7 @@ from copy import deepcopy as dcp
 from itertools import repeat
 from pathlib import Path
 from typing import Tuple, Type, Union, Dict, List, Callable, Pattern, Match
+
 import numpy as np
 from torch.utils.data import DataLoader, Sampler
 
@@ -69,7 +70,7 @@ class MedicalDatasetInterface:
             group_train=False,
             group_val=True,
             use_infinite_sampler: bool = False,
-            batchsize_indicator: int=6
+            batchsize_indicator: int = 6
     ) -> Tuple[DataLoader, DataLoader]:
 
         _dataloader_params = dcp(self.dataloader_params)
@@ -83,14 +84,15 @@ class MedicalDatasetInterface:
                 {"batch_size": self.batch_params.get("batch_size")}
             )
         if use_infinite_sampler:
-            contrastive_sampler = ContrastBatchSampler(train_set, scan_sample_num=3, partition_sample_num=1,
-                                                       shuffle=False, batchsize_indicator=batchsize_indicator)
+            contrastive_sampler = ContrastBatchSampler(train_set, scan_sample_num=batchsize_indicator,
+                                                       partition_sample_num=1,
+                                                       shuffle=False)
 
             train_loader = (
                 DataLoader(
                     train_set,
                     batch_sampler=contrastive_sampler,
-                    **{k: v for k, v in _dataloader_params.items() if k != "shuffle" and k!="batch_size"},
+                    **{k: v for k, v in _dataloader_params.items() if k != "shuffle" and k != "batch_size"},
                 )
                 if not group_train
                 else self._grouped_dataloader(
@@ -197,6 +199,7 @@ class mmWHSCTDataset(MedicalImageSegmentationDataset):
     download_link = "https://drive.google.com/uc?id=1oDKm6W6wQJRFCuiavDo3hzl7Prx2t0c0"
     zip_name = "MMWHS.zip"
     folder_name = "MMWHS"
+    partition_num = 7
 
     def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None,
                  patient_pattern: str) -> None:
@@ -257,6 +260,8 @@ class mmWHSMRDataset(MedicalImageSegmentationDataset):
     download_link = "https://drive.google.com/uc?id=1oDKm6W6wQJRFCuiavDo3hzl7Prx2t0c0"
     zip_name = "MMWHS.zip"
     folder_name = "MMWHS"
+
+    partition_num = 7
 
     def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None,
                  patient_pattern: str) -> None:
@@ -374,20 +379,20 @@ class MedicalDatasetSemiInterface:
     """
 
     def __init__(
-        self,
-        DataClass: Type[MedicalImageSegmentationDataset],
-        root_dir: str,
-        labeled_data_ratio: float,
-        unlabeled_data_ratio: float,
-        seed: int = 0,
-        verbose: bool = True,
+            self,
+            DataClass: Type[MedicalImageSegmentationDataset],
+            root_dir: str,
+            labeled_data_ratio: float,
+            unlabeled_data_ratio: float,
+            seed: int = 0,
+            verbose: bool = True,
     ) -> None:
         super().__init__()
         self.DataClass = DataClass
         self.root_dir = root_dir
         assert (
-            labeled_data_ratio + unlabeled_data_ratio
-        ) <= 1, f"`labeled_data_ratio` + `unlabeled_data_ratio` should be less than 1.0, given {labeled_data_ratio + unlabeled_data_ratio}"
+                       labeled_data_ratio + unlabeled_data_ratio
+               ) <= 1, f"`labeled_data_ratio` + `unlabeled_data_ratio` should be less than 1.0, given {labeled_data_ratio + unlabeled_data_ratio}"
         self.labeled_ratio = labeled_data_ratio
         self.unlabeled_ratio = unlabeled_data_ratio
         self.val_ratio = 1 - (labeled_data_ratio + unlabeled_data_ratio)
@@ -395,15 +400,15 @@ class MedicalDatasetSemiInterface:
         self.verbose = verbose
 
     def compile_dataloader_params(
-        self,
-        batch_size: int = 1,
-        labeled_batch_size: int = None,
-        unlabeled_batch_size: int = None,
-        val_batch_size: int = None,
-        shuffle: bool = False,
-        num_workers: int = 1,
-        pin_memory: bool = True,
-        drop_last=False,
+            self,
+            batch_size: int = 1,
+            labeled_batch_size: int = None,
+            unlabeled_batch_size: int = None,
+            val_batch_size: int = None,
+            shuffle: bool = False,
+            num_workers: int = 1,
+            pin_memory: bool = True,
+            drop_last=False,
     ):
         self._if_use_indiv_bz: bool = self._use_individual_batch_size(
             batch_size,
@@ -427,14 +432,14 @@ class MedicalDatasetSemiInterface:
         }
 
     def SemiSupervisedDataLoaders(
-        self,
-        labeled_transform: SequentialWrapper = None,
-        unlabeled_transform: SequentialWrapper = None,
-        val_transform: SequentialWrapper = None,
-        group_labeled=False,
-        group_unlabeled=False,
-        group_val=True,
-        use_infinite_sampler: bool = False,
+            self,
+            labeled_transform: SequentialWrapper = None,
+            unlabeled_transform: SequentialWrapper = None,
+            val_transform: SequentialWrapper = None,
+            group_labeled=False,
+            group_unlabeled=False,
+            group_val=True,
+            use_infinite_sampler: bool = False,
     ) -> Tuple[DataLoader, DataLoader, DataLoader]:
 
         _dataloader_params = dcp(self.dataloader_params)
@@ -515,15 +520,15 @@ class MedicalDatasetSemiInterface:
 
     @staticmethod
     def _use_individual_batch_size(
-        batch_size, l_batch_size, un_batch_size, val_batch_size, verbose
+            batch_size, l_batch_size, un_batch_size, val_batch_size, verbose
     ) -> bool:
         if (
-            isinstance(l_batch_size, int)
-            and isinstance(un_batch_size, int)
-            and isinstance(val_batch_size, int)
+                isinstance(l_batch_size, int)
+                and isinstance(un_batch_size, int)
+                and isinstance(val_batch_size, int)
         ):
             assert (
-                l_batch_size >= 1 and un_batch_size >= 1 and val_batch_size >= 1
+                    l_batch_size >= 1 and un_batch_size >= 1 and val_batch_size >= 1
             ), "batch_size should be greater than 1."
             if verbose:
                 print(
@@ -541,10 +546,10 @@ class MedicalDatasetSemiInterface:
             )
 
     def _create_semi_supervised_datasets(
-        self,
-        labeled_transform: SequentialWrapper = None,
-        unlabeled_transform: SequentialWrapper = None,
-        val_transform: SequentialWrapper = None,
+            self,
+            labeled_transform: SequentialWrapper = None,
+            unlabeled_transform: SequentialWrapper = None,
+            val_transform: SequentialWrapper = None,
     ) -> Tuple[
         MedicalImageSegmentationDataset,
         MedicalImageSegmentationDataset,
@@ -553,10 +558,10 @@ class MedicalDatasetSemiInterface:
         raise NotImplementedError
 
     def _grouped_dataloader(
-        self,
-        dataset: MedicalImageSegmentationDataset,
-        use_infinite_sampler: bool = False,
-        **dataloader_params: Dict[str, Union[int, float, bool]],
+            self,
+            dataset: MedicalImageSegmentationDataset,
+            use_infinite_sampler: bool = False,
+            **dataloader_params: Dict[str, Union[int, float, bool]],
     ) -> DataLoader:
         """
         return a dataloader that requires to be grouped based on the reg of patient's pattern.
@@ -580,21 +585,22 @@ class MedicalDatasetSemiInterface:
 
     @staticmethod
     def override_transforms(
-        dataset: MedicalImageSegmentationDataset, transform: SequentialWrapper
+            dataset: MedicalImageSegmentationDataset, transform: SequentialWrapper
     ):
         assert isinstance(dataset, MedicalImageSegmentationDataset), dataset
         assert isinstance(transform, SequentialWrapper), transform
         dataset.set_transform(transform)
         return dataset
 
+
 class mmwhsCTSemiInterface(MedicalDatasetSemiInterface):
     def __init__(
-        self,
-        root_dir=DATA_PATH,
-        labeled_data_ratio: float = 0.3,
-        unlabeled_data_ratio: float = 0.7,
-        seed: int = 0,
-        verbose: bool = True,
+            self,
+            root_dir=DATA_PATH,
+            labeled_data_ratio: float = 0.3,
+            unlabeled_data_ratio: float = 0.7,
+            seed: int = 0,
+            verbose: bool = True,
     ) -> None:
         super().__init__(
             mmWHSCTDataset,
@@ -606,10 +612,10 @@ class mmwhsCTSemiInterface(MedicalDatasetSemiInterface):
         )
 
     def _create_semi_supervised_datasets(
-        self,
-        labeled_transform: SequentialWrapper = None,
-        unlabeled_transform: SequentialWrapper = None,
-        val_transform: SequentialWrapper = None,
+            self,
+            labeled_transform: SequentialWrapper = None,
+            unlabeled_transform: SequentialWrapper = None,
+            val_transform: SequentialWrapper = None,
     ) -> Tuple[
         MedicalImageSegmentationDataset,
         MedicalImageSegmentationDataset,
@@ -635,7 +641,7 @@ class mmwhsCTSemiInterface(MedicalDatasetSemiInterface):
             labeled_patients, unlabeled_patients = (
                 shuffled_patients[: int(len(shuffled_patients) * self.labeled_ratio)],
                 shuffled_patients[
-                    -int(len(shuffled_patients) * self.unlabeled_ratio) :
+                -int(len(shuffled_patients) * self.unlabeled_ratio):
                 ],
             )
 
@@ -653,14 +659,15 @@ class mmwhsCTSemiInterface(MedicalDatasetSemiInterface):
             val_set.set_transform(val_transform)
         return labeled_set, unlabeled_set, val_set
 
+
 class mmwhsMRSemiInterface(MedicalDatasetSemiInterface):
     def __init__(
-        self,
-        root_dir=DATA_PATH,
-        labeled_data_ratio: float = 0.3,
-        unlabeled_data_ratio: float = 0.7,
-        seed: int = 0,
-        verbose: bool = True,
+            self,
+            root_dir=DATA_PATH,
+            labeled_data_ratio: float = 0.3,
+            unlabeled_data_ratio: float = 0.7,
+            seed: int = 0,
+            verbose: bool = True,
     ) -> None:
         super().__init__(
             mmWHSMRDataset,
@@ -672,10 +679,10 @@ class mmwhsMRSemiInterface(MedicalDatasetSemiInterface):
         )
 
     def _create_semi_supervised_datasets(
-        self,
-        labeled_transform: SequentialWrapper = None,
-        unlabeled_transform: SequentialWrapper = None,
-        val_transform: SequentialWrapper = None,
+            self,
+            labeled_transform: SequentialWrapper = None,
+            unlabeled_transform: SequentialWrapper = None,
+            val_transform: SequentialWrapper = None,
     ) -> Tuple[
         MedicalImageSegmentationDataset,
         MedicalImageSegmentationDataset,
@@ -701,7 +708,7 @@ class mmwhsMRSemiInterface(MedicalDatasetSemiInterface):
             labeled_patients, unlabeled_patients = (
                 shuffled_patients[: int(len(shuffled_patients) * self.labeled_ratio)],
                 shuffled_patients[
-                    -int(len(shuffled_patients) * self.unlabeled_ratio) :
+                -int(len(shuffled_patients) * self.unlabeled_ratio):
                 ],
             )
 
@@ -721,13 +728,13 @@ class mmwhsMRSemiInterface(MedicalDatasetSemiInterface):
 
 
 def SubMedicalDatasetBasedOnIndex(
-    dataset: MedicalImageSegmentationDataset, group_list
+        dataset: MedicalImageSegmentationDataset, group_list
 ) -> MedicalImageSegmentationDataset:
     """
     This class divide a list of file path to some different groups in order to split the dataset based on p_pattern string.
     """
     assert (
-        isinstance(group_list, (tuple, list)) and group_list.__len__() >= 1
+            isinstance(group_list, (tuple, list)) and group_list.__len__() >= 1
     ), f"group_list to be extracted: {group_list}"
     dataset = dcp(dataset)
     patient_img_list: List[str] = dataset.get_filenames()
@@ -739,4 +746,3 @@ def SubMedicalDatasetBasedOnIndex(
         for k, v in dataset._filenames.items()
     }
     return dataset
-
