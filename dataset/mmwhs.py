@@ -85,7 +85,7 @@ class MedicalDatasetInterface:
             )
         if use_infinite_sampler:
             contrastive_sampler = ContrastBatchSampler(train_set, scan_sample_num=batchsize_indicator,
-                                                       partition_sample_num=1,
+                                                       partition_sample_num=6,
                                                        shuffle=False)
 
             train_loader = (
