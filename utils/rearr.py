@@ -36,40 +36,40 @@ class ContrastBatchSampler(Sampler[List[int]]):
             cur_group_samples = random.sample(list(self._group2index.keys()), self._scan_sample_num)
             assert isinstance(cur_group_samples, list), cur_group_samples
 
-            # # for each group sample, choose at most partition_sample_num slices per partition
-            # for cur_group in cur_group_samples:
-            #     available_slices_given_group = self._group2index[cur_group]
-            #     for s_available_slices in self._partition2index.values():
-            #         try:
-            #             sampled_slices = random.sample(
-            #                 sorted(set(available_slices_given_group) & set(s_available_slices)),
-            #                 self._partition_sample_num
-            #             )
-            #             batch_index.extend(sampled_slices)
-            #         except ValueError:
-            #             return self.__next__()
-            # if self._shuffle:
-            #     random.shuffle(batch_index)
-            # return batch_index
-
-            fixed_one_partition = random.sample(self._partition2index.keys(), k=1)[0]
-
             # for each group sample, choose at most partition_sample_num slices per partition
             for cur_group in cur_group_samples:
                 available_slices_given_group = self._group2index[cur_group]
-                # for s_available_slices in fixed_one_partition :
-                s_available_slices = self._partition2index[fixed_one_partition]
-                try:
-                    sampled_slices = random.sample(
-                        sorted(set(available_slices_given_group) & set(s_available_slices)),
-                        self._partition_sample_num
-                    )
-                    batch_index.extend(sampled_slices)
-                except ValueError:
-                    return self.__next__()
+                for s_available_slices in self._partition2index.values():
+                    try:
+                        sampled_slices = random.sample(
+                            sorted(set(available_slices_given_group) & set(s_available_slices)),
+                            self._partition_sample_num
+                        )
+                        batch_index.extend(sampled_slices)
+                    except ValueError:
+                        return self.__next__()
             if self._shuffle:
                 random.shuffle(batch_index)
             return batch_index
+
+            # fixed_one_partition = random.sample(self._partition2index.keys(), k=1)[0]
+            #
+            # # for each group sample, choose at most partition_sample_num slices per partition
+            # for cur_group in cur_group_samples:
+            #     available_slices_given_group = self._group2index[cur_group]
+            #     # for s_available_slices in fixed_one_partition :
+            #     s_available_slices = self._partition2index[fixed_one_partition]
+            #     try:
+            #         sampled_slices = random.sample(
+            #             sorted(set(available_slices_given_group) & set(s_available_slices)),
+            #             self._partition_sample_num
+            #         )
+            #         batch_index.extend(sampled_slices)
+            #     except ValueError:
+            #         return self.__next__()
+            # if self._shuffle:
+            #     random.shuffle(batch_index)
+            # return batch_index
 
     def __init__(self, dataset, scan_sample_num=4, partition_sample_num=1, shuffle=False) -> None:
         super(ContrastBatchSampler, self).__init__(data_source=dataset)
