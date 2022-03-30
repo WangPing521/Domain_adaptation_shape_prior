@@ -182,9 +182,15 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
         # align_1disp_loss = torch.abs(torch.cat(p_joint_S)  - torch.cat(p_joint_T)).mean()
 
         align_loss_list.append(align_1disp_loss)
-    align_loss = average_list(align_loss_list)
-    # todo: visualization.
 
+    # avg of 8 directions of displacements with disp=0
+    # align_loss = average_list(align_loss_list)
+    # alignment of disp=0, plus avg of 8 directions of displacement without disp=0 by given a weight
+    disp0 = align_loss_list[0]
+    disp_list = align_loss_list[1:]
+    align_loss = disp0 + 0.5 * average_list(disp_list)
+
+    # todo: visualization.
     return align_loss, p_joint_S, p_joint_T
 
 def compute_cross_correlation(x_out, displacement_map: (int, int)):
