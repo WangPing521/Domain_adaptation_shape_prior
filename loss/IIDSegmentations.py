@@ -188,7 +188,10 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
     # alignment of disp=0, plus avg of 8 directions of displacement without disp=0 by given a weight
     disp0 = align_loss_list[0]
     disp_list = align_loss_list[1:]
-    align_loss = disp0 + 0.5 * average_list(disp_list)
+    try:
+        align_loss = disp0 + 0.5 * average_list(disp_list)
+    except:
+        align_loss = disp0
 
     # todo: visualization.
     return align_loss, p_joint_S, p_joint_T
