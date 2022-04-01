@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=4
 account=rrg-ebrahimi
-save_dir=0331batch_align_gtS_runs
+save_dir=0331_batch_align_gtS_runs
 declare -a StringArray=(
 # batch_align: bs=7:1 21:3 35:5 42:6 56:8 63:9
 
