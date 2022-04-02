@@ -133,16 +133,16 @@ def compute_joint_2D_with_padding_zeros(x_out: Tensor, x_tf_out: Tensor, *, symm
     return p_i_j.contiguous()
 
 
-def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=True):
+def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=True, cc_relation=False):
     n, d, h, w = x_out.shape
     after_displacement = x_out.roll(shifts=[displacement_map[0], displacement_map[1]], dims=[2, 3])
-    assert simplex(after_displacement)
+    if not cc_relation:
+        assert simplex(after_displacement)
 
     x_out = x_out.reshape(n,d, h*w)
     after_displacement = after_displacement.reshape(n,d, h*w).transpose(2,1)
 
     p_i_j = (x_out @ after_displacement).mean(0).unsqueeze(0).unsqueeze(0)
-    # p_i_j = (x_out @ after_displacement).unsqueeze(0).transpose(1,0)
     p_i_j = p_i_j.contiguous()
     p_i_j = p_i_j - p_i_j.min().detach() + 1e-8
     p_i_j /= p_i_j.sum(dim=[2, 3], keepdim=True)  # norm
@@ -152,34 +152,27 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
         p_i_j = (p_i_j + p_i_j.permute(0, 1, 3, 2)) / 2.0
     p_i_j /= p_i_j.sum()  # norm
 
-    # exclude batchsize
-    # p_joint_posbs = []
-    # for idx in range(int(n/3)):
-    #     p_joint_pos = torch.zeros_like(p_i_j[0])
-    #     for pos_idx in range(idx, n, int(n/3)):
-    #         p_joint_pos = p_joint_pos + p_i_j[pos_idx,:,:,:]
-    #     p_joint_pos = p_joint_pos / 3 # 3 patients in one batch
-    #     p_joint_posbs.append(p_joint_pos)
-
     return p_i_j.contiguous()
 
 
-def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]]):
-    assert simplex(clustert) and simplex(clusters)
+def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], cc_based=False):
+    if not cc_based:
+        assert simplex(clustert) and simplex(clusters)
 
     align_loss_list = []
     for dis_map in displacement_maps:
         p_joint_S = compute_joint_distribution(
             x_out=clusters.detach(),
             displacement_map=(dis_map[0],
-                              dis_map[1]))
+                              dis_map[1]),
+            cc_relation=cc_based)
         p_joint_T = compute_joint_distribution(
             x_out=clustert,
             displacement_map=(dis_map[0],
-                              dis_map[1]))
+                              dis_map[1]),
+            cc_relation=cc_based)
         # align
         align_1disp_loss = torch.mean(torch.abs((p_joint_S.detach() - p_joint_T)))
-        # align_1disp_loss = torch.abs(torch.cat(p_joint_S)  - torch.cat(p_joint_T)).mean()
 
         align_loss_list.append(align_1disp_loss)
 

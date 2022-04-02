@@ -42,7 +42,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
         self.extractor = FeatureExtractor(self.model, feature_names=self._config['DA']['align_layer']['name'])
         self.extractor.bind()
         self.saver = FeatureMapSaver(save_dir=self._save_dir)
-
+        self.cc_based = self._config['DA']['align_layer']['cc_based']
     def run_step(self, s_data, t_data, cur_batch: int):
         extracted_layer = self.extractor.feature_names[0]
         C = int(self._config['Data_input']['num_class'])
@@ -86,12 +86,13 @@ class align_IBNtrainer(SourcebaselineTrainer):
                 feature_T = next(self.extractor.features())
 
             # projector cluster --->joint
-            # clusters_S = self.projector(feature_S)
-            # clusters_T = self.projector(feature_T)
-
-            # cross_correlation
-            clusters_S = [feature_S]
-            clusters_T = [feature_T]
+            if self.cc_based:
+                # cross_correlation
+                clusters_S = [feature_S]
+                clusters_T = [feature_T]
+            else:
+                clusters_S = self.projector(feature_S)
+                clusters_T = self.projector(feature_T)
 
         assert len(clusters_S) == len(clusters_T)
 
@@ -104,7 +105,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
 
             # align joint
             align_losses, p_joint_Ss, p_joint_Ts = \
-                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list) for
+                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, cc_based=self.cc_based) for
                       clusters, clustert in zip(clusters_S, clusters_T)])
 
             align_loss = sum(align_losses) / len(align_losses)
