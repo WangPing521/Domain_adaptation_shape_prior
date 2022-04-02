@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=3
 account=rrg-ebrahimi
-save_dir=0401_prostate_baseline
+save_dir=0401_state2mise
 declare -a StringArray=(
 
 #mise2state
