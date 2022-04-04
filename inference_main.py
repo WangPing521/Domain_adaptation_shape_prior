@@ -29,7 +29,7 @@ Smodel = UNet(num_classes=5, input_dim=1)
 if double_bn:
     Smodel = convert2TwinBN(Smodel)
 Smodel = Smodel.eval()
-weight = f'../../PHD_documents/papers_work/domain_adaptation/visualization_models/entprior/last.pth'
+weight = f'../../PHD_documents/papers_work/domain_adaptation/redoresults/check_segs/disp1_401Ent_301MAEregjoint63_seed3/last.pth'
 new_state_dict = OrderedDict()
 state_dict = torch.load(weight, map_location=torch.device('cpu'))
 Smodel.load_state_dict(state_dict.get('model'))
@@ -45,7 +45,7 @@ with fix_all_seed_within_context(seed=12):
         val_transform=None,
         group_val=False,
         use_infinite_sampler=True,
-        batchsize_indicator=1
+        batchsize_indicator=9
     )
 
 switch_bn = _switch_bn if True else nullcontext
@@ -61,7 +61,7 @@ for batch_idT, data_T in enumerate(valT_loader):
     else:
         preds_T = Smodel(imageT).softmax(1)
 
-    save_images(preds_T.max(1)[1], names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/visualization_models/entprior/segs', mode='predictions',
+    save_images(preds_T.max(1)[1], names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/redoresults/check_segs/disp1_401Ent_301MAEregjoint63_seed3/segs', mode='predictions',
             iter=100)
 
 
