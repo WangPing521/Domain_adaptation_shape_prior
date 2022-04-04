@@ -123,7 +123,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
         p_joint_S = sum(p_jointS_list) / len(p_jointS_list)
         p_joint_T = sum(p_jointT_list) / len(p_jointT_list)
         joint_error = torch.abs(p_joint_S - p_joint_T)
-        # joint_error_shift = torch.log(1 + joint_error)
+        joint_error_percent = joint_error / p_joint_S
 
         self.meters[f"train_dice"].add(
             pred_S.max(1)[1],
@@ -139,9 +139,11 @@ class align_IBNtrainer(SourcebaselineTrainer):
             self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
                                    close=True, )
             joint_error_fig = plot_joint_matrix1(joint_error)
+            joint_error_percent_fig = plot_joint_matrix1(joint_error_percent)
             self.writer.add_figure(tag=f"error_joint", figure=joint_error_fig, global_step=self.cur_epoch,
                                    close=True, )
-
+            self.writer.add_figure(tag=f"error_percent", figure=joint_error_percent_fig, global_step=self.cur_epoch,
+                                   close=True, )
             source_seg = plot_seg(S_img[-1], pred_S.max(1)[1][-1])
             target_seg = plot_seg(T_img[-1], pred_T.max(1)[1][-1])
             self.writer.add_figure(tag=f"train_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)

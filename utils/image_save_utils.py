@@ -45,7 +45,7 @@ def plot_joint_matrix1(joint: Tensor):
     joint = joint.detach().squeeze(0).squeeze(0).cpu().float().numpy()
     plt.imshow(joint)
     plt.colorbar(orientation='vertical')
-    plt.clim(0,0.01)
+    plt.clim(0,0.05)
     return fig
 
 def plot_seg(img, label):
