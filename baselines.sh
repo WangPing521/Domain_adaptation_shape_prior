@@ -6,9 +6,9 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 
-time=3
+time=4
 account=def-chdesa
-save_dir=0404_ent_psda
+save_dir=0404_psda
 
 declare -a StringArray=(
 #------------------MR2CT
@@ -26,13 +26,11 @@ declare -a StringArray=(
 #"python main.py seed=231 Optim.lr=0.00001 DA.source=MRI DA.target=CT DA.batchsize_indicator=9 Trainer.name=entda DA.double_bn=True Scheduler.RegScheduler.max_value=0.00000001 Trainer.save_dir=${save_dir}/MRI2CT_entDA_701reg_run2"
 #"python main.py seed=321 Optim.lr=0.00001 DA.source=MRI DA.target=CT DA.batchsize_indicator=9 Trainer.name=entda DA.double_bn=True Scheduler.RegScheduler.max_value=0.00000001 Trainer.save_dir=${save_dir}/MRI2CT_entDA_701reg_run3"
 
-"python main.py seed=123 Optim.lr=0.00001 DA.source=MRI DA.target=CT DA.batchsize_indicator=9 Trainer.name=entda DA.double_bn=True Scheduler.RegScheduler.max_value=0.000000001 Trainer.save_dir=${save_dir}/MRI2CT_entDA_801reg"
-"python main.py seed=231 Optim.lr=0.00001 DA.source=MRI DA.target=CT DA.batchsize_indicator=9 Trainer.name=entda DA.double_bn=True Scheduler.RegScheduler.max_value=0.000000001 Trainer.save_dir=${save_dir}/MRI2CT_entDA_801reg_run2"
-"python main.py seed=321 Optim.lr=0.00001 DA.source=MRI DA.target=CT DA.batchsize_indicator=9 Trainer.name=entda DA.double_bn=True Scheduler.RegScheduler.max_value=0.000000001 Trainer.save_dir=${save_dir}/MRI2CT_entDA_801reg_run3"
-
 # PLDA # lowerbaseline and ent
 #"python pseudoDA_main.py seed=123 Optim.lr=0.000001 DA.source=MRI DA.target=CT DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_baseline"
-"python pseudoDA_main.py seed=123 Optim.lr=0.000001 DA.source=MRI DA.target=CT DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_entda"
+"python pseudoDA_main.py seed=123 Optim.lr=0.000001 DA.source=MRI DA.target=CT DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_entda_seed1"
+"python pseudoDA_main.py seed=231 Optim.lr=0.000001 DA.source=MRI DA.target=CT DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_entda_seed2"
+"python pseudoDA_main.py seed=321 Optim.lr=0.000001 DA.source=MRI DA.target=CT DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_entda_seed3"
 
 )
 
