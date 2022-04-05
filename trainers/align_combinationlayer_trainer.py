@@ -43,9 +43,9 @@ class mutli_aligntrainer(SourcebaselineTrainer):
         self.extractor.bind()
         self.saver = FeatureMapSaver(save_dir=self._save_dir)
         self.align_type = self._config['DA']['align_type']
+        self.cc_based = self._config['DA']['align_layer']['cc_based']
 
     def run_step(self, s_data, t_data, cur_batch: int):
-        extracted_layer = self.extractor.feature_names[0]
         C = int(self._config['Data_input']['num_class'])
         S_img, S_target, S_filename = (
             s_data[0][0].to(self.device),
@@ -77,27 +77,35 @@ class mutli_aligntrainer(SourcebaselineTrainer):
             feature_T = next(self.extractor.features())
 
         # projector cluster --->joint
-        clusters_S1 = [pred_S]
+        if self._config['DA']['statistic']:
+            clusters_S1 = [onehot_targetS.float()]
+        else:
+            clusters_S1 = [pred_S]
         clusters_T1 = [pred_T]
 
-        clusters_S2 = self.projector(feature_S)
-        clusters_T2 = self.projector(feature_T)
+        if self.cc_based:
+            # cross_correlation
+            clusters_S2 = [feature_S]
+            clusters_T2 = [feature_T]
+        else:
+            clusters_S2 = self.projector(feature_S)
+            clusters_T2 = self.projector(feature_T)
 
         assert len(clusters_S1) == len(clusters_T1)
         assert len(clusters_S2) == len(clusters_T2)
 
         align_loss_multires1, align_loss_multires2 = [], []
-        p_jointS_list2, p_jointT_list2 = [], []
+        # p_jointS_list2, p_jointT_list2 = [], []
 
         for rs in range(self._config['DA']['multi_scale']):
             if rs:
                 clusters_S1, clusters_T1 = multi_resilution_cluster(clusters_S1, clusters_T1)
                 clusters_S2, clusters_T2 = multi_resilution_cluster(clusters_S2, clusters_T2)
             align_losses1, p_joint_Ss1, p_joint_Ts1 = \
-                zip(*[single_head_loss(clusters1, clustert1, displacement_maps=self.displacement_map_list) for
+                zip(*[single_head_loss(clusters1, clustert1, displacement_maps=self.displacement_map_list, cc_based=self.cc_based) for
                       clusters1, clustert1 in zip(clusters_S1, clusters_T1)])
             align_losses2, p_joint_Ss2, p_joint_Ts2 = \
-                zip(*[single_head_loss(clusters2, clustert2, displacement_maps=self.displacement_map_list) for
+                zip(*[single_head_loss(clusters2, clustert2, displacement_maps=self.displacement_map_list, cc_based=self.cc_based) for
                       clusters2, clustert2 in zip(clusters_S2, clusters_T2)])
 
             align_loss1 = sum(align_losses1) / len(align_losses1)
@@ -106,8 +114,8 @@ class mutli_aligntrainer(SourcebaselineTrainer):
             align_loss2 = sum(align_losses2) / len(align_losses2)
             align_loss_multires2.append(align_loss2)
 
-            p_jointS_list2.append(p_joint_Ss1[-1])
-            p_jointT_list2.append(p_joint_Ts1[-1])
+            # p_jointS_list2.append(p_joint_Ss1[-1])
+            # p_jointT_list2.append(p_joint_Ts1[-1])
 
         align_loss1 = average_list(align_loss_multires1)
         align_loss2 = average_list(align_loss_multires2)
