@@ -42,7 +42,6 @@ class mutli_aligntrainer(SourcebaselineTrainer):
         self.extractor = FeatureExtractor(self.model, feature_names=self._config['DA']['align_layer']['name'])
         self.extractor.bind()
         self.saver = FeatureMapSaver(save_dir=self._save_dir)
-        self.align_type = self._config['DA']['align_type']
         self.cc_based = self._config['DA']['align_layer']['cc_based']
 
     def run_step(self, s_data, t_data, cur_batch: int):
