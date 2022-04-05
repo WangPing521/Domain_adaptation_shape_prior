@@ -9,12 +9,13 @@ from dataset.mmwhs import mmWHSMRInterface, mmWHSCTInterface
 from scheduler.warmup_scheduler import GradualWarmupScheduler
 from trainers.psuedo_lableingDA import Pseudo_labelingDATrainer
 from utils.radam import RAdam
-from utils.utils import fix_all_seed_within_context
+from utils.utils import fix_all_seed_within_context, fix_all_seed
 
 torch.backends.cudnn.benchmark = True
 
 cmanager = ConfigManager("configs/config.yaml", strict=True)
 config = cmanager.config
+fix_all_seed(config['seed'])
 
 Smodel = UNet(num_classes=config['Data_input']['num_class'], input_dim=1)
 Smodel = convert2TwinBN(Smodel)
