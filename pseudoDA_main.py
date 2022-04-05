@@ -19,7 +19,7 @@ config = cmanager.config
 Smodel = UNet(num_classes=config['Data_input']['num_class'], input_dim=1)
 Smodel = convert2TwinBN(Smodel)
 Smodel = Smodel.eval()
-weight = f'runs/psuedoDA/last.pth'
+weight = f'runs/psuedoDA/0405/last.pth'
 new_state_dict = OrderedDict()
 state_dict = torch.load(weight)
 
