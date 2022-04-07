@@ -99,7 +99,7 @@ class mutli_aligntrainer(SourcebaselineTrainer):
         for rs in range(self._config['DA']['multi_scale']):
             if rs:
                 clusters_S1, clusters_T1 = multi_resilution_cluster(clusters_S1, clusters_T1)
-                clusters_S2, clusters_T2 = multi_resilution_cluster(clusters_S2, clusters_T2)
+            clusters_S2, clusters_T2 = multi_resilution_cluster(clusters_S2, clusters_T2)
             align_losses1, p_joint_Ss1, p_joint_Ts1 = \
                 zip(*[single_head_loss(clusters1, clustert1, displacement_maps=self.displacement_map_list, cc_based=self.cc_based) for
                       clusters1, clustert1 in zip(clusters_S1, clusters_T1)])
