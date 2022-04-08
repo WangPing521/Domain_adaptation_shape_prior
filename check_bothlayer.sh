@@ -12,7 +12,7 @@ save_dir=0404_bothlayers
 declare -a StringArray=(
 # upconv2 projector_clusters:5, 8, 10
 
-# upconv2 projector_clusters:5, 10, 20 ,30
+# upconv2 projector_clusters:5, 10, 20
 "python main.py seed=123 Optim.lr=0.00001 Trainer.name=combinationlayer DA.double_bn=True DA.source=MRI DA.target=CT DA.batchsize_indicator=9 DA.statistic=False DA.align_layer.name=Up_conv2 DA.align_layer.clusters=5  DA.weight1=0.5 DA.multi_scale=1 DA.displacement=False Scheduler.RegScheduler.max_value=0.0005 Scheduler.ClusterScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/disp0_501ent_305joint_05weight_c5"
 "python main.py seed=123 Optim.lr=0.00001 Trainer.name=combinationlayer DA.double_bn=True DA.source=MRI DA.target=CT DA.batchsize_indicator=9 DA.statistic=False DA.align_layer.name=Up_conv2 DA.align_layer.clusters=8  DA.weight1=0.5 DA.multi_scale=1 DA.displacement=False Scheduler.RegScheduler.max_value=0.0005 Scheduler.ClusterScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/disp0_501ent_305joint_05weight_c8"
 "python main.py seed=123 Optim.lr=0.00001 Trainer.name=combinationlayer DA.double_bn=True DA.source=MRI DA.target=CT DA.batchsize_indicator=9 DA.statistic=False DA.align_layer.name=Up_conv2 DA.align_layer.clusters=10 DA.weight1=0.5 DA.multi_scale=1 DA.displacement=False Scheduler.RegScheduler.max_value=0.0005 Scheduler.ClusterScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/disp0_501ent_305joint_05weight_c10"

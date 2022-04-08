@@ -15,7 +15,7 @@ class PromiseDataset(MedicalImageSegmentationDataset):
     download_link = "https://drive.google.com/uc?id=1hZISuvq2OGk6MZDhZ-p5ebV0q0IXAlaf"
     zip_name = "Promise2012.zip"
     folder_name = "Promise2012"
-    partition_num = 7
+    partition_num = 4
 
     def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None, patient_pattern: str) -> None:
         path = Path(root_dir, self.folder_name)
@@ -74,7 +74,7 @@ class ProstateDataset(MedicalImageSegmentationDataset):
     folder_name = "ProstateDK"
     zip_name = "ProstateDK.zip"
     download_link = "https://drive.google.com/uc?id=1MngFjFmbO8lBHC0G6sbW7_kjjijQqSsu"
-    partition_num = 7
+    partition_num = 4
 
     def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None, patient_pattern: str) -> None:
         path = Path(root_dir, self.folder_name)

@@ -43,7 +43,7 @@ DA:
   multi_scale: 1 # 1, 2, 3, 4, 5, 6 Note: 1 refers to without multi_scale resilution
   source: MRI # promise
   target: CT  # prostate
-  weight1: 1
+  weight1: 1 # 10, 100
   align_layer:
     name: Deconv_1x1 # Up_conv5, Up_conv4, Up_conv3, Up_conv2, Deconv_1x1
     cc_based: False
