@@ -6,9 +6,9 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 
-time=3
+time=4
 account=rrg-ebrahimi
-save_dir=0412_state2mise_p7_entda
+save_dir=0415_state2mise_p7_PLDA
 declare -a StringArray=(
 
 # state2mise partition=7
@@ -33,19 +33,10 @@ declare -a StringArray=(
 #"python main.py seed=231 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=align_IndividualBN DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 DA.statistic=True DA.align_layer.name=Deconv_1x1 DA.multi_scale=1 DA.displacement=False Scheduler.RegScheduler.max_value=0.000001 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/s2m_gtSdisp0_501Ent_501joint63_seed2"
 #"python main.py seed=321 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=align_IndividualBN DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 DA.statistic=True DA.align_layer.name=Deconv_1x1 DA.multi_scale=1 DA.displacement=False Scheduler.RegScheduler.max_value=0.000001 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/s2m_gtSdisp0_501Ent_501joint63_seed3"
 
-
 # entda
-"python main.py seed=123 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/s2m_entDA63_501reg_seed1"
-"python main.py seed=231 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/s2m_entDA63_501reg_seed2"
-"python main.py seed=321 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/s2m_entDA63_501reg_seed3"
-
-"python main.py seed=123 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000005 Trainer.save_dir=${save_dir}/s2m_entDA63_605reg_seed1"
-"python main.py seed=231 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000005 Trainer.save_dir=${save_dir}/s2m_entDA63_605reg_seed2"
-"python main.py seed=321 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000005 Trainer.save_dir=${save_dir}/s2m_entDA63_605reg_seed3"
-
-"python main.py seed=123 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.00000005 Trainer.save_dir=${save_dir}/s2m_entDA63_705reg_seed1"
-"python main.py seed=231 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.00000005 Trainer.save_dir=${save_dir}/s2m_entDA63_705reg_seed2"
-"python main.py seed=321 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.00000005 Trainer.save_dir=${save_dir}/s2m_entDA63_705reg_seed3"
+#"python main.py seed=123 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000005 Trainer.save_dir=${save_dir}/s2m_entDA63_605reg_seed1"
+#"python main.py seed=231 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000005 Trainer.save_dir=${save_dir}/s2m_entDA63_605reg_seed2"
+#"python main.py seed=321 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000005 Trainer.save_dir=${save_dir}/s2m_entDA63_605reg_seed3"
 
 # ent+ prior
 #"python main.py seed=123 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 DA.double_bn=True Trainer.name=priorbased DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000001 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/prior_501Ent_601prior"
@@ -55,6 +46,15 @@ declare -a StringArray=(
 #"python main.py seed=123 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 DA.double_bn=True Trainer.name=priorbased DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000005 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/prior_501Ent_605prior"
 #"python main.py seed=231 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 DA.double_bn=True Trainer.name=priorbased DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000005 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/prior_501Ent_605prior_seed2"
 #"python main.py seed=321 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 DA.double_bn=True Trainer.name=priorbased DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000005 Scheduler.ClusterScheduler.max_value=0.000001  Trainer.save_dir=${save_dir}/prior_501Ent_605prior_seed3"
+
+#PLDA
+"python pseudoDA_main.py seed=123 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_401seed1"
+"python pseudoDA_main.py seed=231 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_401seed2"
+"python pseudoDA_main.py seed=321 Optim.lr=0.00001 Data_input.dataset=prostate Data_input.num_class=2 DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_401seed3"
+
+"python pseudoDA_main.py seed=123 Optim.lr=0.000001 Data_input.dataset=prostate Data_input.num_class=2 DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_501seed1"
+"python pseudoDA_main.py seed=231 Optim.lr=0.000001 Data_input.dataset=prostate Data_input.num_class=2 DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_501seed2"
+"python pseudoDA_main.py seed=321 Optim.lr=0.000001 Data_input.dataset=prostate Data_input.num_class=2 DA.source=prostate DA.target=promise DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_501seed3"
 
 
 )
