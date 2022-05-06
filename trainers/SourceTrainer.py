@@ -173,6 +173,7 @@ class SourcebaselineTrainer:
             self,
             valS_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             valT_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
+            test_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             epoch: int = 0,
             *args,
             **kwargs,
@@ -182,6 +183,8 @@ class SourcebaselineTrainer:
         valS_indicator.set_description(f"ValS_Epoch {epoch:03d}")
         valT_indicator = tqdm(valT_loader)
         valT_indicator.set_description(f"ValT_Epoch {epoch:03d}")
+        test_indicator = tqdm(test_loader)
+        test_indicator.set_description(f"test_Epoch {epoch:03d}")
         report_dict = {}
         for batch_idS, data_S in enumerate(valS_indicator):
             imageS, targetS, filenameS = (
@@ -227,6 +230,32 @@ class SourcebaselineTrainer:
 
         valT_indicator.close()
         assert report_dict is not None
+
+        for batch_id_test, data_test in enumerate(test_indicator):
+            image_test, target_test, filename_test = (
+                data_test[0][0].to(self.device),
+                data_test[0][1].to(self.device),
+                data_test[1]
+            )
+            if self._config['Trainer']['name'] in ['baseline', 'upperbaseline']:
+                preds_test = self.model(image_test).softmax(1)
+            else:
+                with self.switch_bn(self.model, 1):
+                    preds_test = self.model(image_test).softmax(1)
+            self.meters[f"test_dice"].add(
+                preds_test.max(1)[1],
+                target_test.squeeze(1),
+                group_name=["_".join(x.split("_")[:-1]) for x in filename_test])
+
+            report_dict = self.meters.statistics()
+            test_indicator.set_postfix_statics(report_dict, cache_time=20)
+            # if batch_idT == 28:
+            #     target_seg = plot_seg(imageT.squeeze(0), preds_T.max(1)[1].squeeze(0))
+            #     self.writer.add_figure(tag=f"val_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
+
+        test_indicator.close()
+        assert report_dict is not None
+
         return dict(report_dict), self.meters["valT_dice"].summary()["DSC_mean"]
 
     def schedulerStep(self):
@@ -250,7 +279,7 @@ class SourcebaselineTrainer:
                 )
 
             with self.meters.focus_on("val"), torch.no_grad():
-                val_metric, _ = self.eval_loop(self._valS_loader, self._valT_loader, self.cur_epoch)
+                val_metric, _ = self.eval_loop(self._valS_loader, self._valT_loader, self._test_loader, self.cur_epoch)
 
             with self._storage:
                 self._storage.add_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)

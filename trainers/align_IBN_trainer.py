@@ -19,7 +19,9 @@ class align_IBNtrainer(SourcebaselineTrainer):
     def __init__(self, TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
                  TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
                  valS_loader: Union[DataLoader, _BaseDataLoaderIter],
-                 valT_loader: Union[DataLoader, _BaseDataLoaderIter], weight_scheduler: RampScheduler,
+                 valT_loader: Union[DataLoader, _BaseDataLoaderIter],
+                 test_loader: Union[DataLoader, _BaseDataLoaderIter],
+                 weight_scheduler: RampScheduler,
                  weight_cluster: RampScheduler,
                  model: nn.Module,
                  optimizer, scheduler, *args, **kwargs) -> None:
@@ -30,6 +32,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
         self._trainT_loader = TrainT_loader
         self._valS_loader = valS_loader
         self._valT_loader = valT_loader
+        self._test_loader = test_loader
         self._weight_scheduler = weight_scheduler
         self._weight_cluster = weight_cluster
         with fix_all_seed_within_context(self._config['seed']):

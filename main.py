@@ -63,7 +63,7 @@ with fix_all_seed_within_context(config['Data']['seed']):
             batchsize_indicator=config['DA']['batchsize_indicator']
         )
     elif config['DA']['source'] in ['MRI','prostate'] and config['DA']['target'] in ['CT', 'promise']:
-        trainT_loader, valT_loader = handler1.DataLoaders(
+        trainT_loader, valT_loader, test_loader = handler1.DataLoaders(
             train_transform=None,
             val_transform=None,
             group_val=False,
@@ -103,6 +103,7 @@ trainer = trainer_name(
     TrainT_loader=trainT_loader,
     valS_loader=valS_loader,
     valT_loader=valT_loader,
+    test_loader=test_loader,
     weight_scheduler=RegScheduler,
     weight_cluster=weight_cluster,
     switch_bn=switch_bn,

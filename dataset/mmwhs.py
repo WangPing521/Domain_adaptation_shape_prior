@@ -71,13 +71,22 @@ class MedicalDatasetInterface:
             group_val=True,
             use_infinite_sampler: bool = False,
             batchsize_indicator: int = 6
-    ) -> Tuple[DataLoader, DataLoader]:
+    ):
+        # -> Tuple[DataLoader, DataLoader]
 
         _dataloader_params = dcp(self.dataloader_params)
-        train_set, val_set = self._create_datasets(
-            train_transform=train_transform,
-            val_transform=val_transform,
-        )
+
+        try:
+            train_set, validation_set, test_set = self._create_datasets(
+                train_transform=train_transform,
+                val_transform=val_transform,
+            )
+        except:
+            train_set, val_set = self._create_datasets(
+                train_transform=train_transform,
+                val_transform=val_transform,
+            )
+
         # labeled_dataloader
         if self._if_use_indiv_bz:
             _dataloader_params.update(
@@ -115,13 +124,28 @@ class MedicalDatasetInterface:
             _dataloader_params.update(
                 {"batch_size": self.batch_params.get("val_batch_size")}
             )
-        val_loader = (
-            DataLoader(val_set, **_dataloader_params)
-            if not group_val
-            else self._grouped_dataloader(val_set, **_dataloader_params)
-        )
-        del _dataloader_params
-        return train_loader, val_loader
+
+        try:
+            validation_loader = (
+                DataLoader(validation_set, **_dataloader_params)
+                if not group_val
+                else self._grouped_dataloader(validation_set, **_dataloader_params)
+            )
+            test_loader = (
+                DataLoader(test_set, **_dataloader_params)
+                if not group_val
+                else self._grouped_dataloader(test_set, **_dataloader_params)
+            )
+            del _dataloader_params
+            return train_loader, validation_loader, test_loader
+        except:
+            val_loader = (
+                DataLoader(val_set, **_dataloader_params)
+                if not group_val
+                else self._grouped_dataloader(val_set, **_dataloader_params)
+            )
+            del _dataloader_params
+            return train_loader, val_loader
 
     @staticmethod
     def _use_individual_batch_size(
@@ -230,6 +254,7 @@ class mmWHSCTInterface(MedicalDatasetInterface):
     ) -> Tuple[
         MedicalImageSegmentationDataset,
         MedicalImageSegmentationDataset,
+        MedicalImageSegmentationDataset,
     ]:
         train_set = self.DataClass(
             root_dir=self.root_dir,
@@ -246,14 +271,26 @@ class mmWHSCTInterface(MedicalDatasetInterface):
             patient_pattern=r"ct_train_\d+"
         )
         with fix_all_seed_within_context(self.seed):
-            shuffled_patients = train_set.get_group_list()[:]
+            shuffled_patients = val_set.get_group_list()[:]
             random.shuffle(shuffled_patients)
+
+            val_patients, test_patients = (
+                shuffled_patients[: 2],
+                shuffled_patients[2:],
+            )
+        validation_set = SubMedicalDatasetBasedOnIndex(val_set, val_patients)
+        test_set = SubMedicalDatasetBasedOnIndex(val_set, test_patients)
+        assert len(validation_set) + len(test_set) <= len(
+            val_set
+        ), "wrong on labeled/unlabeled split."
+        del val_set
 
         if train_transform:
             train_set.set_transform(train_transform)
         if val_transform:
-            val_set.set_transform(val_transform)
-        return train_set, val_set
+            validation_set.set_transform(val_transform)
+            test_set.set_transform(val_transform)
+        return train_set, validation_set, test_set
 
 
 class mmWHSMRDataset(MedicalImageSegmentationDataset):
