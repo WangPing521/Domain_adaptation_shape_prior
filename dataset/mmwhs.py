@@ -263,7 +263,7 @@ class mmWHSCTInterface(MedicalDatasetInterface):
             transforms=None,
             patient_pattern=r"ct_train_\d+"
         )
-        val_set = self.DataClass(
+        test_set = self.DataClass(
             root_dir=self.root_dir,
             mode="val",
             sub_folders=["img", "gt"],
@@ -271,26 +271,26 @@ class mmWHSCTInterface(MedicalDatasetInterface):
             patient_pattern=r"ct_train_\d+"
         )
         with fix_all_seed_within_context(self.seed):
-            shuffled_patients = val_set.get_group_list()[:]
+            shuffled_patients = train_set.get_group_list()[:]
             random.shuffle(shuffled_patients)
 
-            val_patients, test_patients = (
+            val_patients, train_patients = (
                 shuffled_patients[: 2],
                 shuffled_patients[2:],
             )
-        validation_set = SubMedicalDatasetBasedOnIndex(val_set, val_patients)
-        test_set = SubMedicalDatasetBasedOnIndex(val_set, test_patients)
-        assert len(validation_set) + len(test_set) <= len(
-            val_set
+        validation_set = SubMedicalDatasetBasedOnIndex(train_set, val_patients)
+        training_set = SubMedicalDatasetBasedOnIndex(train_set, train_patients)
+        assert len(validation_set) + len(training_set) <= len(
+            train_set
         ), "wrong on labeled/unlabeled split."
-        del val_set
+        del train_set
 
         if train_transform:
-            train_set.set_transform(train_transform)
+            training_set.set_transform(train_transform)
         if val_transform:
             validation_set.set_transform(val_transform)
             test_set.set_transform(val_transform)
-        return train_set, validation_set, test_set
+        return training_set, validation_set, test_set
 
 
 class mmWHSMRDataset(MedicalImageSegmentationDataset):
