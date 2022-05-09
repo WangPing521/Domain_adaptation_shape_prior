@@ -11,7 +11,7 @@ account=rrg-ebrahimi
 save_dir=SIFA_0509
 declare -a StringArray=(
 # align
-"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=9
+"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=5
  Scheduler.RegScheduler_advs.min_value=0.1  Scheduler.RegScheduler_advs.max_value=0.1
  Scheduler.RegScheduler_cyc.min_value=10    Scheduler.RegScheduler_cyc.max_value=10
  Scheduler.RegScheduler_seg2.min_value=0.1  Scheduler.RegScheduler_seg2.max_value=0.1
@@ -19,7 +19,7 @@ declare -a StringArray=(
  Scheduler.RegScheduler_advss.min_value=0.1 Scheduler.RegScheduler_advss.max_value=0.1
  Trainer.save_dir=${save_dir}/SIFA_case1"
 
-"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=9
+"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=5
  Scheduler.RegScheduler_advs.min_value=0  Scheduler.RegScheduler_advs.max_value=0.1
  Scheduler.RegScheduler_cyc.min_value=0   Scheduler.RegScheduler_cyc.max_value=10
  Scheduler.RegScheduler_seg2.min_value=0  Scheduler.RegScheduler_seg2.max_value=0.1
