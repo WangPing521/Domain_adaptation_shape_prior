@@ -299,7 +299,6 @@ class UNet(nn.Module):
     def num_classes(self):
         return self._num_classes
 
-
 class UNetFeatureMapEnum(Enum):
     Conv1 = "Conv1"
     Conv2 = "Conv2"
@@ -317,3 +316,71 @@ def get_channel_dim(layer_name: str, *, max_channel=None):
     max_channel = max_channel or 256
     assert layer_name in {k: v for k, v in UNet.layer_dimension.items() if v is not None}
     return int(UNet.layer_dimension[layer_name] / 16 * max_channel)
+
+
+class decoderU(nn.Module):
+    layer_dimension = {"Conv1": 1, "Conv2": 2, "Conv3": 4, "Conv4": 8, "Conv5": 16, "Up_conv5": 8, "Up_conv4": 4,
+                       "Up_conv3": 2, "Up_conv2": 1, "Deconv_1x1": None}
+
+    r"""the difference between layer_dimension and arch_elements is that we allow operations on layer_dimension 
+    while the latter can server to intermediate usage, such as gradient stop"""
+
+    def __init__(self, input_dim=1, out_dim=1, max_channel=256, momentum=0.1):
+        super(decoderU, self).__init__()
+        self._input_dim = input_dim
+        self._out_dim = out_dim
+        self._max_channel = max_channel
+        self._momentum = momentum
+
+        self._Up5 = _UpConv(in_ch=input_dim, out_ch=self.get_channel_dim("Up_conv5"),
+                            momentum=momentum)
+        self._Up_conv5 = _ConvBlock(in_ch=self.get_channel_dim("Conv5"), out_ch=self.get_channel_dim("Up_conv5"),
+                                    momentum=momentum)
+
+        self._Up4 = _UpConv(in_ch=self.get_channel_dim("Up_conv5"), out_ch=self.get_channel_dim("Up_conv4"),
+                            momentum=momentum)
+        self._Up_conv4 = _ConvBlock(in_ch=self.get_channel_dim("Up_conv5"), out_ch=self.get_channel_dim("Up_conv4"),
+                                    momentum=momentum)
+
+        self._Up3 = _UpConv(in_ch=self.get_channel_dim("Up_conv4"), out_ch=self.get_channel_dim("Up_conv3"),
+                            momentum=momentum)
+        self._Up_conv3 = _ConvBlock(in_ch=self.get_channel_dim("Up_conv4"), out_ch=self.get_channel_dim("Up_conv3"),
+                                    momentum=momentum)
+
+        self._Up2 = _UpConv(in_ch=self.get_channel_dim("Up_conv3"), out_ch=self.get_channel_dim("Up_conv2"),
+                            momentum=momentum)
+        self._Up_conv2 = _ConvBlock(in_ch=self.get_channel_dim("Up_conv3"), out_ch=self.get_channel_dim("Up_conv2"),
+                                    momentum=momentum)
+
+        self._Deconv_1x1 = nn.Conv2d(self.get_channel_dim("Up_conv2"), out_dim, kernel_size=(1, 1), stride=(1, 1),
+                                     padding=(0, 0))
+
+    def forward(self, e_list):  # e_list =[e5,e4,e3,e2,e1]
+        # decoding + concat path
+        d5 = self._Up5(e_list[0])
+        d5 = torch.cat((e_list[1], d5), dim=1)
+        d5 = self._Up_conv5(d5)  # 128 28 28
+
+        d4 = self._Up4(d5)
+        d4 = torch.cat((e_list[2], d4), dim=1)
+        d4 = self._Up_conv4(d4)  # 64 56 56
+
+        d3 = self._Up3(d4)
+        d3 = torch.cat((e_list[3], d3), dim=1)
+        d3 = self._Up_conv3(d3)  # 32 112 112
+
+        d2 = self._Up2(d3)
+        d2 = torch.cat((e_list[4], d2), dim=1)
+        d2 = self._Up_conv2(d2)  # 16 224 224
+
+        d1 = self._Deconv_1x1(d2)  # 4 224 224
+        return d1
+
+    @lru_cache()
+    def get_channel_dim(self, name: str):
+        if name == "Deconv_1x1":
+            return self._num_classes
+        elif name in self.layer_dimension:
+            return int(self.layer_dimension[name] / 16 * self._max_channel)
+        else:
+            raise KeyError(name)
