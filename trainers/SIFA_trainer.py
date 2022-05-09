@@ -478,7 +478,7 @@ class SIFA_trainer:
                 )
 
             with self.meters.focus_on("val"), torch.no_grad():
-                val_metric, _ = self.eval_loop(self._valT_loader, self.cur_epoch)
+                val_metric, _ = self.eval_loop(self._valT_loader, self._test_loader, self.cur_epoch)
 
             with self._storage:
                 self._storage.add_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)
