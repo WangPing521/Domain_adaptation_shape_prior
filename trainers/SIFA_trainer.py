@@ -231,8 +231,6 @@ class SIFA_trainer:
             self.extractor_e2.clear()
             self.extractor_e1.clear()
             predS2T_T = self.model(fakeS2T_img).softmax(1)
-            # featureS2T_T = next(self.extractor.features())
-            # classifier2
             e5 = next(self.extractor_e5.features())
             e_list_f.append(e5)
             e4 = next(self.extractor_e4.features())
@@ -378,7 +376,6 @@ class SIFA_trainer:
         report_dict = None, None
 
         for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
-            loss = 0
             loss_G, loss_Dt_adv, loss_E, loss_U, loss_Ds, loss_Dp_advp1 = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
             loss = loss_G + loss_Dt_adv + loss_E + loss_U + loss_Ds + loss_Dp_advp1
             self.meters['total_loss'].add(loss.item())
