@@ -220,11 +220,15 @@ class SIFA_trainer:
         T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
         T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
-        # generator + E + U     In:s->t Out: s
+        fake = torch.zeros(S_img.shape[0], device=self.device).fill_(0)
+        real = torch.zeros(S_img.shape[0], device=self.device).fill_(1)
+
+        # G(s)->fake_t  EU(fake_t)->recov_s
         fakeS2T_img = torch.tanh(self.Generator(S_img))
         e_list_f = []
-        with self.extractor_e1.enable_register(True), self.extractor_e2.enable_register(True),\
-             self.extractor_e3.enable_register(True), self.extractor_e4.enable_register(True), self.extractor_e5.enable_register(True):
+        with self.extractor_e1.enable_register(True), self.extractor_e2.enable_register(True), \
+             self.extractor_e3.enable_register(True), self.extractor_e4.enable_register(
+            True), self.extractor_e5.enable_register(True):
             self.extractor_e5.clear()
             self.extractor_e4.clear()
             self.extractor_e3.clear()
@@ -243,7 +247,7 @@ class SIFA_trainer:
             e_list_f.append(e1)
         fakeS2T2S_img = torch.tanh(self.decoder(e_list_f))
 
-        # E + U + generator      In: t  Out: s
+        # EU(t)->fake_s G(fake_s)->recov_t
         e_list_T = []
         with self.extractor_e1.enable_register(True), self.extractor_e2.enable_register(True), self.extractor_e3.enable_register(True),\
              self.extractor_e4.enable_register(True), self.extractor_e5.enable_register(True):
@@ -264,88 +268,108 @@ class SIFA_trainer:
             e1 = next(self.extractor_e1.features())
             e_list_T.append(e1)
         fakeT2S_img = torch.tanh(self.decoder(e_list_T))
-        fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img))
+        fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img.detach()))
 
-        # Dt (s->t, t)
-        fakeS2T_img_0 = self.discriminator_t(fakeS2T_img).squeeze()  # include Sigmoid
-        T_img_1 = self.discriminator_t(T_img).squeeze()
-        fakeS2T_img_0_gt = torch.zeros(fakeS2T_img_0.shape[0], device=self.device).fill_(0)
-        T_img_1_gt = torch.zeros(T_img_1.shape[0], device=self.device).fill_(1)
+        # cycle consistency
+        cycloss1 = torch.abs(S_img - fakeS2T2S_img).mean()  # # L1-norm loss
+        cycloss2 = torch.abs(T_img - fakeT2S2T_img).mean()  # L1-norm loss
+        loss_cyc = 0.5 * (cycloss1 + cycloss2)  # loss_cyc
 
-        # Ds (t->s, s)
-        S_img_1 = self.discriminator_s(S_img).squeeze()
-        fakeT2S_img_0 = self.discriminator_s(fakeT2S_img).squeeze()
-        fakeS2T2S_img_1 = self.discriminator_s(fakeS2T2S_img).squeeze()
-        fakeT2S_img_0_gt = torch.zeros(fakeT2S_img_0.shape[0], device=self.device).fill_(0)
-        S_img_1_gt = torch.zeros(S_img_1.shape[0], device=self.device).fill_(1)
-
-        # discriminator_p1
-        pred_T_1 = self.discriminator_p1(pred_T).squeeze()
-        predS2T_T_0 = self.discriminator_p1(predS2T_T).squeeze()
-        pred_T_1_gt = torch.zeros(predS2T_T_0.shape[0], device=self.device).fill_(1)
-        predS2T_T_0_gt = torch.zeros(predS2T_T_0.shape[0], device=self.device).fill_(0)
-
-        # discriminator_p2
-        # pred_f_1 = self.discriminator_p2(pred_f, 1).squeeze()
-        # pred_S2T_f_0 = self.discriminator_p2(pred_S2T_f, 0).squeeze()
-        # pred_f_1_gt = torch.zeros(pred_f_1.shape[0], device=self.device).fill_(1)
-        # pred_S2T_f_0_gt = torch.zeros(pred_S2T_f_0.shape[0], device=self.device).fill_(0)
-        # loss_advp2 = self._bce_criterion(pred_f_1, pred_f_1_gt) + self._bce_criterion(pred_S2T_f_0, pred_S2T_f_0_gt)
-
+        # update G_t
         self.optimizer_G.zero_grad()
-        # loss: CycleGan ----> Genetator loss
-        cycloss1 = torch.abs(S_img - fakeS2T2S_img).mean() # # L1-norm loss
-        cycloss2 = torch.abs(T_img - fakeT2S2T_img).mean() # L1-norm loss
-        loss_cyc = 0.5*(cycloss1 + cycloss2) # loss_cyc
-        loss_G_adv = self._bce_criterion(fakeS2T_img_0, T_img_1_gt) # loss_gan
+        fakeS2T_img_0 = self.discriminator_t(fakeS2T_img).squeeze()
+        loss_G_adv = self._bce_criterion(fakeS2T_img_0, real)  # loss_gan
         loss_G = self.RegScheduler_cyc.value * loss_cyc + self.RegScheduler_advs.value * loss_G_adv
-        loss_G.backward(retain_graph=True)
+        loss_G.backward()
         self.optimizer_G.step()
 
+        # update D_t
         self.optimizer_t.zero_grad()
-        # loss: CycleGan ----> discriminoator_t loss
-        loss_Dt_real_t = self._bce_criterion(T_img_1, T_img_1_gt)
-        loss_Dt_adv = self._bce_criterion(fakeS2T_img_0, fakeS2T_img_0_gt)
+        fakeS2T_img_0 = self.discriminator_t(fakeS2T_img.detach()).squeeze()
+        T_img_1 = self.discriminator_t(T_img).squeeze()
+        loss_Dt_real_t = self._bce_criterion(T_img_1, real)
+        loss_Dt_adv = self._bce_criterion(fakeS2T_img_0, fake)
         loss_Dt = loss_Dt_real_t + loss_Dt_adv
-        loss_Dt.backward(retain_graph=True)
+        loss_Dt.backward()
         self.optimizer_t.step()
 
+        # update EC
         self.optimizer.zero_grad()
-        # loss: Unet for segmentation: E+C
-        loss_E_advs = self._bce_criterion(fakeT2S_img_0, S_img_1_gt)
+        predS2T_T = self.model(fakeS2T_img.detach()).softmax(1)
         onehot_targetS = class2one_hot(S_target.squeeze(1), predS2T_T.shape[1])
         loss_seg1 = self.crossentropy(predS2T_T, onehot_targetS) + self.dice_loss(predS2T_T, onehot_targetS)
-        # loss_seg2 = self.crossentropy(pred_S2T_f, onehot_targetS) + self.dice_loss(pred_S2T_f, onehot_targetS)
-        loss_E_advp = self._bce_criterion(predS2T_T_0, pred_T_1_gt)
-        loss_E_advs1 = self._bce_criterion(fakeS2T2S_img_1, S_img_1_gt)
-        loss_E = self.RegScheduler_advs.value * loss_E_advs + \
-                 self.RegScheduler_cyc.value * loss_cyc + \
-                 loss_seg1 + \
-                 self.RegScheduler_advp1.value * loss_E_advp + \
-                 self.RegScheduler_advss.value * loss_E_advs1
-        loss_E.backward(retain_graph=True)
+        predS2T_T_0 = self.discriminator_p1(predS2T_T).squeeze()
+        loss_E_advp = self._bce_criterion(predS2T_T_0, real)
+        fakeT2S_img_0 = self.discriminator_s(fakeT2S_img).squeeze()
+        loss_E_advs = self._bce_criterion(fakeT2S_img_0, real)
+        e_list_f = []
+        with self.extractor_e1.enable_register(True), self.extractor_e2.enable_register(True), \
+             self.extractor_e3.enable_register(True), self.extractor_e4.enable_register(
+            True), self.extractor_e5.enable_register(True):
+            self.extractor_e5.clear()
+            self.extractor_e4.clear()
+            self.extractor_e3.clear()
+            self.extractor_e2.clear()
+            self.extractor_e1.clear()
+            _ = self.model(fakeS2T_img.detach())
+            e5 = next(self.extractor_e5.features())
+            e_list_f.append(e5)
+            e4 = next(self.extractor_e4.features())
+            e_list_f.append(e4)
+            e3 = next(self.extractor_e3.features())
+            e_list_f.append(e3)
+            e2 = next(self.extractor_e2.features())
+            e_list_f.append(e2)
+            e1 = next(self.extractor_e1.features())
+            e_list_f.append(e1)
+        fakeS2T2S_img = torch.tanh(self.decoder(e_list_f))
+
+        fakeS2T2S_img_1 = self.discriminator_s(fakeS2T2S_img).squeeze()
+        loss_E_advs1 = self._bce_criterion(fakeS2T2S_img_1, real)
+        fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img))
+        loss_cyc = torch.abs(S_img - fakeS2T2S_img).mean() + torch.abs(T_img - fakeT2S2T_img).mean()
+
+        loss_E = self.RegScheduler_cyc.value * loss_cyc + self.RegScheduler_advs.value * loss_E_advs + loss_seg1 + \
+                 self.RegScheduler_advp1.value * loss_E_advp + self.RegScheduler_advss.value * loss_E_advs1
+        loss_E.backward()
         self.optimizer.step()
 
+        # update U(Decoder)
         self.optimizer_U.zero_grad()
-        # loss: U(Decoder) for reconstruction
+        e_list_T_detach = []
+        for feature in e_list_T:
+            e_list_T_detach.append(feature.detach())
+        fakeT2S_img = torch.tanh(self.decoder(e_list_T_detach))
+        fakeT2S_img_0 = self.discriminator_s(fakeT2S_img).squeeze()
+        loss_E_advs = self._bce_criterion(fakeT2S_img_0, real)
+        e_list_f_detach = []
+        for fake_t_f in e_list_f:
+            e_list_f_detach.append(fake_t_f.detach())
+        fakeS2T2S_img = torch.tanh(self.decoder(e_list_f_detach))
+        fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img))
+        loss_cyc = torch.abs(T_img - fakeT2S2T_img).mean() + torch.abs(S_img - fakeS2T2S_img).mean()
         loss_U = self.RegScheduler_advs.value * loss_E_advs + self.RegScheduler_cyc.value * loss_cyc
-        loss_U.backward(retain_graph=True)
+        loss_U.backward()
         self.optimizer_U.step()
 
+        # update D_s
         self.optimizer_s.zero_grad()
-        # loss: CycleGan ----> discriminoator_s loss
-        loss_Ds_advs = self._bce_criterion(fakeT2S_img_0, fakeT2S_img_0_gt) + self._bce_criterion(S_img_1, S_img_1_gt)
-        loss_Ds_advss = self._bce_criterion(fakeS2T2S_img_1, S_img_1_gt)
+        fakeT2S_img_0 = self.discriminator_s(fakeT2S_img.detach()).squeeze()
+        S_img_1 = self.discriminator_s(S_img).squeeze()
+        loss_Ds_advs = self._bce_criterion(fakeT2S_img_0, fake) + self._bce_criterion(S_img_1, real)
+        fakeS2T2S_img_1 = self.discriminator_s(fakeS2T2S_img.detach()).squeeze()
+        loss_Ds_advss = self._bce_criterion(fakeS2T2S_img_1, real)
         loss_Ds = self.RegScheduler_advs.value * loss_Ds_advs + self.RegScheduler_advss.value * loss_Ds_advss
-        loss_Ds.backward(retain_graph=True)
+        loss_Ds.backward()
         self.optimizer_s.step()
 
+        # update D_p
         self.optimizer_p1.zero_grad()
-        loss_Dp_advp1 = self.RegScheduler_advp1.value * (self._bce_criterion(predS2T_T_0, predS2T_T_0_gt) + self._bce_criterion(pred_T_1, pred_T_1_gt))
+        predS2T_T_0 = self.discriminator_p1(predS2T_T.detach()).squeeze()
+        pred_T_1 = self.discriminator_p1(pred_T.detach()).squeeze()
+        loss_Dp_advp1 = self.RegScheduler_advp1.value * (self._bce_criterion(predS2T_T_0, fake) + self._bce_criterion(pred_T_1, real))
         loss_Dp_advp1.backward()
         self.optimizer_p1.step()
-        # self.optimizer_p2.zero_grad()
-        # self.optimizer_p2.step()
 
         self.meters[f"trainT_dice"].add(
             pred_T.max(1)[1],

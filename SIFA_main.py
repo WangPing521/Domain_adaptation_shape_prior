@@ -89,7 +89,7 @@ with fix_all_seed_within_context(config['Data']['seed']):
             use_infinite_sampler=True,
             batchsize_indicator=config['DA']['batchsize_indicator']
         )
-        trainS_loader, valS_loader = handler2.DataLoaders(
+        trainS_loader, valS_loader, testS_loader = handler2.DataLoaders(
             train_transform=None,
             val_transform=None,
             group_val=False,
