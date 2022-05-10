@@ -365,7 +365,7 @@ class mmWHSMRInterface(MedicalDatasetInterface):
             validation_set.set_transform(val_transform)
             test_set.set_transform(val_transform)
 
-        return train_set, validation_set, test_set
+        return training_set, validation_set, test_set
 
 
 class PatientSampler(Sampler):
