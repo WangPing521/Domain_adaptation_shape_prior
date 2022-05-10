@@ -329,6 +329,7 @@ class mmWHSMRInterface(MedicalDatasetInterface):
     ) -> Tuple[
         MedicalImageSegmentationDataset,
         MedicalImageSegmentationDataset,
+        MedicalImageSegmentationDataset,
     ]:
         train_set = self.DataClass(
             root_dir=self.root_dir,
@@ -337,7 +338,7 @@ class mmWHSMRInterface(MedicalDatasetInterface):
             transforms=None,
             patient_pattern=r"mr_train_\d+"
         )
-        val_set = self.DataClass(
+        test_set = self.DataClass(
             root_dir=self.root_dir,
             mode="val",
             sub_folders=["img", "gt"],
@@ -347,12 +348,24 @@ class mmWHSMRInterface(MedicalDatasetInterface):
         with fix_all_seed_within_context(self.seed):
             shuffled_patients = train_set.get_group_list()[:]
             random.shuffle(shuffled_patients)
+            val_patients, train_patients = (
+                shuffled_patients[: 2],
+                shuffled_patients[2:],
+            )
+        validation_set = SubMedicalDatasetBasedOnIndex(train_set, val_patients)
+        training_set = SubMedicalDatasetBasedOnIndex(train_set, train_patients)
+        assert len(validation_set) + len(training_set) <= len(
+            train_set
+        ), "wrong on labeled/unlabeled split."
+        del train_set
 
         if train_transform:
-            train_set.set_transform(train_transform)
+            training_set.set_transform(train_transform)
         if val_transform:
-            val_set.set_transform(val_transform)
-        return train_set, val_set
+            validation_set.set_transform(val_transform)
+            test_set.set_transform(val_transform)
+
+        return train_set, validation_set, test_set
 
 
 class PatientSampler(Sampler):
