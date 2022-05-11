@@ -234,7 +234,7 @@ class SIFA_trainer:
             self.extractor_e3.clear()
             self.extractor_e2.clear()
             self.extractor_e1.clear()
-            predS2T_T = self.model(fakeS2T_img).softmax(1)
+            _ = self.model(fakeS2T_img).softmax(1)
             e5 = next(self.extractor_e5.features())
             e_list_f.append(e5)
             e4 = next(self.extractor_e4.features())
@@ -273,7 +273,7 @@ class SIFA_trainer:
         # cycle consistency
         cycloss1 = torch.abs(S_img - fakeS2T2S_img).mean()  # # L1-norm loss
         cycloss2 = torch.abs(T_img - fakeT2S2T_img).mean()  # L1-norm loss
-        loss_cyc = 0.5 * (cycloss1 + cycloss2)  # loss_cyc
+        loss_cyc = cycloss1 + cycloss2  # loss_cyc
 
         # update G_t
         self.optimizer_G.zero_grad()
@@ -325,7 +325,7 @@ class SIFA_trainer:
         fakeS2T2S_img = torch.tanh(self.decoder(e_list_f))
 
         fakeS2T2S_img_1 = self.discriminator_s(fakeS2T2S_img).squeeze()
-        loss_E_advs1 = self._bce_criterion(fakeS2T2S_img_1, real)
+        loss_E_advs1 = self._bce_criterion(fakeS2T2S_img_1, fake) # real
         fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img))
         loss_cyc = torch.abs(S_img - fakeS2T2S_img).mean() + torch.abs(T_img - fakeT2S2T_img).mean()
 
@@ -367,7 +367,7 @@ class SIFA_trainer:
         self.optimizer_p1.zero_grad()
         predS2T_T_0 = self.discriminator_p1(predS2T_T.detach()).squeeze()
         pred_T_1 = self.discriminator_p1(pred_T.detach()).squeeze()
-        loss_Dp_advp1 = self.RegScheduler_advp1.value * (self._bce_criterion(predS2T_T_0, fake) + self._bce_criterion(pred_T_1, real))
+        loss_Dp_advp1 = self._bce_criterion(predS2T_T_0, fake) + self._bce_criterion(pred_T_1, real)
         loss_Dp_advp1.backward()
         self.optimizer_p1.step()
 

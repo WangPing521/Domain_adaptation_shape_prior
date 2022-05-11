@@ -4,6 +4,7 @@ Data_input:
 
 Optim:
   lr: 0.0002
+  disc_lr: 0.00001
 
 Data:
   seed: 12
