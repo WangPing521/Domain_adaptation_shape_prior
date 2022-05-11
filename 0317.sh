@@ -8,12 +8,12 @@ source $CC_WRAPPER_PATH
 
 time=3
 account=rrg-ebrahimi
-save_dir=rebuttal_CT2MRI_baselines
+save_dir=rebuttal_CT2MRI_priorent
 declare -a StringArray=(
 # baselines
-"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=CT DA.target=MRI DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/CT2MRI_lower_baseline63_seed1"
-"python main.py seed=231 Optim.lr=0.00001 DA.double_bn=False DA.source=CT DA.target=MRI DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/CT2MRI_lower_baseline63_seed2"
-"python main.py seed=321 Optim.lr=0.00001 DA.double_bn=False DA.source=CT DA.target=MRI DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/CT2MRI_lower_baseline63_seed3"
+#"python main.py seed=123 Optim.lr=0.00001 DA.double_bn=False DA.source=CT DA.target=MRI DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/CT2MRI_lower_baseline63_seed1"
+#"python main.py seed=231 Optim.lr=0.00001 DA.double_bn=False DA.source=CT DA.target=MRI DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/CT2MRI_lower_baseline63_seed2"
+#"python main.py seed=321 Optim.lr=0.00001 DA.double_bn=False DA.source=CT DA.target=MRI DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/CT2MRI_lower_baseline63_seed3"
 
 # priorbased
 "python main.py seed=123 Optim.lr=0.00001 DA.double_bn=True Trainer.name=priorbased DA.source=CT DA.target=MRI DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.00001 Scheduler.ClusterScheduler.max_value=0.00001  Trainer.save_dir=${save_dir}/prior63_401Ent_401prior_seed1"
