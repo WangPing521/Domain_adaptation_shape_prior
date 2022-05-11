@@ -22,12 +22,13 @@ class entPlusPriorTrainer(SourcebaselineTrainer):
     def __init__(self, TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
                  TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
                  valS_loader: Union[DataLoader, _BaseDataLoaderIter],
-                 valT_loader: Union[DataLoader, _BaseDataLoaderIter], weight_scheduler: RampScheduler,
+                 valT_loader: Union[DataLoader, _BaseDataLoaderIter],
                  test_loader: Union[DataLoader, _BaseDataLoaderIter],
+                 weight_scheduler: RampScheduler,
                  weight_cluster: RampScheduler,
                  model: nn.Module,
                  optimizer, scheduler, *args, **kwargs) -> None:
-        super().__init__(model, optimizer, scheduler, TrainS_loader, TrainT_loader, valS_loader, valT_loader,
+        super().__init__(model, optimizer, scheduler, TrainS_loader, TrainT_loader, valS_loader, valT_loader, test_loader,
                          weight_scheduler, weight_cluster, *args, **kwargs)
         self._trainS_loader = TrainS_loader
         self._trainT_loader = TrainT_loader
