@@ -275,8 +275,8 @@ class mmWHSCTInterface(MedicalDatasetInterface):
             random.shuffle(shuffled_patients)
 
             val_patients, train_patients = (
-                shuffled_patients[: 4],
-                shuffled_patients[4:],
+                shuffled_patients[: 2],
+                shuffled_patients[2:],
             )
         validation_set = SubMedicalDatasetBasedOnIndex(train_set, val_patients)
         training_set = SubMedicalDatasetBasedOnIndex(train_set, train_patients)
@@ -349,8 +349,8 @@ class mmWHSMRInterface(MedicalDatasetInterface):
             shuffled_patients = train_set.get_group_list()[:]
             random.shuffle(shuffled_patients)
             val_patients, train_patients = (
-                shuffled_patients[: 4],
-                shuffled_patients[4:],
+                shuffled_patients[: 2],
+                shuffled_patients[2:],
             )
         validation_set = SubMedicalDatasetBasedOnIndex(train_set, val_patients)
         training_set = SubMedicalDatasetBasedOnIndex(train_set, train_patients)
