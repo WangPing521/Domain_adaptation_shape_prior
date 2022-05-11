@@ -36,6 +36,7 @@ class SourcebaselineTrainer:
             TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
             valS_loader: Union[DataLoader, _BaseDataLoaderIter],
             valT_loader: Union[DataLoader, _BaseDataLoaderIter],
+            test_loader: Union[DataLoader, _BaseDataLoaderIter],
             weight_scheduler: RampScheduler,
             weight_cluster: RampScheduler,
             switch_bn,
@@ -64,6 +65,7 @@ class SourcebaselineTrainer:
         self._trainT_loader = TrainT_loader
         self._valS_loader = valS_loader
         self._valT_loader = valT_loader
+        self._test_loader = test_loader
         self._max_epoch = max_epoch
         self._num_batches = num_batches
         self._weight_scheduler = weight_scheduler

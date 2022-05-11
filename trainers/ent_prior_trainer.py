@@ -23,6 +23,7 @@ class entPlusPriorTrainer(SourcebaselineTrainer):
                  TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
                  valS_loader: Union[DataLoader, _BaseDataLoaderIter],
                  valT_loader: Union[DataLoader, _BaseDataLoaderIter], weight_scheduler: RampScheduler,
+                 test_loader: Union[DataLoader, _BaseDataLoaderIter],
                  weight_cluster: RampScheduler,
                  model: nn.Module,
                  optimizer, scheduler, *args, **kwargs) -> None:
@@ -32,6 +33,7 @@ class entPlusPriorTrainer(SourcebaselineTrainer):
         self._trainT_loader = TrainT_loader
         self._valS_loader = valS_loader
         self._valT_loader = valT_loader
+        self._test_loader = test_loader
         self._weight_scheduler = weight_scheduler
         self._weight_cluster = weight_cluster
 
