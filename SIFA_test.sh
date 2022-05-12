@@ -6,34 +6,21 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 
-time=6
+time=4
 account=rrg-ebrahimi
 save_dir=SIFA_0509
 declare -a StringArray=(
 # align
-"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=2
- Scheduler.RegScheduler_advs.min_value=0.1  Scheduler.RegScheduler_advs.max_value=0.1
- Scheduler.RegScheduler_cyc.min_value=1   Scheduler.RegScheduler_cyc.max_value=1
- Scheduler.RegScheduler_seg2.min_value=0.1  Scheduler.RegScheduler_seg2.max_value=0.1
- Scheduler.RegScheduler_advp1.min_value=0.1 Scheduler.RegScheduler_advp1.max_value=0.1
- Scheduler.RegScheduler_advss.min_value=0.1 Scheduler.RegScheduler_advss.max_value=0.1
- Trainer.save_dir=${save_dir}/SIFA_case1"
+"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=2 weights.cyc_weight=1 weights.seg_weight=1 weights.disc_weight=0.1 Trainer.save_dir=${save_dir}/SIFA_c1s1d01"
+"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=2 weights.cyc_weight=1 weights.seg_weight=1 weights.disc_weight=0.01 Trainer.save_dir=${save_dir}/SIFA_c1s1d101"
+"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=2 weights.cyc_weight=1 weights.seg_weight=1 weights.disc_weight=0.001 Trainer.save_dir=${save_dir}/SIFA_c1s1d201"
+"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=2 weights.cyc_weight=1 weights.seg_weight=1 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/SIFA_c1s1d301"
 
-"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=2
- Scheduler.RegScheduler_advs.min_value=0  Scheduler.RegScheduler_advs.max_value=0.1
- Scheduler.RegScheduler_cyc.min_value=1    Scheduler.RegScheduler_cyc.max_value=1
- Scheduler.RegScheduler_seg2.min_value=0  Scheduler.RegScheduler_seg2.max_value=0.1
- Scheduler.RegScheduler_advp1.min_value=0 Scheduler.RegScheduler_advp1.max_value=0.1
- Scheduler.RegScheduler_advss.min_value=0 Scheduler.RegScheduler_advss.max_value=0.1
- Trainer.save_dir=${save_dir}/SIFA_case2"
+"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=2 weights.cyc_weight=10 weights.seg_weight=1 weights.disc_weight=0.1 Trainer.save_dir=${save_dir}/SIFA_c10s1d01"
+"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=2 weights.cyc_weight=10 weights.seg_weight=1 weights.disc_weight=0.01 Trainer.save_dir=${save_dir}/SIFA_c10s1d101"
+"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=2 weights.cyc_weight=10 weights.seg_weight=1 weights.disc_weight=0.001 Trainer.save_dir=${save_dir}/SIFA_c10s1d201"
+"python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=2 weights.cyc_weight=10 weights.seg_weight=1 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/SIFA_c10s1d301"
 
- "python SIFA_main.py seed=123 DA.source=MRI DA.target=CT DA.batchsize_indicator=2
- Scheduler.RegScheduler_advs.min_value=0.01  Scheduler.RegScheduler_advs.max_value=0.01
- Scheduler.RegScheduler_cyc.min_value=1    Scheduler.RegScheduler_cyc.max_value=1
- Scheduler.RegScheduler_seg2.min_value=0.01  Scheduler.RegScheduler_seg2.max_value=0.01
- Scheduler.RegScheduler_advp1.min_value=0.01 Scheduler.RegScheduler_advp1.max_value=0.01
- Scheduler.RegScheduler_advss.min_value=0.01 Scheduler.RegScheduler_advss.max_value=0.01
- Trainer.save_dir=${save_dir}/SIFA_case3"
 )
 
 for cmd in "${StringArray[@]}"; do

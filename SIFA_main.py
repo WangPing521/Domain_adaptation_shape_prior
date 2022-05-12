@@ -3,16 +3,13 @@ from collections import OrderedDict
 import torch
 from torch.optim import Adam
 
-from arch.DomainSpecificBNUnet import convert2TwinBN
 from arch.disc import OfficialDiscriminator
 from arch.unet import UNet, decoderU
 from configure import ConfigManager
 from dataset.prostate import ProstateInterface, PromiseInterface
 from dataset.mmwhs import mmWHSMRInterface, mmWHSCTInterface
-from scheduler.customized_scheduler import RampScheduler
 from scheduler.warmup_scheduler import GradualWarmupScheduler
 from trainers.SIFA_trainer import SIFA_trainer
-from trainers.psuedo_lableingDA import Pseudo_labelingDATrainer
 from utils.radam import RAdam
 from utils.utils import fix_all_seed_within_context, fix_all_seed
 
@@ -25,7 +22,7 @@ discriminator_t = OfficialDiscriminator(nc=1, ndf=64)
 optimizer_G = RAdam(Generator.parameters(), lr=config["Optim"]["lr"])
 scheduler_G = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_G, T_max=max(90, 1), eta_min=1e-7)
 scheduler_G = GradualWarmupScheduler(optimizer_G, multiplier=300, total_epoch=10, after_scheduler=scheduler_G)
-optimizer_t = Adam(discriminator_t.parameters(), lr=config["Optim"]["disc_lr"])
+optimizer_t = Adam(discriminator_t.parameters(), lr=config["Optim"]["disc_lr"], betas=(0.5, 0.999))
 scheduler_t = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_t, T_max=max(90, 1), eta_min=1e-7)
 scheduler_t = GradualWarmupScheduler(optimizer_t, multiplier=300, total_epoch=10, after_scheduler=scheduler_t)
 
@@ -40,17 +37,17 @@ scheduler_U = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_U, T_max=max(
 scheduler_U = GradualWarmupScheduler(optimizer_U, multiplier=300, total_epoch=10, after_scheduler=scheduler_U)
 
 discriminator_s = OfficialDiscriminator(nc=1, ndf=64)
-optimizer_s = Adam(discriminator_s.parameters(), lr=config["Optim"]["disc_lr"])
+optimizer_s = Adam(discriminator_s.parameters(), lr=config["Optim"]["disc_lr"], betas=(0.5, 0.999))
 scheduler_s = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_s, T_max=max(90, 1), eta_min=1e-7)
 scheduler_s = GradualWarmupScheduler(optimizer_s, multiplier=300, total_epoch=10, after_scheduler=scheduler_s)
 
 discriminator_p1 = OfficialDiscriminator(nc=config['Data_input']['num_class'], ndf=64)
-optimizer_p1 = Adam(discriminator_p1.parameters(), lr=config["Optim"]["disc_lr"])
+optimizer_p1 = Adam(discriminator_p1.parameters(), lr=config["Optim"]["disc_lr"], betas=(0.5, 0.999))
 scheduler_p1 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_p1, T_max=max(90, 1), eta_min=1e-7)
 scheduler_p1 = GradualWarmupScheduler(optimizer_p1, multiplier=300, total_epoch=10, after_scheduler=scheduler_p1)
 
 discriminator_p2 = OfficialDiscriminator(nc=config['Data_input']['num_class'], ndf=64)
-optimizer_p2 = Adam(discriminator_p2.parameters(), lr=config["Optim"]["disc_lr"])
+optimizer_p2 = Adam(discriminator_p2.parameters(), lr=config["Optim"]["disc_lr"], betas=(0.5, 0.999))
 scheduler_p2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_p2, T_max=max(90, 1), eta_min=1e-7)
 scheduler_p2 = GradualWarmupScheduler(optimizer_p2, multiplier=300, total_epoch=10, after_scheduler=scheduler_p2)
 
@@ -98,13 +95,6 @@ with fix_all_seed_within_context(config['Data']['seed']):
             batchsize_indicator=config['DA']['batchsize_indicator']
         )
 
-RegScheduler_advs = RampScheduler(**config['Scheduler']["RegScheduler_advs"])
-RegScheduler_cyc = RampScheduler(**config['Scheduler']["RegScheduler_cyc"])
-RegScheduler_seg2 = RampScheduler(**config['Scheduler']["RegScheduler_seg2"])
-RegScheduler_advp1 = RampScheduler(**config['Scheduler']["RegScheduler_advp1"])
-RegScheduler_advp2 = RampScheduler(**config['Scheduler']["RegScheduler_advp2"])
-RegScheduler_advss = RampScheduler(**config['Scheduler']["RegScheduler_advss"])
-
 trainer = SIFA_trainer(
     Generator=Generator,
     discriminator_t=discriminator_t,
@@ -127,12 +117,6 @@ trainer = SIFA_trainer(
     scheduler_s=scheduler_s,
     scheduler_p1=scheduler_p1,
     scheduler_p2=scheduler_p2,
-    RegScheduler_advs =RegScheduler_advs,
-    RegScheduler_cyc  =RegScheduler_cyc,
-    RegScheduler_seg2 =RegScheduler_seg2,
-    RegScheduler_advp1=RegScheduler_advp1,
-    RegScheduler_advp2=RegScheduler_advp2,
-    RegScheduler_advss=RegScheduler_advss,
     TrainS_loader=trainS_loader,
     TrainT_loader=trainT_loader,
     valT_loader=valT_loader,

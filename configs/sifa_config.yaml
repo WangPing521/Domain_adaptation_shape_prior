@@ -16,42 +16,10 @@ DataLoader:
   num_workers: 8
   pin_memory: False
 
-Scheduler:
-  RegScheduler_advs:
-    begin_epoch: 5
-    max_epoch: 50
-    min_value: 0.1
-    max_value: 0.1
-
-  RegScheduler_cyc:
-    begin_epoch: 5
-    max_epoch: 50
-    min_value: 10
-    max_value: 10
-
-  RegScheduler_seg2:
-    begin_epoch: 5
-    max_epoch: 50
-    min_value: 0
-    max_value: 0.1
-
-  RegScheduler_advp1:
-    begin_epoch: 5
-    max_epoch: 50
-    min_value: 0.1
-    max_value: 0.1
-
-  RegScheduler_advp2:
-    begin_epoch: 5
-    max_epoch: 50
-    min_value: 0
-    max_value: 0.01
-
-  RegScheduler_advss:
-    begin_epoch: 5
-    max_epoch: 50
-    min_value: 0.1
-    max_value: 0.1
+weights:
+  cyc_weight: 1
+  seg_weight: 1
+  disc_weight: 0.1
 
 Trainer:
   device: cuda

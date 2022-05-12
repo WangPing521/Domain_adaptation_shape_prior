@@ -91,12 +91,6 @@ class SIFA_trainer:
             scheduler_s,
             scheduler_p1,
             scheduler_p2,
-            RegScheduler_advs,
-            RegScheduler_cyc,
-            RegScheduler_seg2,
-            RegScheduler_advp1,
-            RegScheduler_advp2,
-            RegScheduler_advss,
             TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
             TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
             valT_loader: Union[DataLoader, _BaseDataLoaderIter],
@@ -140,12 +134,6 @@ class SIFA_trainer:
         self.scheduler_s = scheduler_s
         self.scheduler_p1 = scheduler_p1
         self.scheduler_p2 = scheduler_p2
-        self.RegScheduler_advs = RegScheduler_advs
-        self.RegScheduler_cyc  = RegScheduler_cyc
-        self.RegScheduler_seg2 = RegScheduler_seg2
-        self.RegScheduler_advp1= RegScheduler_advp1
-        self.RegScheduler_advp2= RegScheduler_advp2
-        self.RegScheduler_advss= RegScheduler_advss
         self._trainS_loader = TrainS_loader
         self._trainT_loader = TrainT_loader
         self._valT_loader = valT_loader
@@ -172,6 +160,10 @@ class SIFA_trainer:
         self.extractor_e4.bind()
         self.extractor_e5 = FeatureExtractor(self.model, feature_names="Conv5")
         self.extractor_e5.bind()
+
+        self.cycWeight = self._config['weights']['cyc_weight']
+        self.segWeight = self._config['weights']['seg_weight']
+        self.discWeight = self._config['weights']['disc_weight']
 
         c = self._config['Data_input']['num_class']
         self.meters = meters_registerSIFA(c)
@@ -223,6 +215,8 @@ class SIFA_trainer:
         fake = torch.zeros(S_img.shape[0], device=self.device).fill_(0)
         real = torch.zeros(S_img.shape[0], device=self.device).fill_(1)
 
+        # update G_t
+        self.optimizer_G.zero_grad()
         # G(s)->fake_t  EU(fake_t)->recov_s
         fakeS2T_img = torch.tanh(self.Generator(S_img))
         e_list_f = []
@@ -273,13 +267,11 @@ class SIFA_trainer:
         # cycle consistency
         cycloss1 = torch.abs(S_img - fakeS2T2S_img).mean()  # # L1-norm loss
         cycloss2 = torch.abs(T_img - fakeT2S2T_img).mean()  # L1-norm loss
-        loss_cyc = cycloss1 + cycloss2  # loss_cyc
+        loss_cyc = cycloss1 + 0.5* cycloss2  # loss_cyc
 
-        # update G_t
-        self.optimizer_G.zero_grad()
         fakeS2T_img_0 = self.discriminator_t(fakeS2T_img).squeeze()
         loss_G_adv = self._bce_criterion(fakeS2T_img_0, real)  # loss_gan
-        loss_G = self.RegScheduler_cyc.value * loss_cyc + self.RegScheduler_advs.value * loss_G_adv
+        loss_G = loss_cyc + self.discWeight * loss_G_adv
         loss_G.backward()
         self.optimizer_G.step()
 
@@ -324,13 +316,13 @@ class SIFA_trainer:
             e_list_f.append(e1)
         fakeS2T2S_img = torch.tanh(self.decoder(e_list_f))
 
-        fakeS2T2S_img_1 = self.discriminator_s(fakeS2T2S_img).squeeze()
-        loss_E_advs1 = self._bce_criterion(fakeS2T2S_img_1, fake) # real
+        # fakeS2T2S_img_1 = self.discriminator_s(fakeS2T2S_img).squeeze()
+        # loss_E_advs1 = self._bce_criterion(fakeS2T2S_img_1, fake) # real
         fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img))
-        loss_cyc = torch.abs(S_img - fakeS2T2S_img).mean() + torch.abs(T_img - fakeT2S2T_img).mean()
+        loss_cyc = torch.abs(S_img - fakeS2T2S_img).mean() + 0.5 * torch.abs(T_img - fakeT2S2T_img).mean()
 
-        loss_E = self.RegScheduler_cyc.value * loss_cyc + self.RegScheduler_advs.value * loss_E_advs + loss_seg1 + \
-                 self.RegScheduler_advp1.value * loss_E_advp + self.RegScheduler_advss.value * loss_E_advs1
+        loss_E = self.cycWeight * loss_cyc + self.discWeight * loss_E_advs + self.segWeight * loss_seg1 + self.discWeight * loss_E_advp
+        # + self.RegScheduler_advss.value * loss_E_advs1
         loss_E.backward()
         self.optimizer.step()
 
@@ -347,8 +339,8 @@ class SIFA_trainer:
             e_list_f_detach.append(fake_t_f.detach())
         fakeS2T2S_img = torch.tanh(self.decoder(e_list_f_detach))
         fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img))
-        loss_cyc = torch.abs(T_img - fakeT2S2T_img).mean() + torch.abs(S_img - fakeS2T2S_img).mean()
-        loss_U = self.RegScheduler_advs.value * loss_E_advs + self.RegScheduler_cyc.value * loss_cyc
+        loss_cyc = 0.5 * torch.abs(T_img - fakeT2S2T_img).mean() + torch.abs(S_img - fakeS2T2S_img).mean()
+        loss_U = self.discWeight * loss_E_advs + self.cycWeight * loss_cyc
         loss_U.backward()
         self.optimizer_U.step()
 
@@ -357,9 +349,10 @@ class SIFA_trainer:
         fakeT2S_img_0 = self.discriminator_s(fakeT2S_img.detach()).squeeze()
         S_img_1 = self.discriminator_s(S_img).squeeze()
         loss_Ds_advs = self._bce_criterion(fakeT2S_img_0, fake) + self._bce_criterion(S_img_1, real)
-        fakeS2T2S_img_1 = self.discriminator_s(fakeS2T2S_img.detach()).squeeze()
-        loss_Ds_advss = self._bce_criterion(fakeS2T2S_img_1, real)
-        loss_Ds = self.RegScheduler_advs.value * loss_Ds_advs + self.RegScheduler_advss.value * loss_Ds_advss
+        # fakeS2T2S_img_1 = self.discriminator_s(fakeS2T2S_img.detach()).squeeze()
+        # loss_Ds_advss = self._bce_criterion(fakeS2T2S_img_1, real)
+        loss_Ds = loss_Ds_advs
+        # + self.RegScheduler_advss.value * loss_Ds_advss
         loss_Ds.backward()
         self.optimizer_s.step()
 
@@ -477,12 +470,6 @@ class SIFA_trainer:
         self.scheduler_s.step()
         self.scheduler_p1.step()
         # self.scheduler_p2.step()
-        self.RegScheduler_advs.step()
-        self.RegScheduler_cyc.step()
-        self.RegScheduler_seg2.step()
-        self.RegScheduler_advp1.step()
-        self.RegScheduler_advp2.step()
-        self.RegScheduler_advss.step()
 
     def start_training(self):
         self.to(self.device)
