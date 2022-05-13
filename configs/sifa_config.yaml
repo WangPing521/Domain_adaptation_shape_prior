@@ -3,8 +3,8 @@ Data_input:
   num_class: 5
 
 Optim:
-  lr: 0.0002
-  disc_lr: 0.00001
+  lr: 0.00001
+  disc_lr: 0.000001
 
 Data:
   seed: 12
