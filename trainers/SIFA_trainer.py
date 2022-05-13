@@ -28,7 +28,7 @@ def meters_registerSIFA(c):
 
         # loss
         meters.register_meter(
-            "total_loss", AverageValueMeter()
+            "loss_Dt_real_t", AverageValueMeter()
         )
         meters.register_meter(
             "loss_G", AverageValueMeter()
@@ -370,7 +370,7 @@ class SIFA_trainer:
             group_name=["_".join(x.split("_")[:-1]) for x in T_filename],
         )
 
-        return loss_G, loss_Dt, loss_E, loss_U, loss_Ds, loss_Dp_advp1
+        return loss_G, loss_Dt_real_t, loss_Dt, loss_E, loss_U, loss_Ds, loss_Dp_advp1
 
     def train_loop(
             self,
@@ -393,11 +393,10 @@ class SIFA_trainer:
         report_dict = None, None
 
         for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
-            loss_G, loss_Dt_adv, loss_E, loss_U, loss_Ds, loss_Dp_advp1 = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
-            loss = loss_G + loss_Dt_adv + loss_E + loss_U + loss_Ds + loss_Dp_advp1
-            self.meters['total_loss'].add(loss.item())
+            loss_G, loss_Dt_real_t, loss_Dt, loss_E, loss_U, loss_Ds, loss_Dp_advp1 = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
+            self.meters['loss_Dt_real_t'].add(loss_Dt_real_t.item())
             self.meters['loss_G'].add(loss_G.item())
-            self.meters['loss_Dt_adv'].add(loss_Dt_adv.item())
+            self.meters['loss_Dt_adv'].add(loss_Dt.item())
             self.meters['loss_E'].add(loss_E.item())
             self.meters['loss_U'].add(loss_U.item())
             self.meters['loss_Ds'].add(loss_Ds.item())
