@@ -1,0 +1,34 @@
+Data_input:
+  dataset: mmwhs
+  num_class: 5
+
+Optim:
+  lr: 0.00001
+
+Data:
+  seed: 12
+
+DataLoader:
+  batch_size: 1 # must be 1
+  val_batch_size: 40
+  shuffle: False # must be false
+  num_workers: 8
+  pin_memory: False
+
+weights:
+  cyc_weight: 1
+  seg_weight: 1
+  disc_weight: 0.1
+
+Trainer:
+  device: cuda
+  save_dir: runs
+  checkpoint_path: runs
+  enable_sampling: true
+
+DA:
+  batchsize_indicator: 1 # partition=7, bs=batchsize_indicator * 7
+  source: MRI # promise
+  target: CT  # prostate
+
+seed: 123

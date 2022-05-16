@@ -161,6 +161,13 @@ class FeatureExtractor:
         for name, feature in zip(self._feature_names, self.features()):
             yield name, feature
 
+    def get_feature(self,name:str):
+        for _name, feature in self.named_features():
+            if _name ==name:
+                return feature
+        raise ValueError(name)
+
+
     @property
     def feature_names(self):
         return self._feature_names

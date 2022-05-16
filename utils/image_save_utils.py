@@ -1,14 +1,16 @@
 import shutil
+import warnings
 from pathlib import Path
 from functools import lru_cache
 import matplotlib.pyplot as plt
 import numpy as np
 from loguru import logger
 from torch import Tensor
-from typing import Union
+from typing import Union, Iterable
 import torch
 from meters.SummaryWriter import get_tb_writer
 from utils.utils import switch_plt_backend
+from skimage.io import imsave
 
 
 def save_joint_distribution(images: np.ndarray, root, mode, iter):
@@ -322,3 +324,13 @@ class FeatureMapSaver:
             writer = None
         return writer
 
+def save_images(segs: Tensor, names: Iterable[str], root: Union[str, Path], mode: str) -> None:
+    (b, w, h) = segs.shape  # type: Tuple[int, int,int] # Since we have the class numbers, we do not need a C axis
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', category=UserWarning)
+        for seg, name in zip(segs, names):
+            save_path = Path(root, mode, name).with_suffix(".png")
+
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+
+            imsave(str(save_path), seg.cpu().numpy().astype(np.uint8))

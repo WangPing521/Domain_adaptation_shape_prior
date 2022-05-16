@@ -1,11 +1,13 @@
 from pathlib import Path
 from typing import Union, Dict, Any, Tuple
+
 import rising.random as rr
 import rising.transforms as rt
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
+
 from arch.utils import FeatureExtractor
 from loss.diceloss import DiceLoss
 from loss.entropy import SimplexCrossEntropyLoss
@@ -13,9 +15,10 @@ from meters import Storage, MeterInterface, AverageValueMeter, UniversalDice
 from meters.SummaryWriter import SummaryWriter
 from utils import tqdm
 from utils.general import path2Path, class2one_hot
-from utils.image_save_utils import plot_seg
+from utils.image_save_utils import save_images
 from utils.rising import RisingWrapper
 from utils.utils import set_environment, write_yaml
+
 
 def meters_registerSIFA(c):
     meters = MeterInterface()
@@ -147,19 +150,10 @@ class SIFA_trainer:
         self.dice_loss = DiceLoss()
         self._storage = Storage(self._save_dir)
         self.writer = SummaryWriter(str(self._save_dir))
-        self.extractor = FeatureExtractor(self.model, feature_names="Up_conv2")
+        self.extractor = FeatureExtractor(self.model,
+                                          feature_names=[f"Conv{str(f)}" for f in range(5, 0, -1)]
+                                          )
         self.extractor.bind()
-
-        self.extractor_e1 = FeatureExtractor(self.model, feature_names="Conv1")
-        self.extractor_e1.bind()
-        self.extractor_e2 = FeatureExtractor(self.model, feature_names="Conv2")
-        self.extractor_e2.bind()
-        self.extractor_e3 = FeatureExtractor(self.model, feature_names="Conv3")
-        self.extractor_e3.bind()
-        self.extractor_e4 = FeatureExtractor(self.model, feature_names="Conv4")
-        self.extractor_e4.bind()
-        self.extractor_e5 = FeatureExtractor(self.model, feature_names="Conv5")
-        self.extractor_e5.bind()
 
         self.cycWeight = self._config['weights']['cyc_weight']
         self.segWeight = self._config['weights']['seg_weight']
@@ -219,55 +213,39 @@ class SIFA_trainer:
         self.optimizer_G.zero_grad()
         # G(s)->fake_t  EU(fake_t)->recov_s
         fakeS2T_img = torch.tanh(self.Generator(S_img))
-        e_list_f = []
-        with self.extractor_e1.enable_register(True), self.extractor_e2.enable_register(True), \
-             self.extractor_e3.enable_register(True), self.extractor_e4.enable_register(
-            True), self.extractor_e5.enable_register(True):
-            self.extractor_e5.clear()
-            self.extractor_e4.clear()
-            self.extractor_e3.clear()
-            self.extractor_e2.clear()
-            self.extractor_e1.clear()
+
+        # visualiztion
+        if cur_batch == 1:
+            save_images(fakeS2T_img[1], names=S_filename[1], root=self._config['Trainer']['save_dir'], mode='S2T')
+
+        with self.extractor.enable_register(True):
+            self.extractor.clear()
             _ = self.model(fakeS2T_img).softmax(1)
-            e5 = next(self.extractor_e5.features())
-            e_list_f.append(e5)
-            e4 = next(self.extractor_e4.features())
-            e_list_f.append(e4)
-            e3 = next(self.extractor_e3.features())
-            e_list_f.append(e3)
-            e2 = next(self.extractor_e2.features())
-            e_list_f.append(e2)
-            e1 = next(self.extractor_e1.features())
-            e_list_f.append(e1)
+            e_list_f = list(self.extractor.features())
+            # todo: check the order
         fakeS2T2S_img = torch.tanh(self.decoder(e_list_f))
 
+        if cur_batch == 1:
+            save_images(fakeS2T2S_img[1], names=S_filename[1], root=self._config['Trainer']['save_dir'], mode='S2T2S')
+
         # EU(t)->fake_s G(fake_s)->recov_t
-        e_list_T = []
-        with self.extractor_e1.enable_register(True), self.extractor_e2.enable_register(True), self.extractor_e3.enable_register(True),\
-             self.extractor_e4.enable_register(True), self.extractor_e5.enable_register(True):
-            self.extractor_e5.clear()
-            self.extractor_e4.clear()
-            self.extractor_e3.clear()
-            self.extractor_e2.clear()
-            self.extractor_e1.clear()
+        with self.extractor.enable_register(True):
+            self.extractor.clear()
             pred_T = self.model(T_img).softmax(1)
-            e5 = next(self.extractor_e5.features())
-            e_list_T.append(e5)
-            e4 = next(self.extractor_e4.features())
-            e_list_T.append(e4)
-            e3 = next(self.extractor_e3.features())
-            e_list_T.append(e3)
-            e2 = next(self.extractor_e2.features())
-            e_list_T.append(e2)
-            e1 = next(self.extractor_e1.features())
-            e_list_T.append(e1)
+            e_list_T = list(self.extractor.features())
+            # todo: check the order
         fakeT2S_img = torch.tanh(self.decoder(e_list_T))
+        if cur_batch == 1:
+            save_images(fakeT2S_img[1], names=T_filename[1], root=self._config['Trainer']['save_dir'], mode='T2S')
+
         fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img.detach()))
+        if cur_batch == 1:
+            save_images(fakeT2S2T_img[1], names=T_filename[1], root=self._config['Trainer']['save_dir'], mode='T2S2S')
 
         # cycle consistency
         cycloss1 = torch.abs(S_img - fakeS2T2S_img).mean()  # # L1-norm loss
         cycloss2 = torch.abs(T_img - fakeT2S2T_img).mean()  # L1-norm loss
-        loss_cyc = cycloss1 + 0.5* cycloss2  # loss_cyc
+        loss_cyc = cycloss1 + 0.5 * cycloss2  # loss_cyc
 
         fakeS2T_img_0 = self.discriminator_t(fakeS2T_img).squeeze()
         loss_G_adv = self._bce_criterion(fakeS2T_img_0, real)  # loss_gan
@@ -294,26 +272,11 @@ class SIFA_trainer:
         loss_E_advp = self._bce_criterion(predS2T_T_0, real)
         fakeT2S_img_0 = self.discriminator_s(fakeT2S_img).squeeze()
         loss_E_advs = self._bce_criterion(fakeT2S_img_0, real)
-        e_list_f = []
-        with self.extractor_e1.enable_register(True), self.extractor_e2.enable_register(True), \
-             self.extractor_e3.enable_register(True), self.extractor_e4.enable_register(
-            True), self.extractor_e5.enable_register(True):
-            self.extractor_e5.clear()
-            self.extractor_e4.clear()
-            self.extractor_e3.clear()
-            self.extractor_e2.clear()
-            self.extractor_e1.clear()
+
+        with self.extractor.enable_register(True):
+            self.extractor.clear()
             _ = self.model(fakeS2T_img.detach())
-            e5 = next(self.extractor_e5.features())
-            e_list_f.append(e5)
-            e4 = next(self.extractor_e4.features())
-            e_list_f.append(e4)
-            e3 = next(self.extractor_e3.features())
-            e_list_f.append(e3)
-            e2 = next(self.extractor_e2.features())
-            e_list_f.append(e2)
-            e1 = next(self.extractor_e1.features())
-            e_list_f.append(e1)
+            e_list_f = list(self.extractor.features())
         fakeS2T2S_img = torch.tanh(self.decoder(e_list_f))
 
         # fakeS2T2S_img_1 = self.discriminator_s(fakeS2T2S_img).squeeze()
@@ -393,7 +356,9 @@ class SIFA_trainer:
         report_dict = None, None
 
         for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
-            loss_G, loss_Dt_real_t, loss_Dt, loss_E, loss_U, loss_Ds, loss_Dp_advp1 = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
+            loss_G, loss_Dt_real_t, loss_Dt, loss_E, loss_U, loss_Ds, loss_Dp_advp1 = self.run_step(s_data=s_data,
+                                                                                                    t_data=t_data,
+                                                                                                    cur_batch=cur_batch)
             self.meters['loss_Dt_real_t'].add(loss_Dt_real_t.item())
             self.meters['loss_G'].add(loss_G.item())
             self.meters['loss_Dt_adv'].add(loss_Dt.item())
@@ -611,5 +576,3 @@ class SIFA_trainer:
             shutil.rmtree(save_dir, ignore_errors=True)
         shutil.move(str(self._save_dir), str(save_dir))
         shutil.rmtree(str(self._save_dir), ignore_errors=True)
-
-
