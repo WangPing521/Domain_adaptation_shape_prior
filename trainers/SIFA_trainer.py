@@ -215,8 +215,8 @@ class SIFA_trainer:
         fakeS2T_img = torch.tanh(self.Generator(S_img))
 
         # visualiztion
-        if cur_batch == 1:
-            save_images(fakeS2T_img[1].detach(), names=S_filename[1], root=self._config['Trainer']['save_dir'], mode='S2T')
+        if cur_batch == 0:
+            save_images(fakeS2T_img[1].detach(), names=[S_filename[1]], root=self._config['Trainer']['save_dir'], mode='S2T', iter=self.cur_epoch)
 
         with self.extractor.enable_register(True):
             self.extractor.clear()
@@ -225,8 +225,8 @@ class SIFA_trainer:
             # todo: check the order
         fakeS2T2S_img = torch.tanh(self.decoder(e_list_f))
 
-        if cur_batch == 1:
-            save_images(fakeS2T2S_img[1].detach(), names=S_filename[1], root=self._config['Trainer']['save_dir'], mode='S2T2S')
+        if cur_batch == 0:
+            save_images(fakeS2T2S_img[1].detach(), names=[S_filename[1]], root=self._config['Trainer']['save_dir'], mode='S2T2S', iter=self.cur_epoch)
 
         # EU(t)->fake_s G(fake_s)->recov_t
         with self.extractor.enable_register(True):
@@ -235,12 +235,12 @@ class SIFA_trainer:
             e_list_T = list(self.extractor.features())
             # todo: check the order
         fakeT2S_img = torch.tanh(self.decoder(e_list_T))
-        if cur_batch == 1:
-            save_images(fakeT2S_img[1].detach(), names=T_filename[1], root=self._config['Trainer']['save_dir'], mode='T2S')
+        if cur_batch == 0:
+            save_images(fakeT2S_img[1].detach(), names=[T_filename[1]], root=self._config['Trainer']['save_dir'], mode='T2S', iter=self.cur_epoch)
 
         fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img.detach()))
-        if cur_batch == 1:
-            save_images(fakeT2S2T_img[1].detach(), names=T_filename[1], root=self._config['Trainer']['save_dir'], mode='T2S2S')
+        if cur_batch == 0:
+            save_images(fakeT2S2T_img[1].detach(), names=[T_filename[1]], root=self._config['Trainer']['save_dir'], mode='T2S2S', iter=self.cur_epoch)
 
         # cycle consistency
         cycloss1 = torch.abs(S_img - fakeS2T2S_img).mean()  # # L1-norm loss
