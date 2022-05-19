@@ -70,14 +70,16 @@ with fix_all_seed_within_context(config['Data']['seed']):
             val_transform=None,
             group_val=False,
             use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
+            batchsize_indicator=config['DA']['batchsize_indicator'],
+            constrastve_sampler=config['DA']['constrastve_sampler']
         )
         trainT_loader, valT_loader = handler2.DataLoaders(
             train_transform=None,
             val_transform=None,
             group_val=False,
             use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
+            batchsize_indicator=config['DA']['batchsize_indicator'],
+            constrastve_sampler=config['DA']['constrastve_sampler']
         )
     elif config['DA']['source'] in ['MRI','prostate'] and config['DA']['target'] in ['CT', 'promise']:
         trainT_loader, valT_loader, test_loader = handler1.DataLoaders(
@@ -85,14 +87,16 @@ with fix_all_seed_within_context(config['Data']['seed']):
             val_transform=None,
             group_val=False,
             use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
+            batchsize_indicator=config['DA']['batchsize_indicator'],
+            constrastve=config['DA']['constrastve_sampler']
         )
         trainS_loader, valS_loader, testS_loader = handler2.DataLoaders(
             train_transform=None,
             val_transform=None,
             group_val=False,
             use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
+            batchsize_indicator=config['DA']['batchsize_indicator'],
+            constrastve=config['DA']['constrastve_sampler']
         )
 
 trainer = SIFA_trainer(

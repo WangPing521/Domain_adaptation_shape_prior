@@ -324,6 +324,81 @@ class FeatureMapSaver:
             writer = None
         return writer
 
+class CycleVisualSaver:
+
+    def __init__(self, save_dir: Union[str, Path], folder_name="cyc", use_tensorboard: bool = True) -> None:
+        assert Path(save_dir).exists() and Path(save_dir).is_dir(), save_dir
+        self.save_dir: Path = Path(save_dir)
+        self.folder_name = folder_name
+        (self.save_dir / self.folder_name).mkdir(exist_ok=True, parents=True)
+        self.use_tensorboard = use_tensorboard
+
+    @switch_plt_backend(env="agg")
+    def save_map(self, *, real_image: Tensor, fake_image: Tensor, recover_image: Tensor, cur_epoch: int,
+                 cur_batch_num: int, save_name: str) -> None:
+        """
+        Args:
+            image: image tensor with bchw dimension, where c should be 1.
+            feature_map1: tensor with bchw dimension. It would transform to bhw with argmax on c dimension.
+            feature_map2: tensor with bchw dimension. It would transform to bhw with argmax on c dimension.
+            feature_type: image or feature. image is going to treat as image, feature would take the argmax on c.
+            cur_epoch: current epoch
+            cur_batch_num: cur_batch_num
+            save_name: the png that would be saved under "save_name_cur_epoch_cur_batch_num.png" in to self.folder_name
+                    folder.
+        """
+        assert real_image.dim() == 4, f"image should have bchw dimensions, given {real_image.shape}."
+        assert fake_image.dim() == 4, f"image should have bchw dimensions, given {fake_image.shape}."
+        batch_size = real_image[1].unsqueeze(0).shape[0]
+
+        real_image = real_image[1].detach().float().cpu()
+        fake_image = fake_image[1].detach().float().cpu()
+
+        assert recover_image.dim() == 4, f"feature_map should have bchw dimensions, given {recover_image.shape}."
+        recover_image = recover_image[1].detach().float().cpu()
+
+
+        for i, (img_real, img_fake, img_recover) in enumerate(zip(real_image, fake_image, recover_image)):
+            save_path = self.save_dir / self.folder_name / \
+                        f"{save_name}_{cur_epoch:03d}_{cur_batch_num:02d}_{i:03d}.png"
+            fig = plt.figure(figsize=(3, 3))
+            plt.subplot(131)
+            plt.imshow(img_real, cmap="gray")
+            plt.axis('off')
+            plt.subplot(132)
+            plt.imshow(img_fake, cmap="gray")
+            plt.axis('off')
+            plt.subplot(133)
+            plt.imshow(img_recover, cmap="gray")
+            plt.axis('off')
+            plt.savefig(str(save_path), dpi=300, bbox_inches='tight')
+            if self.use_tensorboard and self.tb_writer is not None:
+                self.tb_writer.add_figure(
+                    tag=f"{self.folder_name}/{save_name}_{cur_batch_num * batch_size + i:02d}",
+                    figure=plt.gcf(), global_step=cur_epoch, close=True
+                )
+            plt.close(fig)
+
+    def zip(self) -> None:
+        """
+        Put all image folders as a zip file, in order to avoid IO things when downloading.
+        """
+        try:
+            shutil.make_archive(str(self.save_dir / self.folder_name.replace("/", "_")), 'zip',
+                                str(self.save_dir / self.folder_name))
+            shutil.rmtree(str(self.save_dir / self.folder_name))
+        except (FileNotFoundError, OSError, IOError) as e:
+            logger.opt(exception=True, depth=1).warning(e)
+
+    @property
+    @lru_cache()
+    def tb_writer(self):
+        try:
+            writer = get_tb_writer()
+        except RuntimeError:
+            writer = None
+        return writer
+
 def save_images(segs: Tensor, names: Iterable[str], root: Union[str, Path], mode: str, iter: int) -> None:
     (b, w, h) = segs.shape  # type: Tuple[int, int,int] # Since we have the class numbers, we do not need a C axis
     with warnings.catch_warnings():

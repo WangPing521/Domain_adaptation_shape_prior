@@ -10,7 +10,7 @@ from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list, simplex
-from utils.image_save_utils import plot_joint_matrix, FeatureMapSaver, plot_seg, plot_joint_matrix1
+from utils.image_save_utils import plot_joint_matrix, plot_seg, plot_joint_matrix1
 from utils.utils import fix_all_seed_within_context
 
 
@@ -26,7 +26,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
                  model: nn.Module,
                  optimizer, scheduler, *args, **kwargs) -> None:
 
-        super().__init__(model, optimizer, scheduler, TrainS_loader, TrainT_loader, valS_loader, valT_loader,
+        super().__init__(model, optimizer, scheduler, TrainS_loader, TrainT_loader, valS_loader, valT_loader, test_loader,
                          weight_scheduler, weight_cluster, *args, **kwargs)
         self._trainS_loader = TrainS_loader
         self._trainT_loader = TrainT_loader
@@ -44,7 +44,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
 
         self.extractor = FeatureExtractor(self.model, feature_names=self._config['DA']['align_layer']['name'])
         self.extractor.bind()
-        self.saver = FeatureMapSaver(save_dir=self._save_dir)
+        # self.saver = FeatureMapSaver(save_dir=self._save_dir)
         self.cc_based = self._config['DA']['align_layer']['cc_based']
     def run_step(self, s_data, t_data, cur_batch: int):
         extracted_layer = self.extractor.feature_names[0]

@@ -35,6 +35,7 @@ Trainer:
   enable_sampling: true
 
 DA:
+  constrastve_sampler: True
   batchsize_indicator: 1 # partition=7, bs=batchsize_indicator * 7
   double_bn: False
   displacement: False

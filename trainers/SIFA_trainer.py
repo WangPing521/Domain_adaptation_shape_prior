@@ -15,7 +15,7 @@ from meters import Storage, MeterInterface, AverageValueMeter, UniversalDice
 from meters.SummaryWriter import SummaryWriter
 from utils import tqdm
 from utils.general import path2Path, class2one_hot
-from utils.image_save_utils import save_images
+from utils.image_save_utils import save_images, CycleVisualSaver
 from utils.rising import RisingWrapper
 from utils.utils import set_environment, write_yaml
 
@@ -154,6 +154,7 @@ class SIFA_trainer:
                                           feature_names=[f"Conv{str(f)}" for f in range(5, 0, -1)]
                                           )
         self.extractor.bind()
+        self.saver = CycleVisualSaver(save_dir=self._save_dir)
 
         self.cycWeight = self._config['weights']['cyc_weight']
         self.segWeight = self._config['weights']['seg_weight']
@@ -200,11 +201,11 @@ class SIFA_trainer:
             t_data[0][1].to(self.device),
             t_data[1],
         )
-        S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
-        S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
+        S_img = self._rising_augmentation(S_img, mode="image", seed=int(f'{self.cur_epoch+1}{cur_batch}'))
+        S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=int(f'{self.cur_epoch+1}{cur_batch}'))
 
-        T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
-        T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
+        T_img = self._rising_augmentation(T_img, mode="image", seed=int(f'{self.cur_epoch+1}{cur_batch}'))
+        T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=int(f'{self.cur_epoch+1}{cur_batch}'))
 
         fake = torch.zeros(S_img.shape[0], device=self.device).fill_(0)
         real = torch.zeros(S_img.shape[0], device=self.device).fill_(1)
@@ -215,32 +216,24 @@ class SIFA_trainer:
         fakeS2T_img = torch.tanh(self.Generator(S_img))
 
         # visualiztion
-        if cur_batch == 0:
-            save_images(fakeS2T_img[1].detach(), names=[S_filename[1]], root=self._config['Trainer']['save_dir'], mode='S2T', iter=self.cur_epoch)
-
         with self.extractor.enable_register(True):
             self.extractor.clear()
             _ = self.model(fakeS2T_img).softmax(1)
             e_list_f = list(self.extractor.features())
-            # todo: check the order
         fakeS2T2S_img = torch.tanh(self.decoder(e_list_f))
-
-        if cur_batch == 0:
-            save_images(fakeS2T2S_img[1].detach(), names=[S_filename[1]], root=self._config['Trainer']['save_dir'], mode='S2T2S', iter=self.cur_epoch)
 
         # EU(t)->fake_s G(fake_s)->recov_t
         with self.extractor.enable_register(True):
             self.extractor.clear()
             pred_T = self.model(T_img).softmax(1)
             e_list_T = list(self.extractor.features())
-            # todo: check the order
         fakeT2S_img = torch.tanh(self.decoder(e_list_T))
-        if cur_batch == 0:
-            save_images(fakeT2S_img[1].detach(), names=[T_filename[1]], root=self._config['Trainer']['save_dir'], mode='T2S', iter=self.cur_epoch)
-
         fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img.detach()))
-        if cur_batch == 0:
-            save_images(fakeT2S2T_img[1].detach(), names=[T_filename[1]], root=self._config['Trainer']['save_dir'], mode='T2S2S', iter=self.cur_epoch)
+
+        self.saver.save_map(real_image=S_img, fake_image=fakeS2T_img, recover_image=fakeS2T2S_img, cur_epoch=self.cur_epoch, cur_batch_num=cur_batch,
+                            save_name="S2T2S")
+        self.saver.save_map(real_image=T_img, fake_image=fakeT2S_img, recover_image=fakeT2S2T_img, cur_epoch=self.cur_epoch, cur_batch_num=cur_batch,
+                            save_name="T2S2T")
 
         # cycle consistency
         cycloss1 = torch.abs(S_img - fakeS2T2S_img).mean()  # # L1-norm loss
@@ -356,6 +349,7 @@ class SIFA_trainer:
         report_dict = None, None
 
         for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
+
             loss_G, loss_Dt_real_t, loss_Dt, loss_E, loss_U, loss_Ds, loss_Dp_advp1 = self.run_step(s_data=s_data,
                                                                                                     t_data=t_data,
                                                                                                     cur_batch=cur_batch)

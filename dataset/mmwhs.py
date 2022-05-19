@@ -70,7 +70,8 @@ class MedicalDatasetInterface:
             group_train=False,
             group_val=True,
             use_infinite_sampler: bool = False,
-            batchsize_indicator: int = 6
+            batchsize_indicator: int = 6,
+            constrastve=True
     ):
         # -> Tuple[DataLoader, DataLoader]
 
@@ -93,21 +94,29 @@ class MedicalDatasetInterface:
                 {"batch_size": self.batch_params.get("batch_size")}
             )
         if use_infinite_sampler:
-            contrastive_sampler = ContrastBatchSampler(train_set, scan_sample_num=batchsize_indicator,
+            if constrastve:
+                contrastive_sampler = ContrastBatchSampler(train_set, scan_sample_num=batchsize_indicator,
                                                        partition_sample_num=1,
                                                        shuffle=False) # 1
+                train_loader = (
+                    DataLoader(
+                        train_set,
+                        batch_sampler=contrastive_sampler,
+                        **{k: v for k, v in _dataloader_params.items() if k != "shuffle" and k != "batch_size"},
+                    )
+                    if not group_train
+                    else self._grouped_dataloader(
+                        train_set, use_infinite_sampler=True, **_dataloader_params
+                    )
+                )
 
-            train_loader = (
-                DataLoader(
-                    train_set,
-                    batch_sampler=contrastive_sampler,
-                    **{k: v for k, v in _dataloader_params.items() if k != "shuffle" and k != "batch_size"},
+            else:
+                contrastive_sampler = InfiniteRandomSampler(train_set, shuffle=True)
+                train_loader = DataLoader(train_set, sampler=contrastive_sampler,
+                        **{k: v for k, v in _dataloader_params.items() if k != "shuffle"},
                 )
-                if not group_train
-                else self._grouped_dataloader(
-                    train_set, use_infinite_sampler=True, **_dataloader_params
-                )
-            )
+
+
         else:
             # raise RuntimeError()
             train_loader = (

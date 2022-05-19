@@ -10,7 +10,7 @@ Data:
   seed: 12
 
 DataLoader:
-  batch_size: 1 # must be 1
+  batch_size: 4 # must be 1
   val_batch_size: 40
   shuffle: False # must be false
   num_workers: 8
@@ -28,7 +28,8 @@ Trainer:
   enable_sampling: true
 
 DA:
-  batchsize_indicator: 1 # partition=7, bs=batchsize_indicator * 7
+  constrastve_sampler: False
+  batchsize_indicator: 3 # partition=7, bs=batchsize_indicator * 7
   source: MRI # promise
   target: CT  # prostate
 
