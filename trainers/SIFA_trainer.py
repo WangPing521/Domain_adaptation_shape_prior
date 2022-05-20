@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Union, Dict, Any, Tuple
 
@@ -154,7 +155,8 @@ class SIFA_trainer:
                                           feature_names=[f"Conv{str(f)}" for f in range(5, 0, -1)]
                                           )
         self.extractor.bind()
-        self.saver = CycleVisualSaver(save_dir=self._save_dir)
+        self.visual_folder = "cyc"
+        self.saver = CycleVisualSaver(save_dir=self._save_dir, folder_name=self.visual_folder)
 
         self.cycWeight = self._config['weights']['cyc_weight']
         self.segWeight = self._config['weights']['seg_weight']
@@ -452,6 +454,8 @@ class SIFA_trainer:
 
             self.schedulerStep()
             self.save_checkpoint(self.state_dict(), self.cur_epoch)
+        # compress visual images
+        self.clean_up()
 
     def inference(self, identifier="best.pth", *args, **kwargs):
         """
@@ -554,19 +558,12 @@ class SIFA_trainer:
             )
         self.load_checkpoint(state_dict)
 
-    def clean_up(self, wait_time=3):
-        """
-        Do not touch
-        :return:
-        """
+    def clean_up(self):
         import shutil
-        import time
+        shutil.make_archive(base_name=os.path.join(str(self._save_dir), self.visual_folder), format='zip',
+                            root_dir=str(self._save_dir), base_dir=self.visual_folder)
 
-        time.sleep(wait_time)  # to prevent that the call_draw function is not ended.
-        Path(self.ARCHIVE_PATH).mkdir(exist_ok=True, parents=True)
-        sub_dir = self._save_dir.relative_to(Path(self.RUN_PATH))
-        save_dir = Path(self.ARCHIVE_PATH) / str(sub_dir)
-        if Path(save_dir).exists():
-            shutil.rmtree(save_dir, ignore_errors=True)
-        shutil.move(str(self._save_dir), str(save_dir))
-        shutil.rmtree(str(self._save_dir), ignore_errors=True)
+        save_dir1 = os.path.join(str(self._save_dir), self.visual_folder)
+        if Path(save_dir1).exists():
+            shutil.rmtree(save_dir1, ignore_errors=True)
+

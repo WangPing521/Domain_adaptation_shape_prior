@@ -326,7 +326,7 @@ class FeatureMapSaver:
 
 class CycleVisualSaver:
 
-    def __init__(self, save_dir: Union[str, Path], folder_name="cyc", use_tensorboard: bool = True) -> None:
+    def __init__(self, save_dir: Union[str, Path], folder_name, use_tensorboard: bool = True) -> None:
         assert Path(save_dir).exists() and Path(save_dir).is_dir(), save_dir
         self.save_dir: Path = Path(save_dir)
         self.folder_name = folder_name
