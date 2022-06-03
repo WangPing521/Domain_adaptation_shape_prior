@@ -7,8 +7,8 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 source $CC_WRAPPER_PATH
 
 time=4
-account=def-chdesa
-save_dir=0404_psda
+account=rrg-ebrahimi
+save_dir=0602_baselines
 
 declare -a StringArray=(
 
