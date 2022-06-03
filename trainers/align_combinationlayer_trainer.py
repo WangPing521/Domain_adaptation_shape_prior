@@ -9,7 +9,7 @@ from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list
-from utils.image_save_utils import FeatureMapSaver, plot_seg
+from utils.image_save_utils import FeatureMapSaver
 
 
 class mutli_aligntrainer(SourcebaselineTrainer):

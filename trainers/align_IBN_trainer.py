@@ -10,7 +10,7 @@ from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list, simplex
-from utils.image_save_utils import plot_joint_matrix, plot_seg, plot_joint_matrix1
+from utils.image_save_utils import plot_joint_matrix, plot_joint_matrix1
 from utils.utils import fix_all_seed_within_context
 
 

@@ -1,7 +1,4 @@
 from typing import Union
-
-import rising.random as rr
-import rising.transforms as rt
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -9,13 +6,11 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 
 from arch.projectors import DenseClusterHead
 from arch.utils import FeatureExtractor
-from loss.IIDSegmentations import compute_joint_distribution, IIDSegmentationLoss, single_head_loss
+from loss.IIDSegmentations import single_head_loss
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot
 from utils.image_save_utils import plot_joint_matrix, FeatureMapSaver
-from utils.rising import RisingWrapper
-
 
 class DomainsupervisedTrainer(SourcebaselineTrainer):
 

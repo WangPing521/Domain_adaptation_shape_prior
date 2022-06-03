@@ -14,7 +14,6 @@ from meters.SummaryWriter import SummaryWriter
 from scheduler.customized_scheduler import RampScheduler
 from utils import tqdm
 from utils.general import path2Path, class2one_hot
-from utils.image_save_utils import plot_seg
 from utils.rising import RisingWrapper
 from utils.utils import set_environment, write_yaml, meters_register
 
