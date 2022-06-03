@@ -143,7 +143,6 @@ class SourcebaselineTrainer:
         self.model.train()
         batch_indicator = tqdm(range(self._num_batches))
         batch_indicator.set_description(f"Training Epoch {epoch:03d}")
-        report_dict, p_joint_S, p_joint_T = None, None, None
 
         for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
             self.optimizer.zero_grad()
@@ -181,7 +180,6 @@ class SourcebaselineTrainer:
         valT_indicator.set_description(f"ValT_Epoch {epoch:03d}")
         test_indicator = tqdm(test_loader)
         test_indicator.set_description(f"test_Epoch {epoch:03d}")
-        report_dict = {}
 
         for batch_idT, data_T in enumerate(valT_indicator):
             imageT, targetT, filenameT = (
@@ -226,8 +224,8 @@ class SourcebaselineTrainer:
 
         test_indicator.close()
         assert report_dict is not None
-
-        return dict(report_dict), self.meters["valT_dice"].summary()["DSC_mean"]
+        report_dict = self.meters.statistics()
+        return dict(report_dict), self.meters["test_dice"].summary()["DSC_mean"]
 
     def schedulerStep(self):
         self._weight_scheduler.step()
