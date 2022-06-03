@@ -16,7 +16,7 @@ from meters import Storage, MeterInterface, AverageValueMeter, UniversalDice
 from meters.SummaryWriter import SummaryWriter
 from utils import tqdm
 from utils.general import path2Path, class2one_hot
-from utils.image_save_utils import save_images, CycleVisualSaver
+from utils.image_save_utils import CycleVisualSaver
 from utils.rising import RisingWrapper
 from utils.utils import set_environment, write_yaml
 
@@ -232,10 +232,11 @@ class SIFA_trainer:
         fakeT2S_img = torch.tanh(self.decoder(e_list_T))
         fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img.detach()))
 
-        self.saver.save_map(real_image=S_img, fake_image=fakeS2T_img, recover_image=fakeS2T2S_img, cur_epoch=self.cur_epoch, cur_batch_num=cur_batch,
-                            save_name="S2T2S")
-        self.saver.save_map(real_image=T_img, fake_image=fakeT2S_img, recover_image=fakeT2S2T_img, cur_epoch=self.cur_epoch, cur_batch_num=cur_batch,
-                            save_name="T2S2T")
+        if cur_batch == 0:
+            self.saver.save_map(real_image=S_img, fake_image=fakeS2T_img, recover_image=fakeS2T2S_img, cur_epoch=self.cur_epoch, cur_batch_num=cur_batch,
+                                save_name="S2T2S")
+            self.saver.save_map(real_image=T_img, fake_image=fakeT2S_img, recover_image=fakeT2S2T_img, cur_epoch=self.cur_epoch, cur_batch_num=cur_batch,
+                                save_name="T2S2T")
 
         # cycle consistency
         cycloss1 = torch.abs(S_img - fakeS2T2S_img).mean()  # # L1-norm loss
@@ -274,13 +275,10 @@ class SIFA_trainer:
             e_list_f = list(self.extractor.features())
         fakeS2T2S_img = torch.tanh(self.decoder(e_list_f))
 
-        # fakeS2T2S_img_1 = self.discriminator_s(fakeS2T2S_img).squeeze()
-        # loss_E_advs1 = self._bce_criterion(fakeS2T2S_img_1, fake) # real
         fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img))
         loss_cyc = torch.abs(S_img - fakeS2T2S_img).mean() + 0.5 * torch.abs(T_img - fakeT2S2T_img).mean()
 
         loss_E = self.cycWeight * loss_cyc + self.discWeight * loss_E_advs + self.segWeight * loss_seg1 + self.discWeight * loss_E_advp
-        # + self.RegScheduler_advss.value * loss_E_advs1
         loss_E.backward()
         self.optimizer.step()
 
@@ -307,10 +305,7 @@ class SIFA_trainer:
         fakeT2S_img_0 = self.discriminator_s(fakeT2S_img.detach()).squeeze()
         S_img_1 = self.discriminator_s(S_img).squeeze()
         loss_Ds_advs = self._bce_criterion(fakeT2S_img_0, fake) + self._bce_criterion(S_img_1, real)
-        # fakeS2T2S_img_1 = self.discriminator_s(fakeS2T2S_img.detach()).squeeze()
-        # loss_Ds_advss = self._bce_criterion(fakeS2T2S_img_1, real)
         loss_Ds = loss_Ds_advs
-        # + self.RegScheduler_advss.value * loss_Ds_advss
         loss_Ds.backward()
         self.optimizer_s.step()
 
@@ -348,7 +343,6 @@ class SIFA_trainer:
 
         batch_indicator = tqdm(range(self._num_batches))
         batch_indicator.set_description(f"Training Epoch {epoch:03d}")
-        report_dict = None, None
 
         for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
 
@@ -366,7 +360,7 @@ class SIFA_trainer:
             report_dict = self.meters.statistics()
             batch_indicator.set_postfix_statics(report_dict, cache_time=20)
         batch_indicator.close()
-
+        report_dict = self.meters.statistics()
         assert report_dict is not None
         return dict(report_dict)
 
@@ -383,7 +377,6 @@ class SIFA_trainer:
         valT_indicator.set_description(f"ValT_Epoch {epoch:03d}")
         test_indicator = tqdm(test_loader)
         test_indicator.set_description(f"test_Epoch {epoch:03d}")
-        report_dict = {}
 
         for batch_idT, data_T in enumerate(valT_indicator):
             imageT, targetT, filenameT = (
@@ -415,10 +408,8 @@ class SIFA_trainer:
                 target_test.squeeze(1),
                 group_name=["_".join(x.split("_")[:-1]) for x in filename_test])
 
-            report_dict = self.meters.statistics()
-            test_indicator.set_postfix_statics(report_dict, cache_time=20)
         test_indicator.close()
-
+        report_dict = self.meters.statistics()
         assert report_dict is not None
         return dict(report_dict), self.meters["valT_dice"].summary()["DSC_mean"]
 
@@ -429,7 +420,6 @@ class SIFA_trainer:
         self.scheduler_U.step()
         self.scheduler_s.step()
         self.scheduler_p1.step()
-        # self.scheduler_p2.step()
 
     def start_training(self):
         self.to(self.device)
@@ -501,18 +491,12 @@ class SIFA_trainer:
         :param current_epoch:
         :return:
         """
-        # save_best: bool = True if float(cur_score) > float(self._best_score) else False
-        # if save_best:
-        #     self._best_score = float(cur_score)
         state_dict["epoch"] = current_epoch
-        # state_dict["best_score"] = float(self._best_score)
         save_dir = self._save_dir if save_dir is None else path2Path(save_dir)
         save_dir.mkdir(parents=True, exist_ok=True)
         if save_name is None:
             # regular saving
             torch.save(state_dict, str(save_dir / "last.pth"))
-            # if save_best:
-            #     torch.save(state_dict, str(save_dir / "best.pth"))
         else:
             # periodic saving
             torch.save(state_dict, str(save_dir / save_name))
@@ -540,7 +524,6 @@ class SIFA_trainer:
         :return:
         """
         self._load_state_dict(state_dict)
-        # self._best_score = state_dict["best_score"]
         self._start_epoch = state_dict["epoch"] + 1
 
     def load_checkpoint_from_path(self, checkpoint_path):

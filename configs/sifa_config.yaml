@@ -8,9 +8,10 @@ Optim:
 
 Data:
   seed: 12
+  kfold: 1
 
 DataLoader:
-  batch_size: 4 # must be 1
+  batch_size: 5 # must be 1
   val_batch_size: 40
   shuffle: False # must be false
   num_workers: 8
@@ -29,8 +30,6 @@ Trainer:
 
 DA:
   constrastve_sampler: False
-  batchsize_indicator: 3 # partition=7, bs=batchsize_indicator * 7
-  source: MRI # promise
-  target: CT  # prostate
+  batchsize_indicator: 1
 
 seed: 123

@@ -6,7 +6,7 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 
-time=4
+time=2
 account=rrg-ebrahimi
 save_dir=0602_baselines
 
