@@ -35,11 +35,11 @@ with fix_all_seed_within_context(config['seed']):
     scheduler = GradualWarmupScheduler(optimizer, multiplier=300, total_epoch=10, after_scheduler=scheduler)
 
 if config['Data_input']['dataset'] == 'mmwhs':
-    handler1 = mmWHSCTInterface(**config["Data"])
-    handler2 = mmWHSMRInterface(**config["Data"])
+    handler1 = mmWHSMRInterface(seed = config["Data"]["seed"])
+    handler2 = mmWHSCTInterface(seed = config["Data"]["seed"], kfold=config["Data"]["kfold"])
 elif config['Data_input']['dataset'] == 'prostate':
-    handler1 = PromiseInterface(**config["Data"])
-    handler2 = ProstateInterface(**config["Data"])
+    handler1 = ProstateInterface(seed = config["Data"]["seed"])
+    handler2 = PromiseInterface(seed = config["Data"]["seed"])
 else:
     raise NotImplementedError(config['Data_input']['dataset'])
 
@@ -47,36 +47,20 @@ handler1.compile_dataloader_params(**config["DataLoader"])
 handler2.compile_dataloader_params(**config["DataLoader"])
 
 with fix_all_seed_within_context(config['Data']['seed']):
-    if config['DA']['source'] in ['CT', 'promise'] and config['DA']['target'] in ['MRI','prostate']:
-        trainS_loader, valS_loader, testS_loader = handler1.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
-        trainT_loader, valT_loader, test_loader = handler2.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
-    elif config['DA']['source'] in ['MRI','prostate'] and config['DA']['target'] in ['CT', 'promise']:
-        trainT_loader, valT_loader, test_loader = handler1.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
-        trainS_loader, valS_loader, testS_loader = handler2.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
+    trainS_loader = handler1.DataLoaders(
+        train_transform=None,
+        val_transform=None,
+        group_val=False,
+        use_infinite_sampler=True,
+        batchsize_indicator=config['DA']['batchsize_indicator']
+    )
+    trainT_loader, valT_loader, test_loader = handler2.DataLoaders(
+        train_transform=None,
+        val_transform=None,
+        group_val=False,
+        use_infinite_sampler=True,
+        batchsize_indicator=config['DA']['batchsize_indicator']
+    )
 
 RegScheduler = RampScheduler(**config['Scheduler']["RegScheduler"])
 weight_cluster = RampScheduler(**config['Scheduler']["ClusterScheduler"])
@@ -92,8 +76,6 @@ Trainer_container = {
     "priorbased": entPlusPriorTrainer
 }
 trainer_name = Trainer_container.get(config['Trainer'].get('name'))
-# if trainer_name == OLVATrainer:
-#     model = unet2vaeunet(model, seed=config['seed'])
 
 trainer = trainer_name(
     model=model,
@@ -101,7 +83,6 @@ trainer = trainer_name(
     scheduler=scheduler,
     TrainS_loader=trainS_loader,
     TrainT_loader=trainT_loader,
-    valS_loader=valS_loader,
     valT_loader=valT_loader,
     test_loader=test_loader,
     weight_scheduler=RegScheduler,

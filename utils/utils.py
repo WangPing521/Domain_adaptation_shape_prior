@@ -600,9 +600,6 @@ def meters_register(c):
 
     with meters.focus_on("val"):
         meters.register_meter(
-            f"valS_dice", UniversalDice(C=c, report_axis=report_axis)
-        )
-        meters.register_meter(
             f"valT_dice", UniversalDice(C=c, report_axis=report_axis)
         )
         meters.register_meter(

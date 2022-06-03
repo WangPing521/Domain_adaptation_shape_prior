@@ -34,18 +34,17 @@ class SourcebaselineTrainer:
             scheduler,
             TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
             TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
-            valS_loader: Union[DataLoader, _BaseDataLoaderIter],
             valT_loader: Union[DataLoader, _BaseDataLoaderIter],
             test_loader: Union[DataLoader, _BaseDataLoaderIter],
             weight_scheduler: RampScheduler,
             weight_cluster: RampScheduler,
             switch_bn,
-            max_epoch: int = 100,
+            max_epoch: int = 1,
             save_dir: str = "base",
             checkpoint_path: str = None,
             device='cpu',
             config: dict = None,
-            num_batches=200,
+            num_batches=1,
             *args,
             **kwargs
     ) -> None:
@@ -63,7 +62,6 @@ class SourcebaselineTrainer:
         self.scheduler = scheduler
         self._trainS_loader = TrainS_loader
         self._trainT_loader = TrainT_loader
-        self._valS_loader = valS_loader
         self._valT_loader = valT_loader
         self._test_loader = test_loader
         self._max_epoch = max_epoch
@@ -165,15 +163,14 @@ class SourcebaselineTrainer:
             self.meters['cluster_loss'].add(cluster_loss.item())
 
             report_dict = self.meters.statistics()
-            batch_indicator.set_postfix_statics(report_dict, cache_time=20)
+            batch_indicator.set_postfix_statics(report_dict)
         batch_indicator.close()
-
+        report_dict = self.meters.statistics()
         assert report_dict is not None
         return dict(report_dict)
 
     def eval_loop(
             self,
-            valS_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             valT_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             test_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             epoch: int = 0,
@@ -181,32 +178,11 @@ class SourcebaselineTrainer:
             **kwargs,
     ) -> Tuple[Any, Any]:
         self.model.eval()
-        valS_indicator = tqdm(valS_loader)
-        valS_indicator.set_description(f"ValS_Epoch {epoch:03d}")
         valT_indicator = tqdm(valT_loader)
         valT_indicator.set_description(f"ValT_Epoch {epoch:03d}")
         test_indicator = tqdm(test_loader)
         test_indicator.set_description(f"test_Epoch {epoch:03d}")
         report_dict = {}
-        for batch_idS, data_S in enumerate(valS_indicator):
-            imageS, targetS, filenameS = (
-                data_S[0][0].to(self.device),
-                data_S[0][1].to(self.device),
-                data_S[1]
-            )
-            with self.switch_bn(self.model, 0):
-                preds_S = self.model(imageS).softmax(1)
-            self.meters[f"valS_dice"].add(
-                preds_S.max(1)[1],
-                targetS.squeeze(1),
-                group_name=["_".join(x.split("_")[:-1]) for x in filenameS])
-
-            report_dict = self.meters.statistics()
-            valS_indicator.set_postfix_statics(report_dict, cache_time=20)
-        #     if batch_idS == 28:
-        #         source_seg = plot_seg(imageS.squeeze(0), preds_S.max(1)[1].squeeze(0))
-        #         self.writer.add_figure(tag=f"val_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
-        valS_indicator.close()
 
         for batch_idT, data_T in enumerate(valT_indicator):
             imageT, targetT, filenameT = (
@@ -226,9 +202,6 @@ class SourcebaselineTrainer:
 
             report_dict = self.meters.statistics()
             valT_indicator.set_postfix_statics(report_dict, cache_time=20)
-            # if batch_idT == 28:
-            #     target_seg = plot_seg(imageT.squeeze(0), preds_T.max(1)[1].squeeze(0))
-            #     self.writer.add_figure(tag=f"val_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
 
         valT_indicator.close()
         assert report_dict is not None
@@ -250,10 +223,7 @@ class SourcebaselineTrainer:
                 group_name=["_".join(x.split("_")[:-1]) for x in filename_test])
 
             report_dict = self.meters.statistics()
-            test_indicator.set_postfix_statics(report_dict, cache_time=20)
-            # if batch_idT == 28:
-            #     target_seg = plot_seg(imageT.squeeze(0), preds_T.max(1)[1].squeeze(0))
-            #     self.writer.add_figure(tag=f"val_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
+            test_indicator.set_postfix_statics(report_dict)
 
         test_indicator.close()
         assert report_dict is not None
@@ -281,7 +251,7 @@ class SourcebaselineTrainer:
                 )
 
             with self.meters.focus_on("val"), torch.no_grad():
-                val_metric, _ = self.eval_loop(self._valS_loader, self._valT_loader, self._test_loader, self.cur_epoch)
+                val_metric, _ = self.eval_loop(self._valT_loader, self._test_loader, self.cur_epoch)
 
             with self._storage:
                 self._storage.add_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)

@@ -7,6 +7,7 @@ Optim:
 
 Data:
   seed: 12
+  kfold: 1
 
 DataLoader:
   batch_size: 1 # must be 1
@@ -40,10 +41,8 @@ DA:
   double_bn: False
   displacement: False
   displace_scale: 1
-  statistic: False
+  statistic: True
   multi_scale: 1 # 1, 2, 3, 4, 5, 6 Note: 1 refers to without multi_scale resilution
-  source: MRI # promise
-  target: CT  # prostate
   weight1: 1 # 10, 100
   align_layer:
     name: Deconv_1x1 # Up_conv5, Up_conv4, Up_conv3, Up_conv2, Deconv_1x1
