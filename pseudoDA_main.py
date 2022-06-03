@@ -32,11 +32,11 @@ with fix_all_seed_within_context(config['seed']):
     scheduler = GradualWarmupScheduler(optimizer, multiplier=300, total_epoch=10, after_scheduler=scheduler)
 
 if config['Data_input']['dataset'] == 'mmwhs':
-    CT_handler = mmWHSCTInterface(**config["Data"])
-    MR_handler = mmWHSMRInterface(**config["Data"])
+    handler1 = mmWHSMRInterface(seed = config["Data"]["seed"])
+    handler2 = mmWHSCTInterface(seed = config["Data"]["seed"], kfold=config["Data"]["kfold"])
 elif config['Data_input']['dataset'] == 'prostate':
-    handler1 = PromiseInterface(**config["Data"])
-    handler2 = ProstateInterface(**config["Data"])
+    handler1 = ProstateInterface(seed = config["Data"]["seed"])
+    handler2 = PromiseInterface(seed = config["Data"]["seed"])
 else:
     raise NotImplementedError(config['Data_input']['dataset'])
 
@@ -44,36 +44,20 @@ handler1.compile_dataloader_params(**config["DataLoader"])
 handler2.compile_dataloader_params(**config["DataLoader"])
 
 with fix_all_seed_within_context(config['Data']['seed']):
-    if config['DA']['source'] in ['CT', 'promise'] and config['DA']['target'] in ['MRI','prostate']:
-        trainS_loader, valS_loader = handler1.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
-        trainT_loader, valT_loader = handler2.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
-    elif config['DA']['source'] in ['MRI','prostate'] and config['DA']['target'] in ['CT', 'promise']:
-        trainT_loader, valT_loader = handler1.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
-        trainS_loader, valS_loader = handler2.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
+    trainS_loader = handler1.DataLoaders(
+        train_transform=None,
+        val_transform=None,
+        group_val=False,
+        use_infinite_sampler=True,
+        batchsize_indicator=config['DA']['batchsize_indicator']
+    )
+    trainT_loader, valT_loader, test_loader = handler2.DataLoaders(
+        train_transform=None,
+        val_transform=None,
+        group_val=False,
+        use_infinite_sampler=True,
+        batchsize_indicator=config['DA']['batchsize_indicator']
+    )
 
 trainer = Pseudo_labelingDATrainer(
     Smodel=Smodel,
@@ -82,6 +66,7 @@ trainer = Pseudo_labelingDATrainer(
     scheduler=scheduler,
     TrainT_loader=trainT_loader,
     valT_loader=valT_loader,
+    test_loader=test_loader,
     config=config,
     **config['Trainer']
 )
