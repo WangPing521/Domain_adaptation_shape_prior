@@ -39,12 +39,12 @@ class SourcebaselineTrainer:
             weight_scheduler: RampScheduler,
             weight_cluster: RampScheduler,
             switch_bn,
-            max_epoch: int = 1,
+            max_epoch: int = 100,
             save_dir: str = "base",
             checkpoint_path: str = None,
             device='cpu',
             config: dict = None,
-            num_batches=1,
+            num_batches=200,
             *args,
             **kwargs
     ) -> None:
