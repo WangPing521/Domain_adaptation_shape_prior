@@ -21,18 +21,16 @@ class entPlusPriorTrainer(SourcebaselineTrainer):
 
     def __init__(self, TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
                  TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
-                 valS_loader: Union[DataLoader, _BaseDataLoaderIter],
                  valT_loader: Union[DataLoader, _BaseDataLoaderIter],
                  test_loader: Union[DataLoader, _BaseDataLoaderIter],
                  weight_scheduler: RampScheduler,
                  weight_cluster: RampScheduler,
                  model: nn.Module,
                  optimizer, scheduler, *args, **kwargs) -> None:
-        super().__init__(model, optimizer, scheduler, TrainS_loader, TrainT_loader, valS_loader, valT_loader, test_loader,
+        super().__init__(model, optimizer, scheduler, TrainS_loader, TrainT_loader, valT_loader, test_loader,
                          weight_scheduler, weight_cluster, *args, **kwargs)
         self._trainS_loader = TrainS_loader
         self._trainT_loader = TrainT_loader
-        self._valS_loader = valS_loader
         self._valT_loader = valT_loader
         self._test_loader = test_loader
         self._weight_scheduler = weight_scheduler
@@ -68,7 +66,6 @@ class entPlusPriorTrainer(SourcebaselineTrainer):
         ent_loss = self.ent_loss(pred_T)
 
         prior_loss = self.KL_loss(pred_T.mean(dim=[0, 2, 3])[None,...], self.prior[None,...])
-        # cluster_loss = torch.abs(pred_T.mean(dim=[0, 2, 3])[None, ...] - self.prior[None,...]).mean()
         self.meters[f"train_dice"].add(
             pred_S.max(1)[1],
             S_target.squeeze(1),
