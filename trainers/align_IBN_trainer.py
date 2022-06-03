@@ -18,7 +18,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
 
     def __init__(self, TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
                  TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
-                 valS_loader: Union[DataLoader, _BaseDataLoaderIter],
                  valT_loader: Union[DataLoader, _BaseDataLoaderIter],
                  test_loader: Union[DataLoader, _BaseDataLoaderIter],
                  weight_scheduler: RampScheduler,
@@ -26,15 +25,9 @@ class align_IBNtrainer(SourcebaselineTrainer):
                  model: nn.Module,
                  optimizer, scheduler, *args, **kwargs) -> None:
 
-        super().__init__(model, optimizer, scheduler, TrainS_loader, TrainT_loader, valS_loader, valT_loader, test_loader,
+        super().__init__(model, optimizer, scheduler, TrainS_loader, TrainT_loader, valT_loader, test_loader,
                          weight_scheduler, weight_cluster, *args, **kwargs)
-        self._trainS_loader = TrainS_loader
-        self._trainT_loader = TrainT_loader
-        self._valS_loader = valS_loader
-        self._valT_loader = valT_loader
-        self._test_loader = test_loader
-        self._weight_scheduler = weight_scheduler
-        self._weight_cluster = weight_cluster
+
         with fix_all_seed_within_context(self._config['seed']):
             self.projector = DenseClusterHead(
                 input_dim=self.model.get_channel_dim(self._config['DA']['align_layer']['name']),
@@ -44,7 +37,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
 
         self.extractor = FeatureExtractor(self.model, feature_names=self._config['DA']['align_layer']['name'])
         self.extractor.bind()
-        # self.saver = FeatureMapSaver(save_dir=self._save_dir)
         self.cc_based = self._config['DA']['align_layer']['cc_based']
     def run_step(self, s_data, t_data, cur_batch: int):
         extracted_layer = self.extractor.feature_names[0]
@@ -63,7 +55,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
         S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
         S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
         T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
-        T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
         with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
             self.extractor.clear()
@@ -105,21 +96,16 @@ class align_IBNtrainer(SourcebaselineTrainer):
         for rs in range(self._config['DA']['multi_scale']):
             if rs:
                 clusters_S, clusters_T = multi_resilution_cluster(clusters_S, clusters_T)
-
-            # align joint
             align_losses, p_joint_Ss, p_joint_Ts = \
                 zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, cc_based=self.cc_based) for
                       clusters, clustert in zip(clusters_S, clusters_T)])
 
             align_loss = sum(align_losses) / len(align_losses)
-
             align_loss_multires.append(align_loss)
-
             p_jointS_list.append(p_joint_Ss[-1])
             p_jointT_list.append(p_joint_Ts[-1])
 
         align_loss = average_list(align_loss_multires)
-
         entT_loss = self.ent_loss(pred_T) # entropy on target
 
         # for visualization
@@ -137,19 +123,19 @@ class align_IBNtrainer(SourcebaselineTrainer):
         if cur_batch == 0:
             source_joint_fig = plot_joint_matrix(p_joint_S)
             target_joint_fig = plot_joint_matrix(p_joint_T)
-            self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,
-                                   close=True, )
-            self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
-                                   close=True, )
+            # self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,
+            #                        close=True, )
+            # self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
+            #                        close=True, )
             joint_error_fig = plot_joint_matrix1(joint_error)
             joint_error_percent_fig = plot_joint_matrix1(joint_error_percent)
             self.writer.add_figure(tag=f"error_joint", figure=joint_error_fig, global_step=self.cur_epoch,
                                    close=True, )
             self.writer.add_figure(tag=f"error_percent", figure=joint_error_percent_fig, global_step=self.cur_epoch,
                                    close=True, )
-            source_seg = plot_seg(S_img[-1], pred_S.max(1)[1][-1])
-            target_seg = plot_seg(T_img[-1], pred_T.max(1)[1][-1])
-            self.writer.add_figure(tag=f"train_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
-            self.writer.add_figure(tag=f"train_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
+            # source_seg = plot_seg(S_img[-1], pred_S.max(1)[1][-1])
+            # target_seg = plot_seg(T_img[-1], pred_T.max(1)[1][-1])
+            # self.writer.add_figure(tag=f"train_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
+            # self.writer.add_figure(tag=f"train_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
 
         return s_loss, entT_loss, align_loss

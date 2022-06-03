@@ -1,137 +1,13 @@
-import math
 import typing as t
-from functools import lru_cache
-
 import numpy as np
 import torch
-import torch.nn as nn
-from loguru import logger
 from torch import Tensor
 from torch.nn import functional as F
-
-from loss.barlow_twin_loss import BarlowTwins
 from loss.entropy import KL_div, Entropy
 from utils.general import average_list, simplex
 
-
-class RedundancyCriterion(nn.Module):
-
-    def __init__(self, *, eps: float = 1e-5, symmetric: bool = True, lamda: float = 1, alpha: float) -> None:
-        super().__init__()
-        self._eps = eps
-        self.symmetric = symmetric
-        self.lamda = lamda
-        self.alpha = alpha
-
-    def forward(self, x_out: Tensor, x_tf_out: Tensor):
-        k = x_out.shape[1]
-        p_i_j = compute_joint_2D_with_padding_zeros(x_out=x_out, x_tf_out=x_tf_out, symmetric=self.symmetric)
-        p_i_j = p_i_j.view(k, k)
-        self._p_i_j = p_i_j
-        target = ((self.onehot_label(k=k, device=p_i_j.device) / k) * self.alpha + p_i_j * (1 - self.alpha))
-        p_i = p_i_j.sum(dim=1).view(k, 1).expand(k, k)  # p_i should be the mean of the x_out
-        p_j = p_i_j.sum(dim=0).view(1, k).expand(k, k)  # but should be same, symmetric
-        constrained = (-p_i_j * (- self.lamda * torch.log(p_j + self._eps)
-                                 - self.lamda * torch.log(p_i + self._eps))
-                       ).sum()
-        pseudo_loss = -(target * (p_i_j + self._eps).log()).sum()
-        return pseudo_loss + constrained
-
-    @lru_cache()
-    def onehot_label(self, k, device):
-        label = torch.eye(k, device=device, dtype=torch.bool)
-        return label
-
-    def kl_criterion(self, dist: Tensor, prior: Tensor):
-        return -(prior * (dist + self._eps).log() + (1 - prior) * (1 - dist + self._eps).log()).mean()
-
-    def get_joint_matrix(self):
-        if not hasattr(self, "_p_i_j"):
-            raise RuntimeError()
-        return self._p_i_j.detach().cpu().numpy()
-
-    def set_ratio(self, alpha: float):
-        """
-        0 : entropy minimization
-        1 : barlow-twin
-        """
-        assert 0 <= alpha <= 1, alpha
-        if self.alpha != alpha:
-            logger.trace(f"Setting alpha = {alpha}")
-        self.alpha = alpha
-
-
-class IIDSegmentationLoss(nn.Module):
-
-    def __init__(self, *, eps: float = 1e-5, symmetric: bool = True, lamda: float = 1) -> None:
-        super().__init__()
-        self._eps = eps
-        self.symmetric = symmetric
-        self.lamda = lamda
-
-    def forward(
-            self, x_out: Tensor, x_tf_out: Tensor
-    ) -> Tensor:
-        k = x_out.shape[1]
-        p_i_j = compute_joint_2D_with_padding_zeros(x_out=x_out, x_tf_out=x_tf_out, symmetric=self.symmetric)
-        p_i_j = p_i_j.view(k, k)
-        self._p_i_j = p_i_j
-        p_i = p_i_j.sum(dim=1).view(k, 1).expand(k, k)
-        p_j = p_i_j.sum(dim=0).view(1, k).expand(k, k)
-
-        cluster_loss = (-p_i_j * (
-                torch.log(p_i_j + self._eps)
-                - self.lamda * torch.log(p_j + self._eps)
-                - self.lamda * torch.log(p_i + self._eps))
-                        ).sum()
-        return cluster_loss
-
-    def get_joint_matrix(self):
-        if not hasattr(self, "_p_i_j"):
-            raise RuntimeError()
-        return self._p_i_j.detach().cpu().numpy()
-
 KL_loss =KL_div()
 ent_loss = Entropy()
-
-def compute_joint_2D(x_out: Tensor, x_out_disp: Tensor, *, symmetric: bool = True, padding: int = 0):
-    x_out = x_out.swapaxes(0, 1).contiguous()
-    x_out_disp = x_out_disp.swapaxes(0, 1).contiguous()
-
-    p_i_j = F.conv2d(
-        input=x_out,
-        weight=x_out_disp, padding=(int(padding), int(padding))
-    )
-    p_i_j = p_i_j - p_i_j.min().detach() + 1e-8
-
-    # T x T x k x k
-    p_i_j = p_i_j.permute(2, 3, 0, 1)
-    p_i_j /= p_i_j.sum(dim=[2, 3], keepdim=True)  # norm
-
-    # symmetrise, transpose the k x k part
-    if symmetric:
-        p_i_j = (p_i_j + p_i_j.permute(0, 1, 3, 2)) / 2.0
-    p_i_j /= p_i_j.sum()  # norm
-    return p_i_j.contiguous()
-
-
-def compute_joint_2D_with_padding_zeros(x_out: Tensor, x_tf_out: Tensor, *, symmetric: bool = True):
-    k = x_out.shape[1]
-    x_out = x_out.swapaxes(0, 1).reshape(k, -1)
-    N = x_out.shape[1]
-    x_tf_out = x_tf_out.swapaxes(0, 1).reshape(k, -1)
-    p_i_j = (x_out / math.sqrt(N)) @ (x_tf_out.t() / math.sqrt(N))
-    # p_i_j = p_i_j - p_i_j.min().detach() + 1e-8
-
-    # T x T x k x k
-    # p_i_j /= p_i_j.sum()
-
-    # symmetrise, transpose the k x k part
-    if symmetric:
-        p_i_j = (p_i_j + p_i_j.t()) / 2.0
-    p_i_j = p_i_j.view(1, 1, k, k)
-    return p_i_j.contiguous()
-
 
 def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=True, cc_relation=False):
     n, d, h, w = x_out.shape
@@ -154,7 +30,6 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
 
     return p_i_j.contiguous()
 
-
 def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], cc_based=False):
     if not cc_based:
         assert simplex(clustert) and simplex(clusters)
@@ -173,13 +48,8 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
             cc_relation=cc_based)
         # align
         align_1disp_loss = torch.mean(torch.abs((p_joint_S.detach() - p_joint_T)))
-
         align_loss_list.append(align_1disp_loss)
-
     align_loss = average_list(align_loss_list)
-
-
-    # todo: visualization.
     return align_loss, p_joint_S, p_joint_T
 
 def compute_cross_correlation(x_out, displacement_map: (int, int)):
