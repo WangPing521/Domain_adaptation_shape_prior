@@ -8,8 +8,6 @@ from dataset.mmwhs import mmWHSMRInterface, mmWHSCTInterface
 from demo.criterions import nullcontext
 from scheduler.customized_scheduler import RampScheduler
 from scheduler.warmup_scheduler import GradualWarmupScheduler
-from trainers.Domain_supervised_Trainer import DomainsupervisedTrainer
-from trainers.OLVA import OLVATrainer
 from trainers.SourceTrainer import SourcebaselineTrainer
 from trainers.align_IBN_trainer import align_IBNtrainer
 from trainers.align_combinationlayer_trainer import mutli_aligntrainer
@@ -68,11 +66,9 @@ weight_cluster = RampScheduler(**config['Scheduler']["ClusterScheduler"])
 Trainer_container = {
     "baseline": SourcebaselineTrainer,
     "upperbaseline": UpperbaselineTrainer,
-    "supervised": DomainsupervisedTrainer,
     "entda": EntropyDA,
     "align_IndividualBN": align_IBNtrainer,
     "combinationlayer": mutli_aligntrainer,
-    "ottrainer": OLVATrainer,
     "priorbased": entPlusPriorTrainer
 }
 trainer_name = Trainer_container.get(config['Trainer'].get('name'))

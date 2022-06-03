@@ -1,8 +1,7 @@
 import difflib
+from collections.abc import Mapping
 
-from submitters.functiontools import mapType
-
-
+mapType =Mapping
 def __name_getter(dictionary: mapType, previous_name, previous_names):
     for k, v in dictionary.items():
         if previous_name == "":

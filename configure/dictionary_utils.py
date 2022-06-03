@@ -2,13 +2,12 @@ from collections.abc import Iterable
 from copy import deepcopy as dcopy
 from numbers import Number
 from typing import Dict, Any
-
 import numpy as np
 import torch
-
-from submitters.functiontools import mapType
 from utils.general import is_map, is_iterable
+from collections.abc import Mapping
 
+mapType =Mapping
 
 def edict2dict(item):
     if isinstance(item, (str, Number, float, np.ndarray, torch.Tensor)):

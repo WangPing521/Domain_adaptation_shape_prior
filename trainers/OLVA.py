@@ -1,17 +1,13 @@
-from typing import Union, Tuple, Any
-
+from typing import Union
 import ot
 import torch
 from torch import Tensor
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
-
 from meters import AverageValueMeter
 from scheduler.customized_scheduler import RampScheduler
 from scheduler.warmup_scheduler import GradualWarmupScheduler
-from utils import tqdm
 from utils.general import class2one_hot
-from utils.image_save_utils import plot_seg
 from utils.radam import RAdam
 from utils.utils import fix_all_seed_within_context
 from .align_IBN_trainer import align_IBNtrainer
@@ -35,8 +31,6 @@ class OLVATrainer(align_IBNtrainer):
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=max(90, 1), eta_min=1e-7)
         self.scheduler = GradualWarmupScheduler(self.optimizer, multiplier=300, total_epoch=10,
                                                 after_scheduler=scheduler)
-        self.extractor.remove()
-        del self.extractor
         with self.meters.focus_on("olva"):
             self.meters.register_meter("kl", AverageValueMeter())
             self.meters.register_meter("ot", AverageValueMeter())
@@ -60,7 +54,6 @@ class OLVATrainer(align_IBNtrainer):
             S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
             S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
             T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
-            T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
 
             with  fix_all_seed_within_context(seed=cur_batch):
                 source_latent_sample, features = self.model.forward_encoder(S_img)
@@ -90,67 +83,6 @@ class OLVATrainer(align_IBNtrainer):
                 self.meters["kl"].add(kl_loss.item())
                 self.meters["ot"].add(ot_loss.item())
         return s_loss, kl_loss, ot_loss
-
-    def eval_loop(
-            self,
-            valS_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
-            valT_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
-            epoch: int = 0,
-            *args,
-            **kwargs,
-    ) -> Tuple[Any, Any]:
-        self.model.eval()
-        valS_indicator = tqdm(valS_loader)
-        valS_indicator.set_description(f"ValS_Epoch {epoch:03d}")
-        valT_indicator = tqdm(valT_loader)
-        valT_indicator.set_description(f"ValT_Epoch {epoch:03d}")
-        report_dict = {}
-        for batch_idS, data_S in enumerate(valS_indicator):
-            imageS, targetS, filenameS = (
-                data_S[0][0].to(self.device),
-                data_S[0][1].to(self.device),
-                data_S[1]
-            )
-            with self.switch_bn(self.model, 0):
-                preds_S = self.model(imageS).softmax(1)
-            self.meters[f"valS_dice"].add(
-                preds_S.max(1)[1],
-                targetS.squeeze(1),
-                group_name=["_".join(x.split("_")[:-1]) for x in filenameS])
-
-            report_dict = self.meters.statistics()
-            valS_indicator.set_postfix_statics(report_dict, cache_time=20)
-            if batch_idS == 28:
-                source_seg = plot_seg(imageS.squeeze(0), preds_S.max(1)[1].squeeze(0))
-                self.writer.add_figure(tag=f"val_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
-
-        valS_indicator.close()
-
-        for batch_idT, data_T in enumerate(valT_indicator):
-            imageT, targetT, filenameT = (
-                data_T[0][0].to(self.device),
-                data_T[0][1].to(self.device),
-                data_T[1]
-            )
-            if self._config['Trainer']['name'] in ['baseline', 'upperbaseline']:
-                preds_T = self.model(imageT).softmax(1)
-            else:
-                with self.switch_bn(self.model, 0):
-                    preds_T = self.model(imageT).softmax(1)
-            self.meters[f"valT_dice"].add(
-                preds_T.max(1)[1],
-                targetT.squeeze(1),
-                group_name=["_".join(x.split("_")[:-1]) for x in filenameT])
-
-            report_dict = self.meters.statistics()
-            valT_indicator.set_postfix_statics(report_dict, cache_time=20)
-            if batch_idT == 28:
-                target_seg = plot_seg(imageT.squeeze(0), preds_T.max(1)[1].squeeze(0))
-                self.writer.add_figure(tag=f"val_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
-
-        valT_indicator.close()
-        assert report_dict is not None
-        return dict(report_dict), self.meters["valT_dice"].summary()["DSC_mean"]
 
     def vae_kl_divergence(self, mean, log_var) -> Tensor:
         mean, log_var = [torch.flatten(x, start_dim=1) for x in (mean, log_var)]
