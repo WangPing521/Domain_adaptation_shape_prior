@@ -181,27 +181,28 @@ class SourcebaselineTrainer:
         test_indicator = tqdm(test_loader)
         test_indicator.set_description(f"test_Epoch {epoch:03d}")
 
-        for batch_idT, data_T in enumerate(valT_indicator):
-            imageT, targetT, filenameT = (
-                data_T[0][0].to(self.device),
-                data_T[0][1].to(self.device),
-                data_T[1]
-            )
-            if self._config['Trainer']['name'] in ['baseline', 'upperbaseline']:
-                preds_T = self.model(imageT).softmax(1)
-            else:
-                with self.switch_bn(self.model, 1):
+        if self._config['Data']['kfold'] > 0:
+            for batch_idT, data_T in enumerate(valT_indicator):
+                imageT, targetT, filenameT = (
+                    data_T[0][0].to(self.device),
+                    data_T[0][1].to(self.device),
+                    data_T[1]
+                )
+                if self._config['Trainer']['name'] in ['baseline', 'upperbaseline']:
                     preds_T = self.model(imageT).softmax(1)
-            self.meters[f"valT_dice"].add(
-                preds_T.max(1)[1],
-                targetT.squeeze(1),
-                group_name=["_".join(x.split("_")[:-1]) for x in filenameT])
+                else:
+                    with self.switch_bn(self.model, 1):
+                        preds_T = self.model(imageT).softmax(1)
+                self.meters[f"valT_dice"].add(
+                    preds_T.max(1)[1],
+                    targetT.squeeze(1),
+                    group_name=["_".join(x.split("_")[:-1]) for x in filenameT])
 
-            report_dict = self.meters.statistics()
-            valT_indicator.set_postfix_statics(report_dict, cache_time=20)
+                report_dict = self.meters.statistics()
+                valT_indicator.set_postfix_statics(report_dict, cache_time=20)
 
-        valT_indicator.close()
-        assert report_dict is not None
+            valT_indicator.close()
+            assert report_dict is not None
 
         for batch_id_test, data_test in enumerate(test_indicator):
             image_test, target_test, filename_test = (

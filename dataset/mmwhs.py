@@ -282,6 +282,9 @@ class mmWHSCTInterface(MedicalDatasetInterface):
             rest_train, fold1 = train_test_split(shuffled_patients, test_size=0.25)
             sub_rest_train, fold2 = train_test_split(rest_train, test_size=0.33)
             fold4, fold3 = train_test_split(sub_rest_train, test_size=0.5)
+            if self.kfold == 0:
+                train_patients = shuffled_patients
+                val_patients = shuffled_patients
             if self.kfold == 1:
                 train_patients = rest_train
                 val_patients = fold1
@@ -297,10 +300,16 @@ class mmWHSCTInterface(MedicalDatasetInterface):
 
         training_set = SubMedicalDatasetBasedOnIndex(train_set, train_patients)
         validation_set = SubMedicalDatasetBasedOnIndex(train_set, val_patients)
-        assert len(validation_set) + len(training_set) <= len(
-            train_set
-        ), "wrong on labeled/unlabeled split."
-        del train_set
+        if self.kfold == 0:
+            assert len(validation_set) + len(training_set) == 2 * len(
+                train_set
+            ), "not full training data."
+            del train_set
+        else:
+            assert len(validation_set) + len(training_set) <= len(
+                train_set
+            ), "wrong on labeled/unlabeled split."
+            del train_set
 
         if train_transform:
             training_set.set_transform(train_transform)
