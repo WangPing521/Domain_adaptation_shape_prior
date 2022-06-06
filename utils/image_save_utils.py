@@ -37,7 +37,7 @@ def plot_joint_matrix(joint: Tensor):
             fig.colorbar(im_, ax=ax, orientation='vertical')
     return fig
 
-def plot_joint_matrix1(joint: Tensor):
+def plot_joint_matrix1(joint: Tensor, indicator="error"):
     if joint.dim() == 2:
         joint = joint.unsqueeze(0).unsqueeze(0)
     assert joint.dim() == 4, joint.shape
@@ -47,7 +47,10 @@ def plot_joint_matrix1(joint: Tensor):
     joint = joint.detach().squeeze(0).squeeze(0).cpu().float().numpy()
     plt.imshow(joint)
     plt.colorbar(orientation='vertical')
-    plt.clim(0,1)
+    if indicator == "percenterror":
+       plt.clim(0,1)
+    elif indicator == "error":
+        plt.clim(0, 0.01)
     return fig
 
 def plot_seg(img, label):
