@@ -48,6 +48,10 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
             cc_relation=cc_based)
         # align
         align_1disp_loss = torch.mean(torch.abs((p_joint_S.detach() - p_joint_T)))
+
+        if dis_map == (0, 0) and len(displacement_maps) > 1:
+            align_1disp_loss = 2 * align_1disp_loss
+
         align_loss_list.append(align_1disp_loss)
     align_loss = average_list(align_loss_list)
     return align_loss, p_joint_S, p_joint_T
