@@ -7,12 +7,11 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
 from arch.utils import FeatureExtractor
-from loss.diceloss import DiceLoss
 from loss.entropy import SimplexCrossEntropyLoss
 from meters import Storage, MeterInterface, AverageValueMeter, UniversalDice
 from meters.SummaryWriter import SummaryWriter
 from utils import tqdm
-from utils.general import path2Path, class2one_hot
+from utils.general import path2Path
 from utils.rising import RisingWrapper
 from utils.utils import set_environment, write_yaml
 
