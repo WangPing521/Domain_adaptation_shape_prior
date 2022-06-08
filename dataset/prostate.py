@@ -3,8 +3,10 @@ from pathlib import Path
 
 from typing import List, Tuple
 
+from sklearn.model_selection import train_test_split
+
 from augment.synchronize import SequentialWrapper
-from dataset.mmwhs import MedicalDatasetInterface
+from dataset.mmwhs import MedicalDatasetInterface, SubMedicalDatasetBasedOnIndex
 from utils import DATA_PATH
 from utils.utils import fix_all_seed_within_context
 from ._ioutils import downloading
@@ -44,6 +46,7 @@ class PromiseInterface(MedicalDatasetInterface):
     ) -> Tuple[
         MedicalImageSegmentationDataset,
         MedicalImageSegmentationDataset,
+        MedicalImageSegmentationDataset,
     ]:
         train_set = self.DataClass(
             root_dir=self.root_dir,
@@ -59,15 +62,20 @@ class PromiseInterface(MedicalDatasetInterface):
             transforms=None,
             patient_pattern=r"Case\d+"
         )
-        with fix_all_seed_within_context(self.seed):
-            shuffled_patients = train_set.get_group_list()[:]
-            random.shuffle(shuffled_patients)
+        test_set = self.DataClass(
+            root_dir=self.root_dir,
+            mode="test",
+            sub_folders=["img", "gt"],
+            transforms=None,
+            patient_pattern=r"Case\d+"
+        )
 
         if train_transform:
             train_set.set_transform(train_transform)
         if val_transform:
             val_set.set_transform(val_transform)
-        return train_set, val_set
+            test_set.set_transform(val_transform)
+        return train_set, val_set, test_set
 
 
 class ProstateDataset(MedicalImageSegmentationDataset):
@@ -102,7 +110,6 @@ class ProstateInterface(MedicalDatasetInterface):
             val_transform: SequentialWrapper = None,
     ) -> Tuple[
         MedicalImageSegmentationDataset,
-        MedicalImageSegmentationDataset,
     ]:
         train_set = self.DataClass(
             root_dir=self.root_dir,
@@ -111,19 +118,8 @@ class ProstateInterface(MedicalDatasetInterface):
             transforms=None,
             patient_pattern=r"prostate_\d+"
         )
-        val_set = self.DataClass(
-            root_dir=self.root_dir,
-            mode="val",
-            sub_folders=["img", "gt"],
-            transforms=None,
-            patient_pattern=r"prostate_\d+"
-        )
-        with fix_all_seed_within_context(self.seed):
-            shuffled_patients = train_set.get_group_list()[:]
-            random.shuffle(shuffled_patients)
 
         if train_transform:
             train_set.set_transform(train_transform)
-        if val_transform:
-            val_set.set_transform(val_transform)
-        return train_set, val_set
+
+        return train_set
