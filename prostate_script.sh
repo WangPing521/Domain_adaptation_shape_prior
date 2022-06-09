@@ -7,7 +7,7 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 source $CC_WRAPPER_PATH
 
 time=4
-account=rrg-ebrahimi
+account=def-chdesa
 save_dir=0607_prostate_baseline
 declare -a StringArray=(
 # Data.kfold=10, only as indicator to allow performing validation

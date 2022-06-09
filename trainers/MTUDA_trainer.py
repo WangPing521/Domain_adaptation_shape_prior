@@ -93,11 +93,6 @@ class MTUDA_trainer:
         self.crossentropy = SimplexCrossEntropyLoss()
         self._storage = Storage(self._save_dir)
         self.writer = SummaryWriter(str(self._save_dir))
-        self.extractor = FeatureExtractor(self.model, feature_names="Up_conv2")
-        self.extractor.bind()
-        self.cycWeight = self._config['weights']['cyc_weight']
-        self.segWeight = self._config['weights']['seg_weight']
-        self.discWeight = self._config['weights']['disc_weight']
 
         c = self._config['Data_input']['num_class']
         self.meters = meters_registerSIFA(c)

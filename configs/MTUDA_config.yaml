@@ -15,10 +15,17 @@ DataLoader:
   num_workers: 8
   pin_memory: False
 
-weights:
-  cyc_weight: 1
-  seg_weight: 1
-  disc_weight: 0.1
+Scheduler:
+  SemanticRegScheduler:
+    begin_epoch: 5
+    max_epoch: 50
+    min_value: 0
+    max_value: 0
+  StructureScheduler:
+    begin_epoch: 5
+    max_epoch: 50
+    min_value: 0
+    max_value: 0
 
 Trainer:
   device: cuda
@@ -27,8 +34,7 @@ Trainer:
   enable_sampling: true
 
 DA:
+  constrastve_sampler: False
   batchsize_indicator: 1 # partition=7, bs=batchsize_indicator * 7
-  source: MRI # promise
-  target: CT  # prostate
 
 seed: 123

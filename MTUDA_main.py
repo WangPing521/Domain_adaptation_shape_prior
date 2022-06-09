@@ -1,8 +1,11 @@
 import torch
 from arch.unet import UNet
 from configure import ConfigManager
-from dataset.prostate import ProstateInterface, PromiseInterface
-from dataset.mmwhs import mmWHSMRInterface, mmWHSCTInterface
+from dataset.mmwhs_fake import mmWHS_T2S2T_Interface, mmWHS_T2S_Interface, mmWHS_S2T2S_Interface, mmWHS_S2T_Interface
+from dataset.prostate import PromiseInterface
+from dataset.mmwhs import mmWHSCTInterface
+from dataset.prostate_fake import prostate_T2S2T_Interface, prostate_T2S_Interface, prostate_S2T2S_Interface, \
+    prostate_S2T_Interface
 from scheduler.warmup_scheduler import GradualWarmupScheduler
 from trainers.MTUDA_trainer import MTUDA_trainer
 from utils.radam import RAdam
@@ -26,47 +29,65 @@ for param_t in target_ema_model.parameters():
 
 if config['Data_input']['dataset'] == 'mmwhs':
     handler1 = mmWHSCTInterface(**config["Data"])
-    handler2 = mmWHSMRInterface(**config["Data"])
+
+    handlerS2T = mmWHS_S2T_Interface(**config["Data"])
+    handlerS2T2S = mmWHS_S2T2S_Interface(**config["Data"])
+    handlerT2S = mmWHS_T2S_Interface(**config["Data"])
+    handlerT2S2T = mmWHS_T2S2T_Interface(**config["Data"])
 elif config['Data_input']['dataset'] == 'prostate':
     handler1 = PromiseInterface(**config["Data"])
-    handler2 = ProstateInterface(**config["Data"])
+
+    handlerS2T = prostate_S2T_Interface(**config["Data"])
+    handlerS2T2S = prostate_S2T2S_Interface(**config["Data"])
+    handlerT2S = prostate_T2S_Interface(**config["Data"])
+    handlerT2S2T = prostate_T2S2T_Interface(**config["Data"])
+
 else:
     raise NotImplementedError(config['Data_input']['dataset'])
 
 handler1.compile_dataloader_params(**config["DataLoader"])
-handler2.compile_dataloader_params(**config["DataLoader"])
+handlerS2T.compile_dataloader_params(**config["DataLoader"])
+handlerS2T2S.compile_dataloader_params(**config["DataLoader"])
+handlerT2S.compile_dataloader_params(**config["DataLoader"])
+handlerT2S2T.compile_dataloader_params(**config["DataLoader"])
+
 
 with fix_all_seed_within_context(config['Data']['seed']):
-    if config['DA']['source'] in ['CT', 'promise'] and config['DA']['target'] in ['MRI','prostate']:
-        trainS_loader, valS_loader = handler1.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
-        trainT_loader, valT_loader = handler2.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
-    elif config['DA']['source'] in ['MRI','prostate'] and config['DA']['target'] in ['CT', 'promise']:
-        trainT_loader, valT_loader, test_loader = handler1.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
-        trainS_loader, valS_loader, testS_loader = handler2.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator']
-        )
+    trainS_loader = handler1.DataLoaders(
+        train_transform=None,
+        val_transform=None,
+        group_val=False,
+        use_infinite_sampler=True,
+        batchsize_indicator=config['DA']['batchsize_indicator']
+    )
+    trainS2T_loader,  = handlerS2T.DataLoaders(
+        train_transform=None,
+        val_transform=None,
+        group_val=False,
+        use_infinite_sampler=True,
+        batchsize_indicator=config['DA']['batchsize_indicator']
+    )
+    trainS2T2S_loader, = handlerS2T2S.DataLoaders(
+        train_transform=None,
+        val_transform=None,
+        group_val=False,
+        use_infinite_sampler=True,
+        batchsize_indicator=config['DA']['batchsize_indicator']
+    )
+    trainT2S_loader, test_loader= handlerT2S.DataLoaders(
+        train_transform=None,
+        val_transform=None,
+        group_val=False,
+        use_infinite_sampler=True,
+        batchsize_indicator=config['DA']['batchsize_indicator']
+    )
+    trainT2S2T_loader, = handlerT2S2T.DataLoaders(
+        train_transform=None,
+        val_transform=None,
+        group_val=False,
+        use_infinite_sampler=True,
+        batchsize_indicator=config['DA']['batchsize_indicator']
+    )
 
 trainer = MTUDA_trainer(
     model=model,
@@ -75,8 +96,10 @@ trainer = MTUDA_trainer(
     optimizer=optimizer,
     scheduler=scheduler,
     TrainS_loader=trainS_loader,
-    TrainT_loader=trainT_loader,
-    valT_loader=valT_loader,
+    TrainS2T_loader=trainS2T_loader,
+    TrainS2T2S_loader=trainS2T2S_loader,
+    TrainT2S_loader=trainT2S_loader,
+    TrainT2S2T_loader=trainT2S2T_loader,
     test_loader=test_loader,
     config=config,
     **config['Trainer']
