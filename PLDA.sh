@@ -8,14 +8,14 @@ source $CC_WRAPPER_PATH
 
 time=4
 account=rrg-ebrahimi
-save_dir=0602_PLDA
+save_dir=0612_PLDA
 
 declare -a StringArray=(
 
 # do not nedd cross validation
-"python pseudoDA_main.py seed=10 Optim.lr=0.00001 DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_seed1"
-"python pseudoDA_main.py seed=20 Optim.lr=0.00001 DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_seed2"
-"python pseudoDA_main.py seed=30 Optim.lr=0.00001 DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_seed3"
+"python pseudoDA_main.py seed=10 Data_input.dataset=mmwhs Data.kfold=0 Optim.lr=0.00001 DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_seed1"
+"python pseudoDA_main.py seed=20 Data_input.dataset=mmwhs Data.kfold=0 Optim.lr=0.00001 DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_seed2"
+"python pseudoDA_main.py seed=30 Data_input.dataset=mmwhs Data.kfold=0 Optim.lr=0.00001 DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_seed3"
 
 )
 

@@ -19,7 +19,7 @@ fix_all_seed(config['seed'])
 Smodel = UNet(num_classes=config['Data_input']['num_class'], input_dim=1)
 Smodel = convert2TwinBN(Smodel)
 Smodel = Smodel.eval()
-weight = f'runs/psuedoDA/prostate/last.pth'
+weight = f'runs/psuedoDA/cv63/last.pth'
 new_state_dict = OrderedDict()
 state_dict = torch.load(weight)
 
