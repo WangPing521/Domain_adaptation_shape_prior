@@ -33,9 +33,6 @@ def meters_registerPDA(c):
 
     with meters.focus_on("val"):
         meters.register_meter(
-            f"valT_dice", UniversalDice(C=c, report_axis=report_axis)
-        )
-        meters.register_meter(
             f"test_dice", UniversalDice(C=c, report_axis=report_axis)
         )
     return meters
@@ -56,7 +53,6 @@ class Pseudo_labelingDATrainer:
             optimizer,
             scheduler,
             TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
-            valT_loader: Union[DataLoader, _BaseDataLoaderIter],
             test_loader: Union[DataLoader, _BaseDataLoaderIter],
             max_epoch: int = 100,
             save_dir: str = "base",
@@ -81,7 +77,6 @@ class Pseudo_labelingDATrainer:
         self.optimizer = optimizer
         self.scheduler = scheduler
         self._trainT_loader = TrainT_loader
-        self._valT_loader = valT_loader
         self.test_loader = test_loader
         self._max_epoch = max_epoch
         self._num_batches = num_batches
@@ -180,40 +175,21 @@ class Pseudo_labelingDATrainer:
             batch_indicator.set_postfix_statics(report_dict, cache_time=20)
         batch_indicator.close()
 
+        report_dict = self.meters.statistics()
         assert report_dict is not None
         return dict(report_dict)
 
     def eval_loop(
             self,
-            valT_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             test_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             epoch: int = 0,
             *args,
             **kwargs,
     ) -> Tuple[Any, Any]:
         self.model.eval()
-        valT_indicator = tqdm(valT_loader)
-        valT_indicator.set_description(f"ValT_Epoch {epoch:03d}")
         test_indicator = tqdm(test_loader)
         test_indicator.set_description(f"test_Epoch {epoch:03d}")
         report_dict = {}
-
-        for batch_idT, data_T in enumerate(valT_indicator):
-            imageT, targetT, filenameT = (
-                data_T[0][0].to(self.device),
-                data_T[0][1].to(self.device),
-                data_T[1]
-            )
-            preds_T = self.model(imageT).softmax(1)
-            self.meters[f"valT_dice"].add(
-                preds_T.max(1)[1],
-                targetT.squeeze(1),
-                group_name=["_".join(x.split("_")[:-1]) for x in filenameT])
-
-            report_dict = self.meters.statistics()
-            valT_indicator.set_postfix_statics(report_dict, cache_time=20)
-        valT_indicator.close()
-        assert report_dict is not None
 
         for batch_id_test, data_test in enumerate(test_indicator):
             image_test, target_test, filename_test = (
@@ -232,7 +208,7 @@ class Pseudo_labelingDATrainer:
         test_indicator.close()
         assert report_dict is not None
 
-        return dict(report_dict), self.meters["valT_dice"].summary()["DSC_mean"]
+        return dict(report_dict), self.meters["test_dice"].summary()["DSC_mean"]
 
     def schedulerStep(self):
         self.scheduler.step()
@@ -251,7 +227,7 @@ class Pseudo_labelingDATrainer:
                 )
 
             with self.meters.focus_on("val"), torch.no_grad():
-                val_metric, _ = self.eval_loop(self._valT_loader, self.test_loader,self.cur_epoch)
+                val_metric, _ = self.eval_loop(self.test_loader,self.cur_epoch)
 
             with self._storage:
                 self._storage.add_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)
