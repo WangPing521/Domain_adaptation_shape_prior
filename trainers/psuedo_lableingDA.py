@@ -162,7 +162,6 @@ class Pseudo_labelingDATrainer:
         self.model.train()
         batch_indicator = tqdm(range(self._num_batches))
         batch_indicator.set_description(f"Training Epoch {epoch:03d}")
-        report_dict = None, None
 
         for cur_batch, (batch_id, t_data) in enumerate(zip(batch_indicator, trainT_loader)):
             self.optimizer.zero_grad()
@@ -189,8 +188,6 @@ class Pseudo_labelingDATrainer:
         self.model.eval()
         test_indicator = tqdm(test_loader)
         test_indicator.set_description(f"test_Epoch {epoch:03d}")
-        report_dict = {}
-
         for batch_id_test, data_test in enumerate(test_indicator):
             image_test, target_test, filename_test = (
                 data_test[0][0].to(self.device),
@@ -206,8 +203,9 @@ class Pseudo_labelingDATrainer:
             report_dict = self.meters.statistics()
             test_indicator.set_postfix_statics(report_dict)
         test_indicator.close()
-        assert report_dict is not None
 
+        report_dict = self.meters.statistics()
+        assert report_dict is not None
         return dict(report_dict), self.meters["test_dice"].summary()["DSC_mean"]
 
     def schedulerStep(self):
