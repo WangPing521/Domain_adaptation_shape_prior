@@ -10,10 +10,11 @@ time=3
 account=def-chdesa
 save_dir=0612_prostate
 declare -a StringArray=(
+#todo test is val, and val is test. change the data in two datasts
 # Data.kfold=10, only as indicator to allow performing validation
-"python main.py seed=10 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=10 Data_input.num_class=2 DA.double_bn=False DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/lower_baseline_seed1"
-"python main.py seed=20 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=10 Data_input.num_class=2 DA.double_bn=False DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/lower_baseline_seed2"
-"python main.py seed=30 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=10 Data_input.num_class=2 DA.double_bn=False DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/lower_baseline_seed3"
+#"python main.py seed=10 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=10 Data_input.num_class=2 DA.double_bn=False DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/lower_baseline_seed1"
+#"python main.py seed=20 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=10 Data_input.num_class=2 DA.double_bn=False DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/lower_baseline_seed2"
+#"python main.py seed=30 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=10 Data_input.num_class=2 DA.double_bn=False DA.batchsize_indicator=9 Trainer.name=baseline Trainer.save_dir=${save_dir}/lower_baseline_seed3"
 
 #"python main.py seed=10 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=10 Data_input.num_class=2 DA.double_bn=False DA.batchsize_indicator=9 Trainer.name=upperbaseline Trainer.save_dir=${save_dir}/upper_baseline_seed1"
 #"python main.py seed=20 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=10 Data_input.num_class=2 DA.double_bn=False DA.batchsize_indicator=9 Trainer.name=upperbaseline Trainer.save_dir=${save_dir}/upper_baseline_seed2"
