@@ -64,6 +64,13 @@ def plot_seg(img, label):
     # plt.show(block=False)
     return fig
 
+def plot_feature(img):
+    img_volume = img
+    fig = plt.figure()
+    img_volume = tensor2plotable(img_volume)
+    plt.imshow(img_volume, cmap="gray")
+    return fig
+
 def tensor2plotable(tensor) -> np.ndarray:
     if isinstance(tensor, np.ndarray):
         return tensor

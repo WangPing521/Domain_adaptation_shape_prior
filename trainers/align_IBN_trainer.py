@@ -10,7 +10,7 @@ from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list, simplex
-from utils.image_save_utils import plot_joint_matrix, plot_joint_matrix1
+from utils.image_save_utils import plot_joint_matrix1, plot_feature
 from utils.utils import fix_all_seed_within_context
 
 
@@ -84,6 +84,28 @@ class align_IBNtrainer(SourcebaselineTrainer):
                 # cross_correlation
                 clusters_S = [feature_S]
                 clusters_T = [feature_T]
+                if cur_batch == 0 and extracted_layer == 'Up_conv2':
+                    source_f1 = plot_feature(feature_S[-1][0])
+                    source_f2 = plot_feature(feature_S[-1][1])
+                    source_f3 = plot_feature(feature_S[-1][3])
+                    source_f4 = plot_feature(feature_S[-1][8])
+
+                    target_f1 = plot_feature(feature_T[-1][0])
+                    target_f2 = plot_feature(feature_T[-1][1])
+                    target_f3 = plot_feature(feature_T[-1][3])
+                    target_f4 = plot_feature(feature_T[-1][8])
+
+                    self.writer.add_figure(tag=f"train_source_feature", figure=source_f1, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_source_feature", figure=source_f2, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_source_feature", figure=source_f3, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_source_feature", figure=source_f4, global_step=self.cur_epoch, close=True)
+
+                    self.writer.add_figure(tag=f"train_target_feature", figure=target_f1, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_target_feature", figure=target_f2, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_target_feature", figure=target_f3, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_target_feature", figure=target_f4, global_step=self.cur_epoch, close=True)
+
+
             else:
                 clusters_S = self.projector(feature_S)
                 clusters_T = self.projector(feature_T)
@@ -121,8 +143,8 @@ class align_IBNtrainer(SourcebaselineTrainer):
         )
 
         if cur_batch == 0:
-            source_joint_fig = plot_joint_matrix(p_joint_S)
-            target_joint_fig = plot_joint_matrix(p_joint_T)
+            # source_joint_fig = plot_joint_matrix(p_joint_S)
+            # target_joint_fig = plot_joint_matrix(p_joint_T)
             # self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,
             #                        close=True, )
             # self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
