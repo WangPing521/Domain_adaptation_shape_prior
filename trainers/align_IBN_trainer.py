@@ -95,15 +95,15 @@ class align_IBNtrainer(SourcebaselineTrainer):
                     target_f3 = plot_feature(feature_T[-1][3])
                     target_f4 = plot_feature(feature_T[-1][8])
 
-                    self.writer.add_figure(tag=f"train_source_feature", figure=source_f1, global_step=self.cur_epoch, close=True)
-                    self.writer.add_figure(tag=f"train_source_feature", figure=source_f2, global_step=self.cur_epoch, close=True)
-                    self.writer.add_figure(tag=f"train_source_feature", figure=source_f3, global_step=self.cur_epoch, close=True)
-                    self.writer.add_figure(tag=f"train_source_feature", figure=source_f4, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_source_feature1", figure=source_f1, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_source_feature2", figure=source_f2, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_source_feature3", figure=source_f3, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_source_feature4", figure=source_f4, global_step=self.cur_epoch, close=True)
 
-                    self.writer.add_figure(tag=f"train_target_feature", figure=target_f1, global_step=self.cur_epoch, close=True)
-                    self.writer.add_figure(tag=f"train_target_feature", figure=target_f2, global_step=self.cur_epoch, close=True)
-                    self.writer.add_figure(tag=f"train_target_feature", figure=target_f3, global_step=self.cur_epoch, close=True)
-                    self.writer.add_figure(tag=f"train_target_feature", figure=target_f4, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_target_feature1", figure=target_f1, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_target_feature2", figure=target_f2, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_target_feature3", figure=target_f3, global_step=self.cur_epoch, close=True)
+                    self.writer.add_figure(tag=f"train_target_feature4", figure=target_f4, global_step=self.cur_epoch, close=True)
 
 
             else:
