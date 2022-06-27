@@ -10,7 +10,7 @@ from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list, simplex
-from utils.image_save_utils import plot_joint_matrix1, plot_feature
+from utils.image_save_utils import plot_joint_matrix1, plot_feature, plot_seg
 from utils.utils import fix_all_seed_within_context
 
 
@@ -105,10 +105,16 @@ class align_IBNtrainer(SourcebaselineTrainer):
                     self.writer.add_figure(tag=f"train_target_feature3", figure=target_f3, global_step=self.cur_epoch, close=True)
                     self.writer.add_figure(tag=f"train_target_feature4", figure=target_f4, global_step=self.cur_epoch, close=True)
 
-
             else:
                 clusters_S = self.projector(feature_S)
                 clusters_T = self.projector(feature_T)
+                if cur_batch == 0:
+                    # len(clusters_S): 3 projectors
+                    _, d, _, _ = clusters_S[0].shape
+                    source_cluster = plot_seg(S_img[-1], clusters_S[0].max(1)[1][-1])
+                    self.writer.add_figure(tag=f"source_clusters_{d}", figure=source_cluster, global_step=self.cur_epoch, close=True)
+                    target_cluster = plot_seg(T_img[-1], clusters_T[0].max(1)[1][-1])
+                    self.writer.add_figure(tag=f"target_clusters_{d}", figure=target_cluster, global_step=self.cur_epoch, close=True)
 
         assert len(clusters_S) == len(clusters_T)
 
@@ -119,7 +125,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
             if rs:
                 clusters_S, clusters_T = multi_resilution_cluster(clusters_S, clusters_T)
             align_losses, p_joint_Ss, p_joint_Ts = \
-                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, cc_based=self.cc_based) for
+                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, cc_based=self.cc_based, cur_batch=cur_batch, cur_epoch=self.cur_epoch, vis=self.writer) for
                       clusters, clustert in zip(clusters_S, clusters_T)])
 
             align_loss = sum(align_losses) / len(align_losses)

@@ -5,6 +5,7 @@ from torch import Tensor
 from torch.nn import functional as F
 from loss.entropy import KL_div, Entropy
 from utils.general import average_list, simplex
+from utils.image_save_utils import plot_joint_matrix1
 
 KL_loss =KL_div()
 ent_loss = Entropy()
@@ -30,7 +31,7 @@ def compute_joint_distribution(x_out, displacement_map: (int, int), symmetric=Tr
 
     return p_i_j.contiguous()
 
-def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], cc_based=False):
+def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t.Sequence[t.Tuple[int, int]], cc_based=False, cur_batch, cur_epoch, vis):
     if not cc_based:
         assert simplex(clustert) and simplex(clusters)
 
@@ -49,6 +50,13 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
         # align
         align_1disp_loss = torch.mean(torch.abs((p_joint_S.detach() - p_joint_T)))
         align_loss_list.append(align_1disp_loss)
+        if cur_batch == 0:
+            p_joint_S_fig = plot_joint_matrix1(p_joint_S, indicator="error")
+            vis.add_figure(tag=f"joint_S_{dis_map[0]}_{dis_map[1]}", figure=p_joint_S_fig, global_step=cur_epoch, close=True)
+
+            p_joint_T_fig = plot_joint_matrix1(p_joint_T, indicator="error")
+            vis.add_figure(tag=f"joint_S_{dis_map[0]}_{dis_map[1]}", figure=p_joint_T_fig, global_step=cur_epoch, close=True)
+
     align_loss = average_list(align_loss_list)
     return align_loss, p_joint_S, p_joint_T
 
