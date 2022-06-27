@@ -55,7 +55,7 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
             vis.add_figure(tag=f"joint_S_{dis_map[0]}_{dis_map[1]}", figure=p_joint_S_fig, global_step=cur_epoch, close=True)
 
             p_joint_T_fig = plot_joint_matrix1(p_joint_T, indicator="error")
-            vis.add_figure(tag=f"joint_S_{dis_map[0]}_{dis_map[1]}", figure=p_joint_T_fig, global_step=cur_epoch, close=True)
+            vis.add_figure(tag=f"joint_T_{dis_map[0]}_{dis_map[1]}", figure=p_joint_T_fig, global_step=cur_epoch, close=True)
 
     align_loss = average_list(align_loss_list)
     return align_loss, p_joint_S, p_joint_T
