@@ -31,7 +31,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
         with fix_all_seed_within_context(self._config['seed']):
             self.projector = DenseClusterHead(
                 input_dim=self.model.get_channel_dim(self._config['DA']['align_layer']['name']),
-                num_clusters=self._config['DA']['align_layer']['clusters'])
+                num_clusters=self._config['DA']['align_layer']['clusters'], T=0.5)
         self.optimizer.add_param_group({'params': self.projector.parameters(),
                                         })
 
