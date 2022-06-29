@@ -73,12 +73,18 @@ class align_IBNtrainer(SourcebaselineTrainer):
                 clusters_S = [pred_S]
             clusters_T = [pred_T]
             assert simplex(clusters_S[0]) and simplex(clusters_T[0])
+
+            if cur_batch == 0:
+                source_seg = plot_seg(S_img[-1], pred_S.max(1)[1][-1])
+                target_seg = plot_seg(T_img[-1], pred_T.max(1)[1][-1])
+                self.writer.add_figure(tag=f"train_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
+                self.writer.add_figure(tag=f"train_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
+
         else:
             with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
                 self.extractor.clear()
                 pred_T = self.model(T_img).softmax(1)
                 feature_T = next(self.extractor.features())
-
             # projector cluster --->joint
             if self.cc_based:
                 # cross_correlation
@@ -161,9 +167,5 @@ class align_IBNtrainer(SourcebaselineTrainer):
                                    close=True, )
             self.writer.add_figure(tag=f"error_percent", figure=joint_error_percent_fig, global_step=self.cur_epoch,
                                    close=True, )
-            # source_seg = plot_seg(S_img[-1], pred_S.max(1)[1][-1])
-            # target_seg = plot_seg(T_img[-1], pred_T.max(1)[1][-1])
-            # self.writer.add_figure(tag=f"train_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
-            # self.writer.add_figure(tag=f"train_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
 
         return s_loss, entT_loss, align_loss
