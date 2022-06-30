@@ -104,7 +104,7 @@ class _ProjectorHeadBase(nn.Module):
 
 
 # head for IIC segmentation clustering
-device='cpu'
+device='cuda'
 class DenseClusterHead(_ProjectorHeadBase):
     """
     this classification head uses the loss for IIC segmentation, which consists of multiple heads
