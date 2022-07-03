@@ -54,13 +54,14 @@ def plot_joint_matrix1(joint: Tensor, indicator="error"):
     return fig
 
 def plot_seg(img, label):
-    img_volume = img.squeeze(0)
+    # img_volume = img.squeeze(0)
     fig = plt.figure()
-    img_volume = tensor2plotable(img_volume)
-    plt.imshow(img_volume, cmap="gray")
+    plt.title(f'{img}')
+    # img_volume = tensor2plotable(img_volume)
+    # plt.imshow(img_volume, cmap="gray")
     gt_volume = tensor2plotable(label)
     # con = plt.contour(gt_volume)
-    plt.imshow(gt_volume, alpha=0.2, cmap="rainbow")
+    plt.imshow(gt_volume, alpha=1, cmap="viridis")
     # plt.show(block=False)
     return fig
 

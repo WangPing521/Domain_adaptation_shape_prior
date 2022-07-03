@@ -75,8 +75,8 @@ class align_IBNtrainer(SourcebaselineTrainer):
             assert simplex(clusters_S[0]) and simplex(clusters_T[0])
 
             if cur_batch == 0:
-                source_seg = plot_seg(S_img[-1], pred_S.max(1)[1][-1])
-                target_seg = plot_seg(T_img[-1], pred_T.max(1)[1][-1])
+                source_seg = plot_seg(S_filename[-1], pred_S.max(1)[1][-1])
+                target_seg = plot_seg(T_filename[-1], pred_T.max(1)[1][-1])
                 self.writer.add_figure(tag=f"train_source_seg", figure=source_seg, global_step=self.cur_epoch, close=True)
                 self.writer.add_figure(tag=f"train_target_seg", figure=target_seg, global_step=self.cur_epoch, close=True)
 
@@ -147,9 +147,9 @@ class align_IBNtrainer(SourcebaselineTrainer):
                 if cur_batch == 0:
                     # len(clusters_S): 3 projectors
                     _, d, _, _ = clusters_S[0].shape
-                    source_cluster = plot_seg(S_img[-1], clusters_S[0].max(1)[1][-1])
+                    source_cluster = plot_seg(S_filename[-1], clusters_S[0].max(1)[1][-1])
                     self.writer.add_figure(tag=f"source_clusters_{d}", figure=source_cluster, global_step=self.cur_epoch, close=True)
-                    target_cluster = plot_seg(T_img[-1], clusters_T[0].max(1)[1][-1])
+                    target_cluster = plot_seg(T_filename[-1], clusters_T[0].max(1)[1][-1])
                     self.writer.add_figure(tag=f"target_clusters_{d}", figure=target_cluster, global_step=self.cur_epoch, close=True)
 
         assert len(clusters_S) == len(clusters_T)
