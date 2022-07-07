@@ -11,7 +11,7 @@ account=rrg-ebrahimi
 save_dir=cyc_data
 
 declare -a StringArray=(
-"python main.py seed=10 Trainer.save_dir=${save_dir}"
+"python demo/generate_fakeimages.py seed=10 Trainer.save_dir=${save_dir}"
 
 )
 
