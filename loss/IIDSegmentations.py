@@ -77,15 +77,17 @@ def compute_cross_correlation(x_out, displacement_map: (int, int)):
     cc = x_out_norm.transpose(1,0).reshape(d,n*h*w) @ after_displacement_norm.transpose(1,0).reshape(d,n*h*w).T
     return cc
 
-def multi_resilution_cluster(clusters_S: t.List, clusters_T: t.List):
+def multi_resilution_cluster(clusters_S: t.List, clusters_T: t.List, cc_based=False):
     low_res_clusters_S, low_res_clusters_T = [], []
     for cluster_s, cluster_t in zip(clusters_S, clusters_T):
-        assert simplex(cluster_s)
-        assert simplex(cluster_t)
+        if not cc_based:
+            assert simplex(cluster_s)
+            assert simplex(cluster_t)
         low_res_cluster_s = F.avg_pool2d(cluster_s, kernel_size=(2, 2))
         low_res_cluster_t = F.avg_pool2d(cluster_t, kernel_size=(2, 2))
-        assert simplex(low_res_cluster_s)
-        assert simplex(low_res_cluster_t)
+        if not cc_based:
+            assert simplex(low_res_cluster_s)
+            assert simplex(low_res_cluster_t)
 
         low_res_clusters_S.append(low_res_cluster_s)
         low_res_clusters_T.append(low_res_cluster_t)
