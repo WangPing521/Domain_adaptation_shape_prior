@@ -77,7 +77,7 @@ for batch_id, data_S in enumerate(S_indicator):
 
     S2T = torch.tanh(model_S2T(imageS))
 
-    save_images(S2T.squeeze(1), filenameS, root='runs/cycle_data', mode='fake_ct_train', iter=0)
+    save_images(S2T.squeeze(1), filenameS, root=config['Trainer']['save_dir'], mode='fake_ct_train', iter=0)
 
     with extractor.enable_register(True):
         extractor.clear()
@@ -85,7 +85,7 @@ for batch_id, data_S in enumerate(S_indicator):
         e_list_T = list(extractor.features())
     S2T2S = torch.tanh(decoder(e_list_T))
 
-    save_images(S2T2S, filenameS, root='runs/cycle_data', mode='recover_mr_train', iter=0)
+    save_images(S2T2S, filenameS, root=config['Trainer']['save_dir'], mode='recover_mr_train', iter=0)
 
 
 for batch_id, data_tra_T in enumerate(T_tra_indicator):
@@ -100,12 +100,12 @@ for batch_id, data_tra_T in enumerate(T_tra_indicator):
         e_list_T = list(extractor.features())
     T2S = torch.tanh(decoder(e_list_T))
 
-    save_images(T2S, filename_traT, root='runs/cycle_data', mode='fake_mr_train', iter=0)
+    save_images(T2S, filename_traT, root=config['Trainer']['save_dir'], mode='fake_mr_train', iter=0)
 
 
     T2S2T = torch.tanh(model_S2T(T2S))
 
-    save_images(T2S2T, filename_traT, root='runs/cycle_data', mode='recover_ct_train', iter=0)
+    save_images(T2S2T, filename_traT, root=config['Trainer']['save_dir'], mode='recover_ct_train', iter=0)
 
 
 
@@ -122,4 +122,4 @@ for batch_id, data_test_T in enumerate(T_test_indicator):
         e_list_T = list(extractor.features())
     T2S_test = torch.tanh(decoder(e_list_T))
 
-    save_images(T2S_test, filename_testT, root='runs/cycle_data', mode='fake_mr_test', iter=0)
+    save_images(T2S_test, filename_testT, root=config['Trainer']['save_dir'], mode='fake_mr_test', iter=0)

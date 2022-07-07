@@ -17,4 +17,7 @@ DA:
   constrastve_sampler: False
   batchsize_indicator: 1 # partition=7, bs=batchsize_indicator * 7
 
+Trainer:
+  save_dir: runs
+
 seed: 123
