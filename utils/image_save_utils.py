@@ -419,4 +419,4 @@ def save_images(segs: Tensor, names: Iterable[str], root: Union[str, Path], mode
 
             save_path.parent.mkdir(parents=True, exist_ok=True)
 
-            imsave(str(save_path), seg.cpu().numpy())
+            imsave(str(save_path), seg.detach().numpy())

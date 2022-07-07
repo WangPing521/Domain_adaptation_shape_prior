@@ -2,8 +2,8 @@ import torch
 from arch.unet import UNet
 from configure import ConfigManager
 from dataset.mmwhs_fake import mmWHS_T2S2T_Interface, mmWHS_T2S_Interface, mmWHS_S2T2S_Interface, mmWHS_S2T_Interface
-from dataset.prostate import PromiseInterface
-from dataset.mmwhs import mmWHSCTInterface
+from dataset.prostate import ProstateInterface
+from dataset.mmwhs import mmWHSMRInterface
 from dataset.prostate_fake import prostate_T2S2T_Interface, prostate_T2S_Interface, prostate_S2T2S_Interface, \
     prostate_S2T_Interface
 from scheduler.warmup_scheduler import GradualWarmupScheduler
@@ -28,14 +28,14 @@ for param_t in target_ema_model.parameters():
     param_t.detach_()
 
 if config['Data_input']['dataset'] == 'mmwhs':
-    handler1 = mmWHSCTInterface(**config["Data"])
+    handler1 = mmWHSMRInterface(seed = config["Data"]["seed"])
 
     handlerS2T = mmWHS_S2T_Interface(**config["Data"])
     handlerS2T2S = mmWHS_S2T2S_Interface(**config["Data"])
     handlerT2S = mmWHS_T2S_Interface(**config["Data"])
     handlerT2S2T = mmWHS_T2S2T_Interface(**config["Data"])
 elif config['Data_input']['dataset'] == 'prostate':
-    handler1 = PromiseInterface(**config["Data"])
+    handler1 = ProstateInterface(seed = config["Data"]["seed"])
 
     handlerS2T = prostate_S2T_Interface(**config["Data"])
     handlerS2T2S = prostate_S2T2S_Interface(**config["Data"])
@@ -60,14 +60,14 @@ with fix_all_seed_within_context(config['Data']['seed']):
         use_infinite_sampler=True,
         batchsize_indicator=config['DA']['batchsize_indicator']
     )
-    trainS2T_loader,  = handlerS2T.DataLoaders(
+    trainS2T_loader  = handlerS2T.DataLoaders(
         train_transform=None,
         val_transform=None,
         group_val=False,
         use_infinite_sampler=True,
         batchsize_indicator=config['DA']['batchsize_indicator']
     )
-    trainS2T2S_loader, = handlerS2T2S.DataLoaders(
+    trainS2T2S_loader = handlerS2T2S.DataLoaders(
         train_transform=None,
         val_transform=None,
         group_val=False,
@@ -81,7 +81,7 @@ with fix_all_seed_within_context(config['Data']['seed']):
         use_infinite_sampler=True,
         batchsize_indicator=config['DA']['batchsize_indicator']
     )
-    trainT2S2T_loader, = handlerT2S2T.DataLoaders(
+    trainT2S2T_loader = handlerT2S2T.DataLoaders(
         train_transform=None,
         val_transform=None,
         group_val=False,
