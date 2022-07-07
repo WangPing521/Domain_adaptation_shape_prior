@@ -3,12 +3,12 @@ Data_input:
   num_class: 5
 
 Optim:
-  lr: 0.00001
+  lr: 0.000001
   disc_lr: 0.000001
 
 Data:
   seed: 12
-  kfold: 1
+  kfold: 0
 
 DataLoader:
   batch_size: 5 # must be 1
@@ -19,8 +19,11 @@ DataLoader:
 
 weights:
   cyc_weight: 1
+  cyc_Tweight: 1
   seg_weight: 1
+  discSeg_weight: 0.5
   disc_weight: 0.1
+
 
 Trainer:
   device: cuda

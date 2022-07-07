@@ -8,44 +8,94 @@ source $CC_WRAPPER_PATH
 
 time=6
 account=def-chdesa
-save_dir=0626_SIFA
+save_dir=0707_SIFA
 declare -a StringArray=(
-#todo check lr  (note: maybe the batch size is too large for this method, leading to out of memory)
-#"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=2 weights.disc_weight=0.005 Trainer.save_dir=${save_dir}/501lr_505dlr_SIFA32_c1s2d205_seed1"
+# cyc_weight: 1 2
+# cyc_Tweight: 0.5  1
+# seg_weight: 1 2 4
+# discSeg_weight: 0.0001 0.0005 0.001 0.005 0.1
+# disc_weight: 0.0001 0.0005 0.001 0.005 0.1
+
 #todo check weights  (note: maybe the batch size is too large for this method, leading to out of memory)
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=1 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/SIFA32_c1s1d305_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=1 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/SIFA32_c1s1d201_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=1 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/SIFA32_c1s1d205_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=1 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/SIFA32_c1s1d101_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0001 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg301_dis301_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0001 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg301_dis305_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0001 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg301_dis201_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0001 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg301_dis205_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0001 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg301_dis101_seed1"
+
 #--
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=2 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/SIFA32_c1s2d305_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=2 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/SIFA32_c1s2d201_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=2 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/SIFA32_c1s2d205_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=2 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/SIFA32_c1s2d101_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0005 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg305_dis301_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0005 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg305_dis305_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0005 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg305_dis201_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0005 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg305_dis205_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0005 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg305_dis101_seed1"
+
 #--
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=4 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/SIFA32_c1s4d305_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=4 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/SIFA32_c1s4d201_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=4 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/SIFA32_c1s4d205_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.seg_weight=4 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/SIFA32_c1s4d101_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.001 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg201_dis301_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.001 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg201_dis305_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.001 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg201_dis201_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.001 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg201_dis205_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.001 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg201_dis101_seed1"
 
 # ---------
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=1 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/SIFA32_c2s1d305_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=1 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/SIFA32_c2s1d201_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=1 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/SIFA32_c2s1d205_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=1 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/SIFA32_c2s1d101_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.005 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg205_dis301_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.005 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg205_dis305_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.005 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg205_dis201_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.005 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg205_dis205_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.005 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg205_dis101_seed1"
+
 #--
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=2 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/SIFA32_c2s2d305_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=2 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/SIFA32_c2s2d201_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=2 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/SIFA32_c2s2d205_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=2 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/SIFA32_c2s2d101_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.01 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg101_dis301_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.01 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg101_dis305_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.01 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg101_dis201_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.01 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg101_dis205_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.01 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg101_dis101_seed1"
+
+######
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.0001 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg301_dis301_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.0001 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg301_dis305_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.0001 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg301_dis201_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.0001 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg301_dis205_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.0001 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg301_dis101_seed1"
+
 #--
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=4 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/SIFA32_c2s4d305_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=4 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/SIFA32_c2s4d201_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=4 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/SIFA32_c2s4d205_seed1"
-"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=2 weights.seg_weight=4 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/SIFA32_c2s4d101_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.0005 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg305_dis301_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.0005 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg305_dis305_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.0005 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg305_dis201_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.0005 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg305_dis205_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.0005 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg305_dis101_seed1"
 
+#--
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.001 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg201_dis301_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.001 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg201_dis305_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.001 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg201_dis201_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.001 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg201_dis205_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.001 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg201_dis101_seed1"
 
+# ---------
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.005 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg205_dis301_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.005 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg205_dis305_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.005 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg205_dis201_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.005 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg205_dis205_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.005 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg205_dis101_seed1"
 
+#--
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.01 weights.disc_weight=0.0001 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg101_dis301_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.01 weights.disc_weight=0.0005 Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg101_dis305_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.01 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg101_dis201_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.01 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg101_dis205_seed1"
+"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=2 weights.discSeg_weight=0.01 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg2_disSeg101_dis101_seed1"
+
+###cyc1_Tcyc05_seg4_ (25)
+
+###cyc1_Tcyc1_seg1_ (25)
+
+###cyc1_Tcyc1_seg2_ (25)
+
+###cyc1_Tcyc1_seg4_ (25)
+
+###cyc2_Tcyc05_seg1_ (25)   cyc2_Tcyc05_seg2_ (25)   cyc2_Tcyc05_seg4_ (25)
+###cyc2_Tcyc1_seg1_ (25)   cyc2_Tcyc1_seg2_ (25)   cyc2_Tcyc1_seg4_ (25)
 )
 
 for cmd in "${StringArray[@]}"; do

@@ -159,7 +159,9 @@ class SIFA_trainer:
         self.saver = CycleVisualSaver(save_dir=self._save_dir, folder_name=self.visual_folder)
 
         self.cycWeight = self._config['weights']['cyc_weight']
+        self.cycTWeight = self._config['weights']['cyc_Tweight']
         self.segWeight = self._config['weights']['seg_weight']
+        self.discSegWeight = self._config['weights']['discSeg_weight']
         self.discWeight = self._config['weights']['disc_weight']
 
         c = self._config['Data_input']['num_class']
@@ -241,7 +243,7 @@ class SIFA_trainer:
         # cycle consistency
         cycloss1 = torch.abs(S_img - fakeS2T2S_img).mean()  # # L1-norm loss
         cycloss2 = torch.abs(T_img - fakeT2S2T_img).mean()  # L1-norm loss
-        loss_cyc = cycloss1 + 0.5 * cycloss2  # loss_cyc
+        loss_cyc = cycloss1 + self.cycTWeight * cycloss2  # loss_cyc
 
         fakeS2T_img_0 = self.discriminator_t(fakeS2T_img).squeeze()
         loss_G_adv = self._bce_criterion(fakeS2T_img_0, real)  # loss_gan
@@ -276,9 +278,9 @@ class SIFA_trainer:
         fakeS2T2S_img = torch.tanh(self.decoder(e_list_f))
 
         fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img))
-        loss_cyc = torch.abs(S_img - fakeS2T2S_img).mean() + 0.5 * torch.abs(T_img - fakeT2S2T_img).mean()
+        loss_cyc = torch.abs(S_img - fakeS2T2S_img).mean() + self.cycTWeight * torch.abs(T_img - fakeT2S2T_img).mean()
 
-        loss_E = self.cycWeight * loss_cyc + self.discWeight * loss_E_advs + self.segWeight * loss_seg1 + self.discWeight * loss_E_advp
+        loss_E = self.cycWeight * loss_cyc + self.discWeight * loss_E_advs + self.segWeight * loss_seg1 + self.discSegWeight * loss_E_advp
         loss_E.backward()
         self.optimizer.step()
 
@@ -295,7 +297,7 @@ class SIFA_trainer:
             e_list_f_detach.append(fake_t_f.detach())
         fakeS2T2S_img = torch.tanh(self.decoder(e_list_f_detach))
         fakeT2S2T_img = torch.tanh(self.Generator(fakeT2S_img))
-        loss_cyc = 0.5 * torch.abs(T_img - fakeT2S2T_img).mean() + torch.abs(S_img - fakeS2T2S_img).mean()
+        loss_cyc = self.cycTWeight * torch.abs(T_img - fakeT2S2T_img).mean() + torch.abs(S_img - fakeS2T2S_img).mean()
         loss_U = self.discWeight * loss_E_advs + self.cycWeight * loss_cyc
         loss_U.backward()
         self.optimizer_U.step()
