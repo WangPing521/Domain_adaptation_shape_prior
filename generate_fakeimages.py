@@ -90,24 +90,24 @@ extractor.bind()
 #     save_images(S2T2S.squeeze(1), filenameS, root=config['Trainer']['save_dir'], mode='recover_mr_train', iter=0)
 
 
-for batch_id, data_tra_T in enumerate(T_tra_indicator):
-    image_tra_T, target_tra_T, filename_traT = (
-        data_tra_T[0][0],
-        data_tra_T[0][1],
-        data_tra_T[1]
-    )
-    with extractor.enable_register(True):
-        extractor.clear()
-        pred_T = model(image_tra_T).softmax(1)
-        e_list_T = list(extractor.features())
-    T2S = torch.tanh(decoder(e_list_T))
-
-    save_images(T2S.squeeze(1), filename_traT, root=config['Trainer']['save_dir'], mode='fake_mr_train', iter=0)
-
-
-    T2S2T = torch.tanh(model_S2T(T2S))
-
-    save_images(T2S2T.squeeze(1), filename_traT, root=config['Trainer']['save_dir'], mode='recover_ct_train', iter=0)
+# for batch_id, data_tra_T in enumerate(T_tra_indicator):
+#     image_tra_T, target_tra_T, filename_traT = (
+#         data_tra_T[0][0],
+#         data_tra_T[0][1],
+#         data_tra_T[1]
+#     )
+#     with extractor.enable_register(True):
+#         extractor.clear()
+#         pred_T = model(image_tra_T).softmax(1)
+#         e_list_T = list(extractor.features())
+#     T2S = torch.tanh(decoder(e_list_T))
+#
+#     save_images(T2S.squeeze(1), filename_traT, root=config['Trainer']['save_dir'], mode='fake_mr_train', iter=0)
+#
+#
+#     T2S2T = torch.tanh(model_S2T(T2S))
+#
+#     save_images(T2S2T.squeeze(1), filename_traT, root=config['Trainer']['save_dir'], mode='recover_ct_train', iter=0)
 
 
 
