@@ -2,7 +2,7 @@
 
 set  -e -u -o pipefail
 
-CC_WRAPPER_PATH="../CC_wrapper.sh"
+CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 

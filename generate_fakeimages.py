@@ -1,7 +1,7 @@
 from collections import OrderedDict
 import torch
 
-from ..arch.unet import UNet, decoderU
+from arch.unet import UNet, decoderU
 from arch.utils import FeatureExtractor
 from configure import ConfigManager
 from dataset import PromiseInterface, ProstateInterface
@@ -10,11 +10,11 @@ from utils.image_save_utils import save_images
 from utils.utils import fix_all_seed, fix_all_seed_within_context
 from utils import tqdm
 
-cmanager = ConfigManager("../configs/MTUDA_config.yaml", strict=True)
+cmanager = ConfigManager("configs/MTUDA_config.yaml", strict=True)
 config = cmanager.config
 fix_all_seed(config['seed'])
 
-weight = f'../runs/SIFA/last.pth'
+weight = f'runs/SIFA/last.pth'
 new_state_dict = OrderedDict()
 state_dict = torch.load(weight)
 
