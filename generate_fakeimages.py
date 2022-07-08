@@ -22,8 +22,7 @@ model_S2T = UNet(input_dim=1, num_classes=1)
 
 model = UNet(num_classes=config['Data_input']['num_class'], input_dim=1)
 decoder = decoderU(input_dim=256, out_dim=1)
-extractor = FeatureExtractor(model, feature_names=[f"Conv{str(f)}" for f in range(5, 0, -1)])
-extractor.bind()
+
 
 model_S2T.load_state_dict(state_dict.get('Generator'))
 model.load_state_dict(state_dict.get('model'))
@@ -68,6 +67,8 @@ T_test_indicator = tqdm(test_loader)
 model_S2T.eval()
 model.eval()
 decoder.eval()
+extractor = FeatureExtractor(model, feature_names=[f"Conv{str(f)}" for f in range(5, 0, -1)])
+extractor.bind()
 
 for batch_id, data_S in enumerate(S_indicator):
     imageS, targetS, filenameS = (
