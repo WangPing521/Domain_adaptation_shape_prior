@@ -1,6 +1,6 @@
 Data_input:
-  dataset: mmwhs
-  num_class: 5
+  dataset: prostate
+  num_class: 2
 
 Data:
   seed: 12

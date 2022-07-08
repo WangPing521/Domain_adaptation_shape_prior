@@ -10,11 +10,11 @@ from utils.image_save_utils import save_images
 from utils.utils import fix_all_seed, fix_all_seed_within_context
 from utils import tqdm
 
-cmanager = ConfigManager("configs/MTUDA_config.yaml", strict=True)
+cmanager = ConfigManager("../configs/MTUDA_config.yaml", strict=True)
 config = cmanager.config
 fix_all_seed(config['seed'])
 
-weight = f'runs/SIFA/last.pth'
+weight = f'../runs/SIFA/prostate/last.pth'
 new_state_dict = OrderedDict()
 state_dict = torch.load(weight)
 
@@ -70,48 +70,48 @@ decoder.eval()
 extractor = FeatureExtractor(model, feature_names=[f"Conv{str(f)}" for f in range(5, 0, -1)])
 extractor.bind()
 
-# for batch_id, data_S in enumerate(S_indicator):
-#     imageS, targetS, filenameS = (
-#         data_S[0][0],
-#         data_S[0][1],
-#         data_S[1]
-#     )
-#
-#     S2T = torch.tanh(model_S2T(imageS))
-#
-#     save_images(S2T.squeeze(1), filenameS, root=config['Trainer']['save_dir'], mode='fake_ct_train', iter=0)
-#
-#     with extractor.enable_register(True):
-#         extractor.clear()
-#         pred_T = model(S2T).softmax(1)
-#         e_list_T = list(extractor.features())
-#     S2T2S = torch.tanh(decoder(e_list_T))
-#
-#     save_images(S2T2S.squeeze(1), filenameS, root=config['Trainer']['save_dir'], mode='recover_mr_train', iter=0)
+for batch_id1, data_S in enumerate(S_indicator):
+    imageS, targetS, filenameS = (
+        data_S[0][0],
+        data_S[0][1],
+        data_S[1]
+    )
+
+    S2T = torch.tanh(model_S2T(imageS))
+
+    save_images(S2T.squeeze(1), filenameS, root=config['Trainer']['save_dir'], mode='fake_ct_train', iter=0)
+
+    with extractor.enable_register(True):
+        extractor.clear()
+        pred_T = model(S2T).softmax(1)
+        e_list_T = list(extractor.features())
+    S2T2S = torch.tanh(decoder(e_list_T))
+
+    save_images(S2T2S.squeeze(1), filenameS, root=config['Trainer']['save_dir'], mode='recover_mr_train', iter=0)
 
 
-# for batch_id, data_tra_T in enumerate(T_tra_indicator):
-#     image_tra_T, target_tra_T, filename_traT = (
-#         data_tra_T[0][0],
-#         data_tra_T[0][1],
-#         data_tra_T[1]
-#     )
-#     with extractor.enable_register(True):
-#         extractor.clear()
-#         pred_T = model(image_tra_T).softmax(1)
-#         e_list_T = list(extractor.features())
-#     T2S = torch.tanh(decoder(e_list_T))
-#
-#     save_images(T2S.squeeze(1), filename_traT, root=config['Trainer']['save_dir'], mode='fake_mr_train', iter=0)
-#
-#
-#     T2S2T = torch.tanh(model_S2T(T2S))
-#
-#     save_images(T2S2T.squeeze(1), filename_traT, root=config['Trainer']['save_dir'], mode='recover_ct_train', iter=0)
+for batch_id2, data_tra_T in enumerate(T_tra_indicator):
+    image_tra_T, target_tra_T, filename_traT = (
+        data_tra_T[0][0],
+        data_tra_T[0][1],
+        data_tra_T[1]
+    )
+    with extractor.enable_register(True):
+        extractor.clear()
+        pred_T = model(image_tra_T).softmax(1)
+        e_list_T = list(extractor.features())
+    T2S = torch.tanh(decoder(e_list_T))
+
+    save_images(T2S.squeeze(1), filename_traT, root=config['Trainer']['save_dir'], mode='fake_mr_train', iter=0)
+
+
+    T2S2T = torch.tanh(model_S2T(T2S))
+
+    save_images(T2S2T.squeeze(1), filename_traT, root=config['Trainer']['save_dir'], mode='recover_ct_train', iter=0)
 
 
 
-for batch_id, data_test_T in enumerate(T_test_indicator):
+for batch_id3, data_test_T in enumerate(T_test_indicator):
     image_test_T, target_test_T, filename_testT = (
         data_test_T[0][0],
         data_test_T[0][1],
