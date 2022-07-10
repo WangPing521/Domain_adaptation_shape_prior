@@ -2,7 +2,7 @@ import torch
 from arch.unet import UNet
 from configure import ConfigManager
 from dataset.mmwhs_fake import mmWHS_T2S2T_Interface, mmWHS_T2S_Interface, mmWHS_S2T2S_Interface, mmWHS_S2T_Interface, \
-    mmWHS_T2S_test_Interface
+    mmWHS_T2S_test_Interface, Source_like, Target_like
 from dataset.prostate import ProstateInterface
 from dataset.mmwhs import mmWHSMRInterface
 from dataset.prostate_fake import prostate_T2S2T_Interface, prostate_T2S_Interface, prostate_S2T2S_Interface, \
@@ -11,6 +11,7 @@ from scheduler.warmup_scheduler import GradualWarmupScheduler
 from trainers.MTUDA_trainer import MTUDA_trainer
 from utils.radam import RAdam
 from utils.utils import fix_all_seed_within_context, fix_all_seed
+from torch.utils.data import DataLoader
 
 cmanager = ConfigManager("configs/MTUDA_config.yaml", strict=True)
 config = cmanager.config
@@ -52,60 +53,30 @@ elif config['Data_input']['dataset'] == 'prostate':
 else:
     raise NotImplementedError(config['Data_input']['dataset'])
 
-handler1.compile_dataloader_params(**config["DataLoader"])
 
-handlerS2T.compile_dataloader_params(**config["DataLoader"])
-handlerT2S2T.compile_dataloader_params(**config["DataLoader"])
+S_dataset = handler1._create_datasets(train_transform=None, val_transform=None)
+S2T_dataset = handlerS2T._create_datasets(train_transform=None, val_transform=None)
+S2T2S_dataset = handlerS2T2S._create_datasets(train_transform=None, val_transform=None)
 
-handlerT2S.compile_dataloader_params(**config["DataLoader"])
-handlerS2T2S.compile_dataloader_params(**config["DataLoader"])
+T2S_dataset = handlerT2S._create_datasets(train_transform=None, val_transform=None)
+T2S2T_dataset = handlerT2S2T._create_datasets(train_transform=None, val_transform=None)
+
+dataset_S = Source_like(S_dataset, S2T_dataset, S2T2S_dataset)
+dataset_T = Target_like(T2S_dataset, T2S2T_dataset)
+
+source_like_loader = DataLoader(dataset_S, batch_size=10, shuffle=True)
+target_like_loader = DataLoader(dataset_T, batch_size=10, shuffle=True)
+
 handler_test.compile_dataloader_params(**config["DataLoader"])
 
 with fix_all_seed_within_context(config['Data']['seed']):
-    trainS_loader = handler1.DataLoaders(
-        train_transform=None,
-        val_transform=None,
-        group_val=False,
-        use_infinite_sampler=True,
-        batchsize_indicator=config['DA']['batchsize_indicator']
-    )
-    trainS2T_loader  = handlerS2T.DataLoaders(
-        train_transform=None,
-        val_transform=None,
-        group_val=False,
-        use_infinite_sampler=True,
-        batchsize_indicator=config['DA']['batchsize_indicator']
-    )
-
-    trainT2S2T_loader = handlerT2S2T.DataLoaders(
-        train_transform=None,
-        val_transform=None,
-        group_val=False,
-        use_infinite_sampler=True,
-        batchsize_indicator=config['DA']['batchsize_indicator']
-    )
-
-    trainS2T2S_loader = handlerS2T2S.DataLoaders(
-        train_transform=None,
-        val_transform=None,
-        group_val=False,
-        use_infinite_sampler=True,
-        batchsize_indicator=config['DA']['batchsize_indicator']
-    )
-    trainT2S_loader= handlerT2S.DataLoaders(
-        train_transform=None,
-        val_transform=None,
-        group_val=False,
-        use_infinite_sampler=True,
-        batchsize_indicator=config['DA']['batchsize_indicator']
-    )
-
     trainT2S_test_loader = handler_test.DataLoaders(
         train_transform=None,
         val_transform=None,
         group_val=False,
         use_infinite_sampler=True,
-        batchsize_indicator=config['DA']['batchsize_indicator']
+        batchsize_indicator=config['DA']['batchsize_indicator'],
+        constrastve=config['DA']['constrastve_sampler']
     )
 
 trainer = MTUDA_trainer(
@@ -114,13 +85,19 @@ trainer = MTUDA_trainer(
     target_ema_model=target_ema_model,
     optimizer=optimizer,
     scheduler=scheduler,
-    TrainS_loader=trainS_loader,
-    TrainS2T_loader=trainS2T_loader,
-    TrainS2T2S_loader=trainS2T2S_loader,
-    TrainT2S_loader=trainT2S_loader,
-    TrainT2S2T_loader=trainT2S2T_loader,
+    TrainS_loader=source_like_loader,
+    TrainT_loader= target_like_loader,
     test_loader=trainT2S_test_loader,
     config=config,
     **config['Trainer']
 )
 trainer.start_training()
+
+# import os
+#
+# file_fold = '.data/MMWHS_CYC/recover_ct_train/img'
+# def modifyfilename(fileroot):
+#     for file_png in os.listdir(fileroot):
+#         os.rename(f'{fileroot}/{file_png}', f'{fileroot}/{file_png[:17]}{file_png[19:]}')
+#
+# modifyfilename(file_fold)

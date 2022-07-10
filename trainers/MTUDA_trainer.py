@@ -6,11 +6,14 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
-from loss.entropy import SimplexCrossEntropyLoss
+from torch.nn import functional as F
+
+from loss.diceloss import DiceLoss
+from loss.entropy import SimplexCrossEntropyLoss, Entropy
 from meters import Storage, MeterInterface, AverageValueMeter, UniversalDice
 from meters.SummaryWriter import SummaryWriter
 from utils import tqdm
-from utils.general import path2Path
+from utils.general import path2Path, class2one_hot
 from utils.rising import RisingWrapper
 from utils.utils import set_environment, write_yaml
 
@@ -25,13 +28,19 @@ def meters_registerSIFA(c):
 
         # loss
         meters.register_meter(
-            "loss_G", AverageValueMeter()
+            "loss", AverageValueMeter()
+        )
+        meters.register_meter(
+            "sup_loss", AverageValueMeter()
+        )
+        meters.register_meter(
+            "consistensy_loss", AverageValueMeter()
+        )
+        meters.register_meter(
+            "structural_loss", AverageValueMeter()
         )
 
     with meters.focus_on("val"):
-        meters.register_meter(
-            f"valT_dice", UniversalDice(C=c, report_axis=report_axis)
-        )
         meters.register_meter(
             f"test_dice", UniversalDice(C=c, report_axis=report_axis)
         )
@@ -55,10 +64,7 @@ class MTUDA_trainer:
             optimizer,
             scheduler,
             TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
-            TrainS2T_loader: Union[DataLoader, _BaseDataLoaderIter],
-            TrainS2T2S_loader: Union[DataLoader, _BaseDataLoaderIter],
-            TrainT2S_loader: Union[DataLoader, _BaseDataLoaderIter],
-            TrainT2S2T_loader: Union[DataLoader, _BaseDataLoaderIter],
+            TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
             test_loader: Union[DataLoader, _BaseDataLoaderIter],
             max_epoch: int = 100,
             save_dir: str = "base",
@@ -84,21 +90,24 @@ class MTUDA_trainer:
         self.optimizer = optimizer
         self.scheduler = scheduler
         self._trainS_loader = TrainS_loader
-        self._trainS2T_loader = TrainS2T_loader
-        self._trainS2T2S_loader = TrainS2T2S_loader
-        self._trainT2S_loader = TrainT2S_loader
-        self._trainT2S2T_loader = TrainT2S2T_loader
+        self._trainT_loader = TrainT_loader
         self._test_loader = test_loader
         self._max_epoch = max_epoch
         self._num_batches = num_batches
         self.device = device
         self.checkpoint_path = checkpoint_path
         self.crossentropy = SimplexCrossEntropyLoss()
+        self.dice_loss = DiceLoss()
+        self.entropy = Entropy(reduction='none')
+
         self._storage = Storage(self._save_dir)
         self.writer = SummaryWriter(str(self._save_dir))
 
         c = self._config['Data_input']['num_class']
         self.meters = meters_registerSIFA(c)
+
+        self.consistency = self._config['weights']['consistency']
+        self.structual = self._config['weights']['structual']
 
         geometric_transform = rt.Compose(
             rt.BaseAffine(
@@ -124,31 +133,69 @@ class MTUDA_trainer:
         self.target_ema_model.to(device=device)
 
     def run_step(self, s_data, t_data, cur_batch: int):
+        C = int(self._config['Data_input']['num_class'])
+
         S_img, S_target, S_filename = (
-            s_data[0][0].to(self.device),
-            s_data[0][1].to(self.device),
-            s_data[1],
+            s_data[0][0][0].to(self.device),
+            s_data[0][0][1].to(self.device),
+            s_data[0][1],
         )
-        T_img, T_target, T_filename = (
-            t_data[0][0].to(self.device),
-            t_data[0][1].to(self.device),
-            t_data[1],
+        T2S_img, T2S_target, T2S_filename = (
+            t_data[0][0][0].to(self.device),
+            t_data[0][0][1].to(self.device),
+            t_data[0][1],
         )
-        S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
+        S2T2S_img, S2T2S_target, S2T2S_filename = (
+            s_data[2][0][0].to(self.device),
+            s_data[2][0][1].to(self.device),
+            s_data[2][1],
+        )
+
+        S2T_img, S2T_target, S2T_filename = (
+            s_data[1][0][0].to(self.device),
+            s_data[1][0][1].to(self.device),
+            s_data[1][1],
+        )
+        T2S2T_img, T2S2T_target, T2S2T_filename = (
+            t_data[1][0][0].to(self.device),
+            t_data[1][0][1].to(self.device),
+            t_data[1][1],
+        )
         S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
+        T_target = self._rising_augmentation(T2S_target.float(), mode="feature", seed=cur_batch)
 
-        T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
-        T_target = self._rising_augmentation(T_target.float(), mode="feature", seed=cur_batch)
+        S_img = self._rising_augmentation(S_img, mode="image", seed=cur_batch)
+        T2S_img = self._rising_augmentation(T2S_img, mode="image", seed=cur_batch)
+        S2T2S_img = self._rising_augmentation(S2T2S_img, mode="image", seed=cur_batch)
+        S2T_img = self._rising_augmentation(S2T_img, mode="image", seed=cur_batch)
+        T2S2T_img = self._rising_augmentation(T2S2T_img, mode="image", seed=cur_batch)
 
-        pred_T=0
-        loss=0
+        pred_s = self.model(S_img).softmax(1)
+
+        pred_t2s = self.source_ema_model(T2S_img).softmax(1)
+        pred_s2t2s = self.source_ema_model(S2T2S_img).softmax(1)
+
+        pred_s2t = self.target_ema_model(S2T_img).softmax(1)
+        pred_t2s2t = self.target_ema_model(T2S2T_img).softmax(1)
+
+        # model loss
+        onehot_targetS = class2one_hot(S_target.squeeze(1), C)
+        sup_loss = 0.5 * (self.crossentropy(pred_s, onehot_targetS) + self.dice_loss(pred_s, onehot_targetS))
+        # semantic
+        consistency_loss = F.mse_loss(pred_s2t2s, pred_s) + F.mse_loss(pred_s2t, pred_s) + F.mse_loss(pred_t2s2t, pred_t2s)
+
+        #structural
+        structual_loss = F.mse_loss(self.entropy(pred_s2t), self.entropy(pred_s)) + \
+                         F.mse_loss(self.entropy(pred_t2s2t), self.entropy(pred_t2s)) + \
+                         F.mse_loss(self.entropy(pred_s2t2s), self.entropy(pred_s))
+
         self.meters[f"trainT_dice"].add(
-            pred_T.max(1)[1],
-            T_target.squeeze(1),
-            group_name=["_".join(x.split("_")[:-1]) for x in T_filename],
+            pred_s.max(1)[1],
+            S_target.squeeze(1),
+            group_name=["_".join(x.split("_")[:-1]) for x in S_filename],
         )
 
-        return loss
+        return sup_loss, consistency_loss, structual_loss
 
     def train_loop(
             self,
@@ -162,13 +209,31 @@ class MTUDA_trainer:
         self.source_ema_model.train()
         self.target_ema_model.train()
 
+        s_co = min(1 - 1 / (epoch + 1), 0.999)
+
         batch_indicator = tqdm(range(self._num_batches))
         batch_indicator.set_description(f"Training Epoch {epoch:03d}")
         report_dict = None, None
 
         for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
-            loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
+
+            sup_loss, consistency_loss, structual_loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
+
+            self.optimizer.zero_grad()
+            loss = sup_loss + self.consistency * consistency_loss + self.structual * structual_loss
+            loss.backward()
+            self.optimizer.step()
+
+            for ema_param, param in zip(self.source_ema_model.parameters(), self.model.parameters()):
+                ema_param.data.mul_(s_co).add_(1 - s_co, param.data)
+
+            for ema_param, param in zip(self.target_ema_model.parameters(), self.model.parameters()):
+                ema_param.data.mul_(s_co).add_(1 - s_co, param.data)
+
             self.meters['loss'].add(loss.item())
+            self.meters['sup_loss'].add(sup_loss.item())
+            self.meters['consistency_loss'].add(sup_loss.item())
+            self.meters['structual_loss'].add(sup_loss.item())
 
             report_dict = self.meters.statistics()
             batch_indicator.set_postfix_statics(report_dict, cache_time=20)
@@ -179,36 +244,15 @@ class MTUDA_trainer:
 
     def eval_loop(
             self,
-            valT_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             test_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
             epoch: int = 0,
             *args,
             **kwargs,
     ) -> Tuple[Any, Any]:
         self.model.eval()
-        valT_indicator = tqdm(valT_loader)
-        valT_indicator.set_description(f"ValT_Epoch {epoch:03d}")
         test_indicator = tqdm(test_loader)
         test_indicator.set_description(f"test_Epoch {epoch:03d}")
         report_dict = {}
-
-        for batch_idT, data_T in enumerate(valT_indicator):
-            imageT, targetT, filenameT = (
-                data_T[0][0].to(self.device),
-                data_T[0][1].to(self.device),
-                data_T[1]
-            )
-
-            preds_T = self.model(imageT).softmax(1)
-            self.meters[f"valT_dice"].add(
-                preds_T.max(1)[1],
-                targetT.squeeze(1),
-                group_name=["_".join(x.split("_")[:-1]) for x in filenameT])
-
-            report_dict = self.meters.statistics()
-            valT_indicator.set_postfix_statics(report_dict, cache_time=20)
-
-        valT_indicator.close()
 
         for batch_id_test, data_test in enumerate(test_indicator):
             image_test, target_test, filename_test = (
@@ -227,7 +271,7 @@ class MTUDA_trainer:
         test_indicator.close()
 
         assert report_dict is not None
-        return dict(report_dict), self.meters["valT_dice"].summary()["DSC_mean"]
+        return dict(report_dict), self.meters["test_dice"].summary()["DSC_mean"]
 
     def schedulerStep(self):
         self.scheduler.step()
@@ -247,7 +291,7 @@ class MTUDA_trainer:
                 )
 
             with self.meters.focus_on("val"), torch.no_grad():
-                val_metric, _ = self.eval_loop(self._valT_loader, self._test_loader, self.cur_epoch)
+                val_metric, _ = self.eval_loop(self._test_loader, self.cur_epoch)
 
             with self._storage:
                 self._storage.add_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)

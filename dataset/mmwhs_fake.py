@@ -1,21 +1,10 @@
-import random
-import re
-from copy import deepcopy as dcp
-from itertools import repeat
 from pathlib import Path
 from typing import Tuple, Type, Union, Dict, List, Callable, Pattern, Match
-
-import numpy as np
-from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader, Sampler
+from torch.utils.data import DataLoader, Sampler, Dataset
 
 from augment.synchronize import SequentialWrapper
 from dataset import MedicalDatasetInterface, SubMedicalDatasetBasedOnIndex
 from utils import DATA_PATH
-from utils.general import map_, id_
-from utils.rearr import ContrastBatchSampler
-from utils.sampler import InfiniteRandomSampler
-from utils.utils import fix_all_seed_within_context
 from ._ioutils import downloading
 from .base import MedicalImageSegmentationDataset
 
@@ -254,3 +243,33 @@ class mmWHS_T2S_test_Interface(MedicalDatasetInterface):
             train_set.set_transform(train_transform)
 
         return train_set
+
+
+class Source_like(Dataset):
+    def __init__(self, datasetA, datasetB, datasetC):
+        self.datasetA = datasetA
+        self.datasetB = datasetB
+        self.datasetC = datasetC
+
+    def __getitem__(self, index):
+        xA = self.datasetA[index]
+        xB = self.datasetB[index]
+        xC = self.datasetC[index]
+        return xA, xB, xC
+
+    def __len__(self):
+        return len(self.datasetA)
+
+class Target_like(Dataset):
+    def __init__(self, datasetA, datasetB):
+        self.datasetA = datasetA
+        self.datasetB = datasetB
+
+
+    def __getitem__(self, index):
+        xA = self.datasetA[index]
+        xB = self.datasetB[index]
+        return xA, xB
+
+    def __len__(self):
+        return len(self.datasetA)

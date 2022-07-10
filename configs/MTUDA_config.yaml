@@ -12,14 +12,12 @@ DataLoader:
   batch_size: 5 # must be 1
   val_batch_size: 40
   shuffle: False # must be false
-  num_workers: 8
+  num_workers: 0
   pin_memory: False
 
 weights:
-  seg_weight: 1
-  discSeg_weight: 0.5
-  disc_weight: 0.1
-
+  consistency: 1
+  structual: 1
 
 Trainer:
   device: cuda
