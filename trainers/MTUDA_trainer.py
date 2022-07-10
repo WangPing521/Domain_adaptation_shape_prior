@@ -37,7 +37,7 @@ def meters_registerSIFA(c):
             "consistency_loss", AverageValueMeter()
         )
         meters.register_meter(
-            "structural_loss", AverageValueMeter()
+            "structual_loss", AverageValueMeter()
         )
 
     with meters.focus_on("val"):
