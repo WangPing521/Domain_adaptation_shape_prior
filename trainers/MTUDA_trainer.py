@@ -6,7 +6,6 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
-from arch.utils import FeatureExtractor
 from loss.entropy import SimplexCrossEntropyLoss
 from meters import Storage, MeterInterface, AverageValueMeter, UniversalDice
 from meters.SummaryWriter import SummaryWriter
@@ -56,8 +55,10 @@ class MTUDA_trainer:
             optimizer,
             scheduler,
             TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
-            TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
-            valT_loader: Union[DataLoader, _BaseDataLoaderIter],
+            TrainS2T_loader: Union[DataLoader, _BaseDataLoaderIter],
+            TrainS2T2S_loader: Union[DataLoader, _BaseDataLoaderIter],
+            TrainT2S_loader: Union[DataLoader, _BaseDataLoaderIter],
+            TrainT2S2T_loader: Union[DataLoader, _BaseDataLoaderIter],
             test_loader: Union[DataLoader, _BaseDataLoaderIter],
             max_epoch: int = 100,
             save_dir: str = "base",
@@ -83,8 +84,10 @@ class MTUDA_trainer:
         self.optimizer = optimizer
         self.scheduler = scheduler
         self._trainS_loader = TrainS_loader
-        self._trainT_loader = TrainT_loader
-        self._valT_loader = valT_loader
+        self._trainS2T_loader = TrainS2T_loader
+        self._trainS2T2S_loader = TrainS2T2S_loader
+        self._trainT2S_loader = TrainT2S_loader
+        self._trainT2S2T_loader = TrainT2S2T_loader
         self._test_loader = test_loader
         self._max_epoch = max_epoch
         self._num_batches = num_batches

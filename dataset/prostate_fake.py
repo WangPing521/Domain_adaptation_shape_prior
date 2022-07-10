@@ -1,14 +1,8 @@
-import random
 from pathlib import Path
-
 from typing import List, Tuple
-
-from sklearn.model_selection import train_test_split
-
 from augment.synchronize import SequentialWrapper
-from dataset.mmwhs import MedicalDatasetInterface, SubMedicalDatasetBasedOnIndex
+from dataset.mmwhs import MedicalDatasetInterface
 from utils import DATA_PATH
-from utils.utils import fix_all_seed_within_context
 from ._ioutils import downloading
 from .base import MedicalImageSegmentationDataset
 

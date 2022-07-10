@@ -201,7 +201,8 @@ class DatasetBase(Dataset):
         self._transforms = transforms
 
 class MedicalImageSegmentationDataset(Dataset):
-    dataset_modes = ["ct_train", "ct_test","mr_train", 'train', 'val', 'test']
+    dataset_modes = ["ct_train", "ct_test","mr_train", 'train', 'val', 'test', 'fake_ct_train', 'fake_mr_train', 'fake_mr_test', 'recover_ct_train',
+                     'recover_mr_train']
     allow_extension = [".jpg", ".png"]
 
     def __init__(

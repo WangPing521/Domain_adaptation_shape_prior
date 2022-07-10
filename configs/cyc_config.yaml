@@ -1,0 +1,23 @@
+Data_input:
+  dataset: prostate
+  num_class: 2
+
+Data:
+  seed: 12
+  kfold: 0
+
+DataLoader:
+  batch_size: 20 # must be 1
+  val_batch_size: 20
+  shuffle: False # must be false
+  num_workers: 8
+  pin_memory: False
+
+DA:
+  constrastve_sampler: False
+  batchsize_indicator: 1 # partition=7, bs=batchsize_indicator * 7
+
+Trainer:
+  save_dir: runs
+
+seed: 123
