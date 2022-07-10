@@ -34,7 +34,7 @@ def meters_registerSIFA(c):
             "sup_loss", AverageValueMeter()
         )
         meters.register_meter(
-            "consistensy_loss", AverageValueMeter()
+            "consistency_loss", AverageValueMeter()
         )
         meters.register_meter(
             "structural_loss", AverageValueMeter()
