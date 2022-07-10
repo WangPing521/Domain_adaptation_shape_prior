@@ -10,11 +10,11 @@ from utils.image_save_utils import save_images
 from utils.utils import fix_all_seed, fix_all_seed_within_context
 from utils import tqdm
 
-cmanager = ConfigManager("../configs/cyc_config.yaml", strict=True)
+cmanager = ConfigManager("configs/cyc_config.yaml", strict=True)
 config = cmanager.config
 fix_all_seed(config['seed'])
 
-weight = f'../runs/SIFA/prostate/last.pth'
+weight = f'runs/SIFA/prostate/last.pth'
 new_state_dict = OrderedDict()
 state_dict = torch.load(weight)
 
