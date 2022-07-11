@@ -493,18 +493,18 @@ class MTUDA_prostate_trainer(MTUDA_trainer):
             self.meters.reset()
             with self.meters.focus_on("train"):
                 self.meters['lr'].add(self.optimizer.param_groups.__getitem__(0).get('lr'))
-                # train_metrics = self.train_loop(
-                #     trainS_loader=self._trainS_loader,
-                #     trainT_loader=self._trainT_loader,
-                #     epoch=self.cur_epoch
-                # )
+                train_metrics = self.train_loop(
+                    trainS_loader=self._trainS_loader,
+                    trainT_loader=self._trainT_loader,
+                    epoch=self.cur_epoch
+                )
 
             with self.meters.focus_on("val"), torch.no_grad():
                 val_metric, _ = self.eval_loop(self._val_loader, self._test_loader, self.cur_epoch)
 
-            # with self._storage:
-                # self._storage.add_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)
-                # self.writer.add_scalars_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)
+            with self._storage:
+                self._storage.add_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)
+                self.writer.add_scalars_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)
 
             self.schedulerStep()
             self.save_checkpoint(self.state_dict(), self.cur_epoch)
