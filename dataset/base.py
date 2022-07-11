@@ -202,7 +202,8 @@ class DatasetBase(Dataset):
 
 class MedicalImageSegmentationDataset(Dataset):
     dataset_modes = ["ct_train", "ct_test","mr_train", 'train', 'val', 'test', 'fake_ct_train', 'fake_mr_train', 'fake_mr_test', 'recover_ct_train',
-                     'recover_mr_train']
+                     'recover_mr_train','fake_promise_train', 'fake_prostate_train', 'fake_prostate_val', 'fake_prostate_test',
+                     'recover_promise_train', 'recover_prostate_train']
     allow_extension = [".jpg", ".png"]
 
     def __init__(

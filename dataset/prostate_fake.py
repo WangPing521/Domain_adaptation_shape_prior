@@ -1,22 +1,22 @@
 from pathlib import Path
 from typing import List, Tuple
+
 from augment.synchronize import SequentialWrapper
 from dataset.mmwhs import MedicalDatasetInterface
 from utils import DATA_PATH
 from ._ioutils import downloading
 from .base import MedicalImageSegmentationDataset
 
-
-class PromiseDataset(MedicalImageSegmentationDataset):
+class prostate_S2T_dataset(MedicalImageSegmentationDataset):
     download_link = "https://drive.google.com/uc?id=1hZISuvq2OGk6MZDhZ-p5ebV0q0IXAlaf"
-    zip_name = "Promise2012.zip"
-    folder_name = "Promise2012"
+    zip_name = "prostate_CYC.zip"
+    folder_name = "prostate_CYC"
     partition_num = 7
 
     def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None, patient_pattern: str) -> None:
         path = Path(root_dir, self.folder_name)
         downloading(path, self.folder_name, self.download_link, root_dir, self.zip_name)
-        super().__init__(root_dir=str(path), mode=mode, sub_folders=sub_folders,
+        super().__init__(root_dir=str(path),mode="fake_promise_" + mode, sub_folders=sub_folders,
                          transforms=transforms, patient_pattern=patient_pattern)
 
 class prostate_S2T_Interface(MedicalDatasetInterface):
@@ -27,7 +27,7 @@ class prostate_S2T_Interface(MedicalDatasetInterface):
             verbose: bool = True,
     ) -> None:
         super().__init__(
-            PromiseDataset,
+            prostate_S2T_dataset,
             root_dir,
             seed,
             verbose,
@@ -39,7 +39,51 @@ class prostate_S2T_Interface(MedicalDatasetInterface):
             val_transform: SequentialWrapper = None,
     ) -> Tuple[
         MedicalImageSegmentationDataset,
-        MedicalImageSegmentationDataset,
+    ]:
+        train_set = self.DataClass(
+            root_dir=self.root_dir,
+            mode="train",
+            sub_folders=["img", "gt"],
+            transforms=None,
+            patient_pattern=r"prostate_\d+"
+        )
+
+        if train_transform:
+            train_set.set_transform(train_transform)
+
+        return train_set
+
+class Prostate_T2S2T_Dataset(MedicalImageSegmentationDataset):
+    folder_name = "prostate_CYC"
+    zip_name = "prostate_CYC.zip"
+    download_link = "https://drive.google.com/uc?id=1MngFjFmbO8lBHC0G6sbW7_kjjijQqSsu"
+    partition_num = 7
+
+    def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None, patient_pattern: str) -> None:
+        path = Path(root_dir, self.folder_name)
+        downloading(path, self.folder_name, self.download_link, root_dir, self.zip_name)
+        super().__init__(root_dir=str(path), mode="recover_promise_" + mode, sub_folders=sub_folders,
+                         transforms=transforms, patient_pattern=patient_pattern)
+
+class prostate_T2S2T_Interface(MedicalDatasetInterface):
+    def __init__(
+            self,
+            root_dir=DATA_PATH,
+            seed: int = 0,
+            verbose: bool = True,
+    ) -> None:
+        super().__init__(
+            Prostate_T2S2T_Dataset,
+            root_dir,
+            seed,
+            verbose,
+        )
+
+    def _create_datasets(
+            self,
+            train_transform: SequentialWrapper = None,
+            val_transform: SequentialWrapper = None,
+    ) -> Tuple[
         MedicalImageSegmentationDataset,
     ]:
         train_set = self.DataClass(
@@ -49,16 +93,48 @@ class prostate_S2T_Interface(MedicalDatasetInterface):
             transforms=None,
             patient_pattern=r"Case\d+"
         )
-        val_set = self.DataClass(
-            root_dir=self.root_dir,
-            mode="val",
-            sub_folders=["img", "gt"],
-            transforms=None,
-            patient_pattern=r"Case\d+"
+
+        if train_transform:
+            train_set.set_transform(train_transform)
+
+        return train_set
+
+class Prostate_T2S_Dataset(MedicalImageSegmentationDataset):
+    folder_name = "prostate_CYC"
+    zip_name = "prostate_CYC.zip"
+    download_link = "https://drive.google.com/uc?id=1MngFjFmbO8lBHC0G6sbW7_kjjijQqSsu"
+    partition_num = 7
+
+    def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None, patient_pattern: str) -> None:
+        path = Path(root_dir, self.folder_name)
+        downloading(path, self.folder_name, self.download_link, root_dir, self.zip_name)
+        super().__init__(root_dir=str(path), mode="fake_prostate_" + mode, sub_folders=sub_folders,
+                         transforms=transforms, patient_pattern=patient_pattern)
+
+class prostate_T2S_Interface(MedicalDatasetInterface):
+    def __init__(
+            self,
+            root_dir=DATA_PATH,
+            seed: int = 0,
+            verbose: bool = True,
+    ) -> None:
+        super().__init__(
+            Prostate_T2S_Dataset,
+            root_dir,
+            seed,
+            verbose,
         )
-        test_set = self.DataClass(
+
+    def _create_datasets(
+            self,
+            train_transform: SequentialWrapper = None,
+            val_transform: SequentialWrapper = None,
+    ) -> Tuple[
+        MedicalImageSegmentationDataset,
+    ]:
+        train_set = self.DataClass(
             root_dir=self.root_dir,
-            mode="test",
+            mode="train",
             sub_folders=["img", "gt"],
             transforms=None,
             patient_pattern=r"Case\d+"
@@ -66,22 +142,19 @@ class prostate_S2T_Interface(MedicalDatasetInterface):
 
         if train_transform:
             train_set.set_transform(train_transform)
-        if val_transform:
-            val_set.set_transform(val_transform)
-            test_set.set_transform(val_transform)
-        return train_set, val_set, test_set
 
+        return train_set
 
-class ProstateDataset(MedicalImageSegmentationDataset):
-    folder_name = "ProstateDK"
-    zip_name = "ProstateDK.zip"
+class prostate_S2T2S_dataset(MedicalImageSegmentationDataset):
+    folder_name = "prostate_CYC"
+    zip_name = "prostate_CYC.zip"
     download_link = "https://drive.google.com/uc?id=1MngFjFmbO8lBHC0G6sbW7_kjjijQqSsu"
     partition_num = 7
 
     def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None, patient_pattern: str) -> None:
         path = Path(root_dir, self.folder_name)
         downloading(path, self.folder_name, self.download_link, root_dir, self.zip_name)
-        super().__init__(root_dir=str(path), mode=mode, sub_folders=sub_folders,
+        super().__init__(root_dir=str(path), mode="recover_prostate_" + mode, sub_folders=sub_folders,
                          transforms=transforms, patient_pattern=patient_pattern)
 
 class prostate_S2T2S_Interface(MedicalDatasetInterface):
@@ -92,7 +165,7 @@ class prostate_S2T2S_Interface(MedicalDatasetInterface):
             verbose: bool = True,
     ) -> None:
         super().__init__(
-            ProstateDataset,
+            prostate_S2T2S_dataset,
             root_dir,
             seed,
             verbose,
@@ -118,7 +191,19 @@ class prostate_S2T2S_Interface(MedicalDatasetInterface):
 
         return train_set
 
-class prostate_T2S_Interface(MedicalDatasetInterface):
+class mmWHS_T2S_val(MedicalImageSegmentationDataset):
+    folder_name = "prostate_CYC"
+    zip_name = "prostate_CYC.zip"
+    download_link = "https://drive.google.com/uc?id=1MngFjFmbO8lBHC0G6sbW7_kjjijQqSsu"
+    partition_num = 7
+
+    def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None, patient_pattern: str) -> None:
+        path = Path(root_dir, self.folder_name)
+        downloading(path, self.folder_name, self.download_link, root_dir, self.zip_name)
+        super().__init__(root_dir=str(path), mode="fake_prostate_" + mode, sub_folders=sub_folders,
+                         transforms=transforms, patient_pattern=patient_pattern)
+
+class mmWHS_T2S_val_Interface(MedicalDatasetInterface):
     def __init__(
             self,
             root_dir=DATA_PATH,
@@ -126,7 +211,7 @@ class prostate_T2S_Interface(MedicalDatasetInterface):
             verbose: bool = True,
     ) -> None:
         super().__init__(
-            ProstateDataset,
+            mmWHS_T2S_val,
             root_dir,
             seed,
             verbose,
@@ -141,10 +226,10 @@ class prostate_T2S_Interface(MedicalDatasetInterface):
     ]:
         train_set = self.DataClass(
             root_dir=self.root_dir,
-            mode="train",
+            mode="val",
             sub_folders=["img", "gt"],
             transforms=None,
-            patient_pattern=r"prostate_\d+"
+            patient_pattern=r"Case\d+"
         )
 
         if train_transform:
@@ -152,7 +237,19 @@ class prostate_T2S_Interface(MedicalDatasetInterface):
 
         return train_set
 
-class prostate_T2S2T_Interface(MedicalDatasetInterface):
+class mmWHS_T2S_test(MedicalImageSegmentationDataset):
+    folder_name = "prostate_CYC"
+    zip_name = "prostate_CYC.zip"
+    download_link = "https://drive.google.com/uc?id=1MngFjFmbO8lBHC0G6sbW7_kjjijQqSsu"
+    partition_num = 7
+
+    def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None, patient_pattern: str) -> None:
+        path = Path(root_dir, self.folder_name)
+        downloading(path, self.folder_name, self.download_link, root_dir, self.zip_name)
+        super().__init__(root_dir=str(path), mode="fake_prostate_" + mode, sub_folders=sub_folders,
+                         transforms=transforms, patient_pattern=patient_pattern)
+
+class mmWHS_T2S_test_Interface(MedicalDatasetInterface):
     def __init__(
             self,
             root_dir=DATA_PATH,
@@ -160,7 +257,7 @@ class prostate_T2S2T_Interface(MedicalDatasetInterface):
             verbose: bool = True,
     ) -> None:
         super().__init__(
-            ProstateDataset,
+            mmWHS_T2S_test,
             root_dir,
             seed,
             verbose,
@@ -175,13 +272,14 @@ class prostate_T2S2T_Interface(MedicalDatasetInterface):
     ]:
         train_set = self.DataClass(
             root_dir=self.root_dir,
-            mode="train",
+            mode="test",
             sub_folders=["img", "gt"],
             transforms=None,
-            patient_pattern=r"prostate_\d+"
+            patient_pattern=r"Case\d+"
         )
 
         if train_transform:
             train_set.set_transform(train_transform)
 
         return train_set
+

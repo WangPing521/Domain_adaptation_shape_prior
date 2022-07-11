@@ -6,9 +6,9 @@ from dataset.mmwhs_fake import mmWHS_T2S2T_Interface, mmWHS_T2S_Interface, mmWHS
 from dataset.prostate import ProstateInterface
 from dataset.mmwhs import mmWHSMRInterface
 from dataset.prostate_fake import prostate_T2S2T_Interface, prostate_T2S_Interface, prostate_S2T2S_Interface, \
-    prostate_S2T_Interface
+    prostate_S2T_Interface, mmWHS_T2S_val_Interface
 from scheduler.warmup_scheduler import GradualWarmupScheduler
-from trainers.MTUDA_trainer import MTUDA_trainer
+from trainers.MTUDA_trainer import MTUDA_trainer, MTUDA_prostate_trainer
 from utils.radam import RAdam
 from utils.utils import fix_all_seed_within_context, fix_all_seed
 from torch.utils.data import DataLoader
@@ -43,12 +43,15 @@ if config['Data_input']['dataset'] == 'mmwhs':
 elif config['Data_input']['dataset'] == 'prostate':
     handler1 = ProstateInterface(seed = config["Data"]["seed"]) # S
 
-    handlerS2T = prostate_S2T_Interface(**config["Data"])
-    handlerT2S2T = prostate_T2S2T_Interface(**config["Data"])
+    handlerS2T = prostate_S2T_Interface(seed = config["Data"]["seed"])
+    handlerT2S2T = prostate_T2S2T_Interface(seed = config["Data"]["seed"])
 
-    handlerT2S = prostate_T2S_Interface(**config["Data"])
-    handlerS2T2S = prostate_S2T2S_Interface(**config["Data"])
-    handler_test = mmWHS_T2S_test_Interface(**config["Data"]) # T2S_test
+    handlerT2S = prostate_T2S_Interface(seed = config["Data"]["seed"])
+    handlerS2T2S = prostate_S2T2S_Interface(seed = config["Data"]["seed"])
+
+    handler_val = mmWHS_T2S_val_Interface(seed = config["Data"]["seed"]) # T2S_val
+
+    handler_test = mmWHS_T2S_test_Interface(seed = config["Data"]["seed"]) # T2S_test
 
 else:
     raise NotImplementedError(config['Data_input']['dataset'])
@@ -68,7 +71,6 @@ source_like_loader = DataLoader(dataset_S, batch_size=10, shuffle=True)
 target_like_loader = DataLoader(dataset_T, batch_size=10, shuffle=True)
 
 handler_test.compile_dataloader_params(**config["DataLoader"])
-
 with fix_all_seed_within_context(config['Data']['seed']):
     trainT2S_test_loader = handler_test.DataLoaders(
         train_transform=None,
@@ -79,25 +81,52 @@ with fix_all_seed_within_context(config['Data']['seed']):
         constrastve=config['DA']['constrastve_sampler']
     )
 
-trainer = MTUDA_trainer(
-    model=model,
-    source_ema_model=source_ema_model,
-    target_ema_model=target_ema_model,
-    optimizer=optimizer,
-    scheduler=scheduler,
-    TrainS_loader=source_like_loader,
-    TrainT_loader= target_like_loader,
-    test_loader=trainT2S_test_loader,
-    config=config,
-    **config['Trainer']
-)
+if config['Data_input']['dataset'] == 'prostate':
+    handler_val.compile_dataloader_params(**config["DataLoader"])
+    with fix_all_seed_within_context(config['Data']['seed']):
+        trainT2S_val_loader = handler_val.DataLoaders(
+            train_transform=None,
+            val_transform=None,
+            group_val=False,
+            use_infinite_sampler=True,
+            batchsize_indicator=config['DA']['batchsize_indicator'],
+            constrastve=config['DA']['constrastve_sampler']
+        )
+
+if config['Data_input']['dataset'] == 'prostate':
+    trainer = MTUDA_prostate_trainer(
+        model=model,
+        source_ema_model=source_ema_model,
+        target_ema_model=target_ema_model,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        TrainS_loader=source_like_loader,
+        TrainT_loader=target_like_loader,
+        val_loader=trainT2S_val_loader,
+        test_loader=trainT2S_test_loader,
+        config=config,
+        **config['Trainer']
+    )
+else:
+    trainer = MTUDA_trainer(
+        model=model,
+        source_ema_model=source_ema_model,
+        target_ema_model=target_ema_model,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        TrainS_loader=source_like_loader,
+        TrainT_loader= target_like_loader,
+        test_loader=trainT2S_test_loader,
+        config=config,
+        **config['Trainer']
+    )
 trainer.start_training()
 
 # import os
 #
-# file_fold = '.data/MMWHS_CYC/recover_ct_train/img'
+# file_fold = '.data/prostate_CYC/recover_promise_train/img'
 # def modifyfilename(fileroot):
 #     for file_png in os.listdir(fileroot):
-#         os.rename(f'{fileroot}/{file_png}', f'{fileroot}/{file_png[:17]}{file_png[19:]}')
+#         os.rename(f'{fileroot}/{file_png}', f'{fileroot}/{file_png[:9]}{file_png[11:]}')
 #
 # modifyfilename(file_fold)

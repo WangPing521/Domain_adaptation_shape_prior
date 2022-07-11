@@ -44,6 +44,9 @@ def meters_registerSIFA(c):
         meters.register_meter(
             f"test_dice", UniversalDice(C=c, report_axis=report_axis)
         )
+        meters.register_meter(
+            f"val_dice", UniversalDice(C=c, report_axis=report_axis)
+        )
 
     return meters
 
@@ -418,4 +421,90 @@ class MTUDA_trainer:
         shutil.move(str(self._save_dir), str(save_dir))
         shutil.rmtree(str(self._save_dir), ignore_errors=True)
 
+class MTUDA_prostate_trainer(MTUDA_trainer):
+    def __init__(self, model: nn.Module,
+                 source_ema_model: nn.Module, target_ema_model: nn.Module, optimizer, scheduler,
+                 TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
+                 TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
+                 val_loader: Union[DataLoader, _BaseDataLoaderIter],
+                 test_loader: Union[DataLoader, _BaseDataLoaderIter], *args, **kwargs) -> None:
+        super().__init__(model, source_ema_model, target_ema_model, optimizer, scheduler, TrainS_loader, TrainT_loader,
+                         test_loader, *args, **kwargs)
+        self._val_loader = val_loader
 
+    def eval_loop(
+            self,
+            val_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
+            test_loader: Union[DataLoader, _BaseDataLoaderIter] = None,
+            epoch: int = 0,
+            *args,
+            **kwargs,
+    ) -> Tuple[Any, Any]:
+        self.model.eval()
+        val_indicator = tqdm(val_loader)
+        val_indicator.set_description(f"test_Epoch {epoch:03d}")
+
+        test_indicator = tqdm(test_loader)
+        test_indicator.set_description(f"test_Epoch {epoch:03d}")
+        report_dict = {}
+
+        for batch_id_val, data_val in enumerate(val_indicator):
+            image_val, target_val, filename_val = (
+                data_val[0][0].to(self.device),
+                data_val[0][1].to(self.device),
+                data_val[1]
+            )
+            preds_val = self.model(image_val).softmax(1)
+            self.meters[f"val_dice"].add(
+                preds_val.max(1)[1],
+                target_val.squeeze(1),
+                group_name=["_".join(x.split("_")[:-1]) for x in filename_val])
+
+            report_dict = self.meters.statistics()
+            val_indicator.set_postfix_statics(report_dict, cache_time=20)
+        val_indicator.close()
+
+        for batch_id_test, data_test in enumerate(test_indicator):
+            image_test, target_test, filename_test = (
+                data_test[0][0].to(self.device),
+                data_test[0][1].to(self.device),
+                data_test[1]
+            )
+            preds_test = self.model(image_test).softmax(1)
+            self.meters[f"test_dice"].add(
+                preds_test.max(1)[1],
+                target_test.squeeze(1),
+                group_name=["_".join(x.split("_")[:-1]) for x in filename_test])
+
+            report_dict = self.meters.statistics()
+            test_indicator.set_postfix_statics(report_dict, cache_time=20)
+        test_indicator.close()
+
+        assert report_dict is not None
+        return dict(report_dict), self.meters["test_dice"].summary()["DSC_mean"]
+
+
+
+    def start_training(self):
+        self.to(self.device)
+        self.cur_epoch = 0
+
+        for self.cur_epoch in range(self._start_epoch, self._max_epoch):
+            self.meters.reset()
+            with self.meters.focus_on("train"):
+                self.meters['lr'].add(self.optimizer.param_groups.__getitem__(0).get('lr'))
+                # train_metrics = self.train_loop(
+                #     trainS_loader=self._trainS_loader,
+                #     trainT_loader=self._trainT_loader,
+                #     epoch=self.cur_epoch
+                # )
+
+            with self.meters.focus_on("val"), torch.no_grad():
+                val_metric, _ = self.eval_loop(self._val_loader, self._test_loader, self.cur_epoch)
+
+            # with self._storage:
+                # self._storage.add_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)
+                # self.writer.add_scalars_from_meter_interface(tra=train_metrics, val=val_metric, epoch=self.cur_epoch)
+
+            self.schedulerStep()
+            self.save_checkpoint(self.state_dict(), self.cur_epoch)
