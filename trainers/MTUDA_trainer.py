@@ -235,13 +235,14 @@ class MTUDA_trainer:
 
             self.meters['loss'].add(loss.item())
             self.meters['sup_loss'].add(sup_loss.item())
-            self.meters['consistency_loss'].add(sup_loss.item())
-            self.meters['structual_loss'].add(sup_loss.item())
+            self.meters['consistency_loss'].add(consistency_loss.item())
+            self.meters['structual_loss'].add(structual_loss.item())
 
             report_dict = self.meters.statistics()
             batch_indicator.set_postfix_statics(report_dict, cache_time=20)
         batch_indicator.close()
 
+        report_dict = self.meters.statistics()
         assert report_dict is not None
         return dict(report_dict)
 
@@ -273,6 +274,7 @@ class MTUDA_trainer:
             test_indicator.set_postfix_statics(report_dict, cache_time=20)
         test_indicator.close()
 
+        report_dict = self.meters.statistics()
         assert report_dict is not None
         return dict(report_dict), self.meters["test_dice"].summary()["DSC_mean"]
 
