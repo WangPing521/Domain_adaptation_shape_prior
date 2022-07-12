@@ -219,10 +219,10 @@ class MTUDA_trainer:
         report_dict = None, None
 
         for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
+            self.optimizer.zero_grad()
 
             sup_loss, consistency_loss, structual_loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
 
-            self.optimizer.zero_grad()
             loss = sup_loss + self.consistency * consistency_loss + self.structual * structual_loss
             loss.backward()
             self.optimizer.step()
