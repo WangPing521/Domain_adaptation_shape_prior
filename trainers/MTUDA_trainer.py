@@ -17,7 +17,7 @@ from utils.general import path2Path, class2one_hot
 from utils.rising import RisingWrapper
 from utils.utils import set_environment, write_yaml
 
-def meters_registerSIFA(c):
+def meters_registerMTUDA(c):
     meters = MeterInterface()
     report_axis = list(range(1, c))
 
@@ -107,7 +107,7 @@ class MTUDA_trainer:
         self.writer = SummaryWriter(str(self._save_dir))
 
         c = self._config['Data_input']['num_class']
-        self.meters = meters_registerSIFA(c)
+        self.meters = meters_registerMTUDA(c)
 
         self.consistency = self._config['weights']['consistency']
         self.structual = self._config['weights']['structual']
@@ -136,8 +136,6 @@ class MTUDA_trainer:
         self.target_ema_model.to(device=device)
 
     def run_step(self, s_data, t_data, cur_batch: int):
-        C = int(self._config['Data_input']['num_class'])
-
         S_img, S_target, S_filename = (
             s_data[0][0][0].to(self.device),
             s_data[0][0][1].to(self.device),
@@ -182,7 +180,7 @@ class MTUDA_trainer:
         pred_t2s2t = self.target_ema_model(T2S2T_img).softmax(1)
 
         # model loss
-        onehot_targetS = class2one_hot(S_target.squeeze(1), C)
+        onehot_targetS = class2one_hot(S_target.squeeze(1), self._config['Data_input']['num_class'])
         sup_loss = 0.5 * (self.crossentropy(pred_s, onehot_targetS) + self.dice_loss(pred_s, onehot_targetS))
         # semantic
         consistency_loss = F.mse_loss(pred_s2t2s, pred_s) + F.mse_loss(pred_s2t, pred_s) + F.mse_loss(pred_t2s2t, pred_t2s)
@@ -216,7 +214,6 @@ class MTUDA_trainer:
 
         batch_indicator = tqdm(range(self._num_batches))
         batch_indicator.set_description(f"Training Epoch {epoch:03d}")
-        report_dict = None, None
 
         for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
             self.optimizer.zero_grad()
@@ -227,11 +224,11 @@ class MTUDA_trainer:
             loss.backward()
             self.optimizer.step()
 
-            for ema_param, param in zip(self.source_ema_model.parameters(), self.model.parameters()):
-                ema_param.data.mul_(s_co).add_(1 - s_co, param.data)
+            for ema_param_s, param in zip(self.source_ema_model.parameters(), self.model.parameters()):
+                ema_param_s.data.mul_(s_co).add_(1 - s_co, param.data)
 
-            for ema_param, param in zip(self.target_ema_model.parameters(), self.model.parameters()):
-                ema_param.data.mul_(s_co).add_(1 - s_co, param.data)
+            for ema_param_t, param in zip(self.target_ema_model.parameters(), self.model.parameters()):
+                ema_param_t.data.mul_(s_co).add_(1 - s_co, param.data)
 
             self.meters['loss'].add(loss.item())
             self.meters['sup_loss'].add(sup_loss.item())
@@ -239,7 +236,7 @@ class MTUDA_trainer:
             self.meters['structual_loss'].add(structual_loss.item())
 
             report_dict = self.meters.statistics()
-            batch_indicator.set_postfix_statics(report_dict, cache_time=20)
+            batch_indicator.set_postfix_statics(report_dict)
         batch_indicator.close()
 
         report_dict = self.meters.statistics()
@@ -256,7 +253,6 @@ class MTUDA_trainer:
         self.model.eval()
         test_indicator = tqdm(test_loader)
         test_indicator.set_description(f"test_Epoch {epoch:03d}")
-        report_dict = {}
 
         for batch_id_test, data_test in enumerate(test_indicator):
             image_test, target_test, filename_test = (

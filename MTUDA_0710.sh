@@ -10,7 +10,7 @@ time=6
 account=def-chdesa
 save_dir=0710_MTUDA
 declare -a StringArray=(
-"python MTUDA_main.py seed=10 Optim.lr=0.00001 DataLoader.batch_size=8 weights.consistency=1 weights.structual=1    Trainer.save_dir=${save_dir}/cons1_stru1_seed1"
+"python MTUDA_main.py seed=10 Optim.lr=0.00001 DataLoader.batch_size=4 weights.consistency=1 weights.structual=1 Trainer.save_dir=${save_dir}/cons1_stru1_seed1"
 #"python MTUDA_main.py seed=10 Optim.lr=0.00001 DataLoader.batch_size=8 weights.consistency=1 weights.structual=0.5  Trainer.save_dir=${save_dir}/cons1_stru05_seed1"
 #"python MTUDA_main.py seed=10 Optim.lr=0.00001 DataLoader.batch_size=8 weights.consistency=1 weights.structual=0.1  Trainer.save_dir=${save_dir}/cons1_stru01_seed1"
 #"python MTUDA_main.py seed=10 Optim.lr=0.00001 DataLoader.batch_size=8 weights.consistency=1 weights.structual=0.05 Trainer.save_dir=${save_dir}/cons1_stru105_seed1"
