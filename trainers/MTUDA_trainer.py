@@ -66,6 +66,8 @@ class MTUDA_trainer:
             target_ema_model: nn.Module,
             optimizer,
             scheduler,
+            scheduler_emaS,
+            scheduler_emaT,
             TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
             TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
             test_loader: Union[DataLoader, _BaseDataLoaderIter],
@@ -92,6 +94,8 @@ class MTUDA_trainer:
         self.target_ema_model = target_ema_model
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.scheduler_emaS = scheduler_emaS
+        self.scheduler_emaT = scheduler_emaT
         self._trainS_loader = TrainS_loader
         self._trainT_loader = TrainT_loader
         self._test_loader = test_loader
@@ -276,6 +280,8 @@ class MTUDA_trainer:
 
     def schedulerStep(self):
         self.scheduler.step()
+        self.scheduler_emaS.step()
+        self.scheduler_emaT.step()
 
     def start_training(self):
         self.to(self.device)
@@ -421,12 +427,13 @@ class MTUDA_trainer:
 
 class MTUDA_prostate_trainer(MTUDA_trainer):
     def __init__(self, model: nn.Module,
-                 source_ema_model: nn.Module, target_ema_model: nn.Module, optimizer, scheduler,
+                 source_ema_model: nn.Module, target_ema_model: nn.Module, optimizer, scheduler, scheduler_emaS, scheduler_emaT,
                  TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
                  TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
                  val_loader: Union[DataLoader, _BaseDataLoaderIter],
                  test_loader: Union[DataLoader, _BaseDataLoaderIter], *args, **kwargs) -> None:
-        super().__init__(model, source_ema_model, target_ema_model, optimizer, scheduler, TrainS_loader, TrainT_loader,
+        super().__init__(model, source_ema_model, target_ema_model, optimizer, scheduler, scheduler_emaS, scheduler_emaT,
+                         TrainS_loader, TrainT_loader,
                          test_loader, *args, **kwargs)
         self._val_loader = val_loader
 

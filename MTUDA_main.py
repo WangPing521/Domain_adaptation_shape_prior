@@ -23,9 +23,15 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(90, 
 scheduler = GradualWarmupScheduler(optimizer, multiplier=300, total_epoch=10, after_scheduler=scheduler)
 
 source_ema_model = UNet(input_dim=1, num_classes=config['Data_input']['num_class'])
+optimizer_emaS = RAdam(source_ema_model.parameters(), lr=config["Optim"]["lr"])
+scheduler_emaS = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_emaS, T_max=max(90, 1), eta_min=1e-7)
+scheduler_emaS = GradualWarmupScheduler(optimizer_emaS, multiplier=300, total_epoch=10, after_scheduler=scheduler_emaS)
 for param_s in source_ema_model.parameters():
     param_s.detach_()
 target_ema_model = UNet(input_dim=1, num_classes=config['Data_input']['num_class'])
+optimizer_emaT = RAdam(target_ema_model.parameters(), lr=config["Optim"]["lr"])
+scheduler_emaT = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_emaT, T_max=max(90, 1), eta_min=1e-7)
+scheduler_emaT = GradualWarmupScheduler(optimizer_emaT, multiplier=300, total_epoch=10, after_scheduler=scheduler_emaT)
 for param_t in target_ema_model.parameters():
     param_t.detach_()
 
@@ -100,6 +106,8 @@ if config['Data_input']['dataset'] == 'prostate':
         target_ema_model=target_ema_model,
         optimizer=optimizer,
         scheduler=scheduler,
+        scheduler_emaS=scheduler_emaS,
+        scheduler_emaT=scheduler_emaT,
         TrainS_loader=source_like_loader,
         TrainT_loader=target_like_loader,
         val_loader=trainT2S_val_loader,
@@ -114,6 +122,8 @@ else:
         target_ema_model=target_ema_model,
         optimizer=optimizer,
         scheduler=scheduler,
+        scheduler_emaS=scheduler_emaS,
+        scheduler_emaT=scheduler_emaT,
         TrainS_loader=source_like_loader,
         TrainT_loader= target_like_loader,
         test_loader=trainT2S_test_loader,
