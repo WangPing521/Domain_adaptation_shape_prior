@@ -17,21 +17,21 @@ def plot_seg(img, label):
     fig = plt.figure()
     gt_volume = tensor2plotable(label)
     plt.imshow(gt_volume, alpha=1, cmap="viridis", vmin=0, vmax=29) # vmax is determined by the clusters
-    plt.savefig(f'cluster_vis30/{img}.png')
+    plt.savefig(f'prediction_map/{img}.png')
 
 def plot_feature(img, domain_index='s', f_index=0):
     img_volume = img
     fig = plt.figure()
     img_volume = tensor2plotable(img_volume)
-    plt.imshow(img_volume, cmap="gray")
-    # plt.imshow(img_volume, alpha=1, cmap="viridis") # vmax is determined by the clusters
-    plt.savefig(f'cc/{domain_index}_{f_index}.png')
+    # plt.imshow(img_volume, cmap="gray")
+    plt.imshow(img_volume, alpha=1, cmap="viridis") # vmax is determined by the clusters
+    plt.savefig(f'prediction_map/{domain_index}_{f_index}.png')
 
 cmanager = ConfigManager("configs/config.yaml", strict=True)
 config = cmanager.config
 fix_all_seed(config['seed'])
 
-weight = f'runs/upconv2/last.pth'
+weight = f'runs/last.pth'
 new_state_dict = OrderedDict()
 state_dict = torch.load(weight)
 

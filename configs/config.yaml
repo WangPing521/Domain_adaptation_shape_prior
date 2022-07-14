@@ -46,7 +46,7 @@ DA:
   weight1: 1 # 10, 100
   align_layer:
     name: Deconv_1x1 # Up_conv4, Up_conv3, Up_conv2, Deconv_1x1
-    cc_based: False
+    cc_based: True
     clusters: 5
 
 seed: 10

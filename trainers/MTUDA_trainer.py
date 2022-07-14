@@ -177,28 +177,30 @@ class MTUDA_trainer:
 
         pred_s = self.model(S_img).softmax(1)
 
-        pred_t2s = self.source_ema_model(T2S_img).softmax(1)
-        pred_s2t2s = self.source_ema_model(S2T2S_img).softmax(1)
+        # pred_t2s = self.source_ema_model(T2S_img).softmax(1)
+        # pred_s2t2s = self.source_ema_model(S2T2S_img).softmax(1)
 
-        pred_s2t = self.target_ema_model(S2T_img).softmax(1)
-        pred_t2s2t = self.target_ema_model(T2S2T_img).softmax(1)
+        # pred_s2t = self.target_ema_model(S2T_img).softmax(1)
+        # pred_t2s2t = self.target_ema_model(T2S2T_img).softmax(1)
 
         # model loss
         onehot_targetS = class2one_hot(S_target.squeeze(1), self._config['Data_input']['num_class'])
         sup_loss = 0.5 * (self.crossentropy(pred_s, onehot_targetS) + self.dice_loss(pred_s, onehot_targetS))
         # semantic
-        consistency_loss = F.mse_loss(pred_s2t2s, pred_s) + F.mse_loss(pred_s2t, pred_s) + F.mse_loss(pred_t2s2t, pred_t2s)
+        # consistency_loss = F.mse_loss(pred_s2t2s, pred_s) + F.mse_loss(pred_s2t, pred_s) + F.mse_loss(pred_t2s2t, pred_t2s)
 
         #structural
-        structual_loss = F.mse_loss(self.entropy(pred_s2t), self.entropy(pred_s)) + \
-                         F.mse_loss(self.entropy(pred_t2s2t), self.entropy(pred_t2s)) + \
-                         F.mse_loss(self.entropy(pred_s2t2s), self.entropy(pred_s))
+        # structual_loss = F.mse_loss(self.entropy(pred_s2t), self.entropy(pred_s)) + \
+        #                  F.mse_loss(self.entropy(pred_t2s2t), self.entropy(pred_t2s)) + \
+        #                  F.mse_loss(self.entropy(pred_s2t2s), self.entropy(pred_s))
 
         self.meters[f"trainT_dice"].add(
             pred_s.max(1)[1],
             S_target.squeeze(1),
             group_name=["_".join(x.split("_")[:-1]) for x in S_filename],
         )
+
+        consistency_loss, structual_loss = 0, 0
 
         return sup_loss, consistency_loss, structual_loss
 
@@ -228,16 +230,16 @@ class MTUDA_trainer:
             loss.backward()
             self.optimizer.step()
 
-            for ema_param_s, param in zip(self.source_ema_model.parameters(), self.model.parameters()):
-                ema_param_s.data.mul_(s_co).add_(1 - s_co, param.data)
+            # for ema_param_s, param in zip(self.source_ema_model.parameters(), self.model.parameters()):
+            #     ema_param_s.data.mul_(s_co).add_(1 - s_co, param.data)
 
-            for ema_param_t, param in zip(self.target_ema_model.parameters(), self.model.parameters()):
-                ema_param_t.data.mul_(s_co).add_(1 - s_co, param.data)
+            # for ema_param_t, param in zip(self.target_ema_model.parameters(), self.model.parameters()):
+            #     ema_param_t.data.mul_(s_co).add_(1 - s_co, param.data)
 
             self.meters['loss'].add(loss.item())
             self.meters['sup_loss'].add(sup_loss.item())
-            self.meters['consistency_loss'].add(consistency_loss.item())
-            self.meters['structual_loss'].add(structual_loss.item())
+            # self.meters['consistency_loss'].add(consistency_loss.item())
+            # self.meters['structual_loss'].add(structual_loss.item())
 
             report_dict = self.meters.statistics()
             batch_indicator.set_postfix_statics(report_dict)
