@@ -115,9 +115,7 @@ class MedicalDatasetInterface:
             else:
                 contrastive_sampler = InfiniteRandomSampler(train_set, shuffle=True)
                 train_loader = DataLoader(train_set, sampler=contrastive_sampler,
-                        **{k: v for k, v in _dataloader_params.items() if k != "shuffle"},
-                                          worker_init_fn=torch.initial_seed()
-                                          )
+                        **{k: v for k, v in _dataloader_params.items() if k != "shuffle"})
 
 
         else:

@@ -76,28 +76,14 @@ dataset_T = Target_like(T2S_dataset, T2S2T_dataset)
 source_like_loader = DataLoader(dataset_S, batch_size=10, shuffle=True)
 target_like_loader = DataLoader(dataset_T, batch_size=10, shuffle=True)
 
-handler_test.compile_dataloader_params(**config["DataLoader"])
+test_dataset = handler_test._create_datasets(train_transform=None, val_transform=None)
 with fix_all_seed_within_context(config['Data']['seed']):
-    trainT2S_test_loader = handler_test.DataLoaders(
-        train_transform=None,
-        val_transform=None,
-        group_val=False,
-        use_infinite_sampler=True,
-        batchsize_indicator=config['DA']['batchsize_indicator'],
-        constrastve=config['DA']['constrastve_sampler']
-    )
+    trainT2S_test_loader = DataLoader(test_dataset, batch_size=40)
 
 if config['Data_input']['dataset'] == 'prostate':
-    handler_val.compile_dataloader_params(**config["DataLoader"])
+    val_dataset = handler_val._create_datasets(train_transform=None, val_transform=None)
     with fix_all_seed_within_context(config['Data']['seed']):
-        trainT2S_val_loader = handler_val.DataLoaders(
-            train_transform=None,
-            val_transform=None,
-            group_val=False,
-            use_infinite_sampler=True,
-            batchsize_indicator=config['DA']['batchsize_indicator'],
-            constrastve=config['DA']['constrastve_sampler']
-        )
+        trainT2S_val_loader = DataLoader(val_dataset, batch_size=40)
 
 if config['Data_input']['dataset'] == 'prostate':
     trainer = MTUDA_prostate_trainer(
