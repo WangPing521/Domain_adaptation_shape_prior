@@ -191,7 +191,7 @@ class MTUDA_trainer:
             pred_s_ema = self.source_ema_model(S_img).softmax(1)
             pred_t2s_ema = self.source_ema_model(T2S_img).softmax(1)
         # semantic
-        lkd_loss = self.kl(pred_s_ema, pred_s_0) + self.kl(pred_t2s_ema, pred_t2s_0)
+        lkd_loss = self.kl(pred_s_0, pred_s_ema) + self.kl(pred_t2s_0, pred_t2s_ema)
 
         with torch.no_grad():
             pred_t_ema = self.target_ema_model(T_img).softmax(1)

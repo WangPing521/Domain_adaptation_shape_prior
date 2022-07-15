@@ -69,8 +69,8 @@ T2S2T_dataset = handlerT2S2T._create_datasets(train_transform=None, val_transfor
 dataset_S = Domain_like(S_dataset, S2T_dataset, S2T2S_dataset)
 dataset_T = Domain_like(T_dataset, T2S_dataset, T2S2T_dataset)
 
-source_like_loader = DataLoader(dataset_S, batch_size=10, shuffle=True)
-target_like_loader = DataLoader(dataset_T, batch_size=10, shuffle=True)
+source_like_loader = DataLoader(dataset_S, batch_size=config['DataLoader']['batch_size'], shuffle=True)
+target_like_loader = DataLoader(dataset_T, batch_size=config['DataLoader']['batch_size'], shuffle=True)
 
 test_dataset = handler_test._create_datasets(train_transform=None, val_transform=None)
 with fix_all_seed_within_context(config['Data']['seed']):
