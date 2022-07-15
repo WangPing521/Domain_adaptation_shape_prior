@@ -16,8 +16,9 @@ DataLoader:
   pin_memory: False
 
 weights:
+  lkd_weight: 1
   consistency: 1
-  structual: 1
+
 
 Trainer:
   device: cuda
