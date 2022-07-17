@@ -4,12 +4,14 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
+
+from arch.pointNet import PointNet
 from arch.utils import FeatureExtractor
-from loss.entropy import SimplexCrossEntropyLoss
+from loss.entropy import SimplexCrossEntropyLoss, Entropy
 from meters.SummaryWriter import SummaryWriter
 from utils import tqdm
 from utils.rising import RisingWrapper
-from utils.utils import set_environment, write_yaml
+from utils.utils import set_environment, write_yaml, fix_all_seed_within_context
 from utils.general import class2one_hot, path2Path
 from torch import nn
 from meters import Storage, MeterInterface, AverageValueMeter, UniversalDice
@@ -102,6 +104,10 @@ class pointCloudUDA_trainer:
         self.optimizer_2 = optimizer_2
         self.optimizer_3 = optimizer_3
 
+        with fix_all_seed_within_context(self._config['seed']):
+            self.point_net = PointNet(num_points=300, ext=False)
+        self.optimizer.add_param_group({'params': self.point_net.parameters()})
+
         self.scheduler = scheduler
         self.scheduler_1 = scheduler_1
         self.scheduler_2 = scheduler_2
@@ -128,6 +134,8 @@ class pointCloudUDA_trainer:
 
         self.crossentropy = SimplexCrossEntropyLoss()
         self._bce_criterion = nn.BCELoss()
+        self.entropy = Entropy(reduction='none')
+
 
         geometric_transform = rt.Compose(
             rt.BaseAffine(
@@ -175,16 +183,22 @@ class pointCloudUDA_trainer:
             self.extractor.clear()
             pred_S = self.model(S_img).softmax(1)
             feature_S = next(self.extractor.features())
+            point_S = self.point_net(feature_S)
 
         with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
             self.extractor.clear()
             pred_T = self.model(T_img).softmax(1)
             feature_T = next(self.extractor.features())
+            point_T = self.point_net(feature_T)
 
         onehot_targetS = class2one_hot(S_target.squeeze(1), C)
+        source_domain_label = 1
+        target_domain_label = 0
+
         s_loss = self.crossentropy(pred_S, onehot_targetS)
 
-        entT_loss = self.ent_loss(pred_T) # entropy on target
+        ent_mapS = self.entropy(pred_S) # entropy on source
+        ent_mapT = self.entropy(pred_T) # entropy on target
 
 
         self.meters[f"train_dice"].add(
