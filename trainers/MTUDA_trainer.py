@@ -239,7 +239,7 @@ class MTUDA_trainer:
         batch_indicator = tqdm(range(self._num_batches))
         batch_indicator.set_description(f"Training Epoch {epoch:03d}")
 
-        for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
+        for cur_batch, s_data, t_data in zip(batch_indicator, trainS_loader, trainT_loader):
 
             self.optimizer.zero_grad()
             sup_loss, lkd_loss, consistency_loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
