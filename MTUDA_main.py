@@ -5,8 +5,8 @@ from dataset.mmwhs_fake import mmWHS_T2S2T_Interface, mmWHS_T2S_Interface, mmWHS
     mmWHS_T2S_test_Interface, mmWHSMTUDATInterface, Domain_like
 from dataset.prostate import ProstateInterface
 from dataset.mmwhs import mmWHSMRInterface
-from dataset.prostate_fake import prostate_T2S2T_Interface, prostate_T2S_Interface, prostate_S2T2S_Interface, \
-    prostate_S2T_Interface, mmWHS_T2S_val_Interface
+from dataset.prostate_fake import prostate_T2S2T_Interface, prostate_T2S_Interface, prostate_S2T2S_Interface, promise_T_Interface, prostate_S2T_Interface, promise_Ttest_Interface, \
+    promise_Tval_Interface
 from scheduler.customized_scheduler import RampScheduler
 from scheduler.warmup_scheduler import GradualWarmupScheduler
 from trainers.MTUDA_trainer import MTUDA_trainer, MTUDA_prostate_trainer
@@ -43,7 +43,7 @@ if config['Data_input']['dataset'] == 'mmwhs':
 
 elif config['Data_input']['dataset'] == 'prostate':
     handler1 = ProstateInterface(seed = config["Data"]["seed"]) # S
-    handler2 = mmWHSMTUDATInterface(seed = config["Data"]["seed"])
+    handler2 = promise_T_Interface(seed = config["Data"]["seed"])
 
     handlerS2T = prostate_S2T_Interface(seed = config["Data"]["seed"])
     handlerT2S2T = prostate_T2S2T_Interface(seed = config["Data"]["seed"])
@@ -51,9 +51,9 @@ elif config['Data_input']['dataset'] == 'prostate':
     handlerT2S = prostate_T2S_Interface(seed = config["Data"]["seed"])
     handlerS2T2S = prostate_S2T2S_Interface(seed = config["Data"]["seed"])
 
-    handler_val = mmWHS_T2S_val_Interface(seed = config["Data"]["seed"]) # T2S_val
+    handler_val = promise_Tval_Interface(seed = config["Data"]["seed"]) # T2S_val
 
-    handler_test = mmWHS_T2S_test_Interface(seed = config["Data"]["seed"]) # T2S_test
+    handler_test = promise_Ttest_Interface(seed = config["Data"]["seed"]) # T2S_test
 
 else:
     raise NotImplementedError(config['Data_input']['dataset'])

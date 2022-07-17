@@ -420,31 +420,14 @@ class MTUDA_trainer:
             )
         self.load_checkpoint(state_dict)
 
-    def clean_up(self, wait_time=3):
-        """
-        Do not touch
-        :return:
-        """
-        import shutil
-        import time
-
-        time.sleep(wait_time)  # to prevent that the call_draw function is not ended.
-        Path(self.ARCHIVE_PATH).mkdir(exist_ok=True, parents=True)
-        sub_dir = self._save_dir.relative_to(Path(self.RUN_PATH))
-        save_dir = Path(self.ARCHIVE_PATH) / str(sub_dir)
-        if Path(save_dir).exists():
-            shutil.rmtree(save_dir, ignore_errors=True)
-        shutil.move(str(self._save_dir), str(save_dir))
-        shutil.rmtree(str(self._save_dir), ignore_errors=True)
-
 class MTUDA_prostate_trainer(MTUDA_trainer):
     def __init__(self, model: nn.Module,
-                 source_ema_model: nn.Module, target_ema_model: nn.Module, optimizer, scheduler,
+                 source_ema_model: nn.Module, target_ema_model: nn.Module, optimizer, scheduler, lkdScheduler, consScheduler,
                  TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
                  TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
                  val_loader: Union[DataLoader, _BaseDataLoaderIter],
                  test_loader: Union[DataLoader, _BaseDataLoaderIter], *args, **kwargs) -> None:
-        super().__init__(model, source_ema_model, target_ema_model, optimizer, scheduler, TrainS_loader, TrainT_loader,
+        super().__init__(model, source_ema_model, target_ema_model, optimizer, scheduler, lkdScheduler, consScheduler, TrainS_loader, TrainT_loader,
                          test_loader, *args, **kwargs)
         self._val_loader = val_loader
 
