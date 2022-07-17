@@ -183,12 +183,8 @@ class pointCloudUDA_trainer:
         source_domain_label = 1
         target_domain_label = 0
 
-        self.optimizer.zero_grad()
-        self.optimizer_1.zero_grad()
-        self.optimizer_2.zero_grad()
-        self.optimizer_3.zero_grad()
-
         # 1. train the generator (do not update the params in the discriminators)
+        self.optimizer.zero_grad()
         with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
             self.extractor.clear()
             pred_S = self.model(S_img).softmax(1)
@@ -199,7 +195,8 @@ class pointCloudUDA_trainer:
         s_loss2 = jaccard_loss(logits=pred_S, label=S_target.float(), activation=False)
         s_loss3 = batch_NN_loss(x=point_S, y=torch.from_numpy(vertexA).float().cuda())
         ent_mapS = self.entropy(pred_S) # entropy on source
-        s_loss = s_loss1 + s_loss2 + s_loss3 + ent_mapS
+        ent_lossS = ent_mapS.mean()
+        s_loss = s_loss1 + s_loss2 + s_loss3 + ent_lossS
         s_loss.backward()
 
         # 2. train the segmentation model to fool the discriminators
@@ -223,13 +220,42 @@ class pointCloudUDA_trainer:
         self.optimizer.step()
 
         # 3. train the discriminators with images from source domain
+        self.optimizer_2.zero_grad()
+        out_disEntS = self.discriminator_2(ent_mapS.detach())
+        out_disEntT = self.discriminator_2(ent_mapT.detach())
 
+        out_disEntSadv = self._bce_criterion(out_disEntS,  torch.zeros(out_disEntS.shape[0], device=self.device).fill_(source_domain_label))
+        out_disEntTadv = self._bce_criterion(out_disEntT,  torch.zeros(out_disEntT.shape[0], device=self.device).fill_(target_domain_label))
+        loss_disadv2 = out_disEntSadv + out_disEntTadv
+        loss_disadv2.backward()
+        self.optimizer_2.step()
 
+        self.optimizer_1.zero_grad()
+        out_disPredS = self.discriminator_1(pred_S.detach())
+        out_disPredT = self.discriminator_1(pred_T.detach())
 
-        # 4. train discriminator with images from target domain
+        out_disPredSadv = self._bce_criterion(out_disPredS, torch.zeros(out_disPredS.shape[0], device=self.device).fill_(
+            source_domain_label))
+        out_disPredTadv = self._bce_criterion(out_disPredT,
+                                              torch.zeros(out_disPredT.shape[0], device=self.device).fill_(
+                                                  target_domain_label))
+        loss_disadv1 = out_disPredSadv + out_disPredTadv
+        loss_disadv1.backward()
+        self.optimizer_1.step()
 
+        self.optimizer_3.zero_grad()
+        out_disPointS = self.discriminator_3(point_S.detach())
+        out_disPointT = self.discriminator_3(point_T.detach())
+        out_disPointSadv = self._bce_criterion(out_disPointS,
+                                              torch.zeros(out_disPointS.shape[0], device=self.device).fill_(
+                                                  source_domain_label))
+        out_disPointTadv = self._bce_criterion(out_disPointT,
+                                               torch.zeros(out_disPointT.shape[0], device=self.device).fill_(
+                                                   target_domain_label))
+        loss_disadv3 = out_disPointSadv + out_disPointTadv
 
-
+        loss_disadv3.backward()
+        self.optimizer_3.step()
 
 
         self.meters[f"train_dice"].add(
