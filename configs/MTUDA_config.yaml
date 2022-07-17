@@ -16,8 +16,16 @@ DataLoader:
   pin_memory: False
 
 weights:
-  lkd_weight: 1
-  consistency: 1
+  lkd_weight:
+    begin_epoch: 5
+    max_epoch: 50
+    min_value: 0
+    max_value: 0
+  consistency:
+    begin_epoch: 5
+    max_epoch: 50
+    min_value: 0
+    max_value: 0
 
 
 Trainer:

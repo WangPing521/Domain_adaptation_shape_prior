@@ -7,6 +7,7 @@ from dataset.prostate import ProstateInterface
 from dataset.mmwhs import mmWHSMRInterface
 from dataset.prostate_fake import prostate_T2S2T_Interface, prostate_T2S_Interface, prostate_S2T2S_Interface, \
     prostate_S2T_Interface, mmWHS_T2S_val_Interface
+from scheduler.customized_scheduler import RampScheduler
 from scheduler.warmup_scheduler import GradualWarmupScheduler
 from trainers.MTUDA_trainer import MTUDA_trainer, MTUDA_prostate_trainer
 from utils.radam import RAdam
@@ -81,6 +82,9 @@ if config['Data_input']['dataset'] == 'prostate':
     with fix_all_seed_within_context(config['Data']['seed']):
         trainT2S_val_loader = DataLoader(val_dataset, batch_size=40)
 
+lkdScheduler = RampScheduler(**config['weights']["lkd_weight"])
+consScheduler = RampScheduler(**config['weights']["consistency"])
+
 if config['Data_input']['dataset'] == 'prostate':
     trainer = MTUDA_prostate_trainer(
         model=model,
@@ -88,6 +92,8 @@ if config['Data_input']['dataset'] == 'prostate':
         target_ema_model=target_ema_model,
         optimizer=optimizer,
         scheduler=scheduler,
+        lkdScheduler=lkdScheduler,
+        consScheduler=consScheduler,
         TrainS_loader=source_like_loader,
         TrainT_loader=target_like_loader,
         val_loader=trainT2S_val_loader,
@@ -102,6 +108,8 @@ else:
         target_ema_model=target_ema_model,
         optimizer=optimizer,
         scheduler=scheduler,
+        lkdScheduler=lkdScheduler,
+        consScheduler=consScheduler,
         TrainS_loader=source_like_loader,
         TrainT_loader= target_like_loader,
         test_loader=trainT2S_test_loader,

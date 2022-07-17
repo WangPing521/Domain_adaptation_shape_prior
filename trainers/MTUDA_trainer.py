@@ -66,6 +66,8 @@ class MTUDA_trainer:
             target_ema_model: nn.Module,
             optimizer,
             scheduler,
+            lkdScheduler,
+            consScheduler,
             TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
             TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
             test_loader: Union[DataLoader, _BaseDataLoaderIter],
@@ -92,6 +94,8 @@ class MTUDA_trainer:
         self.target_ema_model = target_ema_model
         self.optimizer = optimizer
         self.scheduler = scheduler
+        self.lkdScheduler = lkdScheduler
+        self.consScheduler = consScheduler
         self._trainS_loader = TrainS_loader
         self._trainT_loader = TrainT_loader
         self._test_loader = test_loader
@@ -191,8 +195,7 @@ class MTUDA_trainer:
             pred_s_ema = self.source_ema_model(S_img).softmax(1)
             pred_t2s_ema = self.source_ema_model(T2S_img).softmax(1)
         # semantic
-        # lkd_loss = self.kl(pred_s_0, pred_s_ema) + self.kl(pred_t2s_0, pred_t2s_ema)
-        lkd_loss = F.mse_loss(pred_s_0, pred_s_ema) + F.mse_loss(pred_t2s_0, pred_t2s_ema)
+        lkd_loss = self.kl(pred_s_0, pred_s_ema) + self.kl(pred_t2s_0, pred_t2s_ema)
         with torch.no_grad():
             pred_t_ema = self.target_ema_model(T_img).softmax(1)
             pred_s2t_ema = self.target_ema_model(S2T_img).softmax(1)
@@ -233,7 +236,7 @@ class MTUDA_trainer:
             self.optimizer.zero_grad()
             sup_loss, lkd_loss, consistency_loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
 
-            loss = sup_loss + self.lkd_weight * lkd_loss + self.consistency * consistency_loss
+            loss = sup_loss + self.lkdScheduler.value * lkd_loss + self.consScheduler.value * consistency_loss
             loss.backward()
             self.optimizer.step()
 
@@ -289,6 +292,8 @@ class MTUDA_trainer:
 
     def schedulerStep(self):
         self.scheduler.step()
+        self.lkdScheduler.step()
+        self.consScheduler.step()
 
     def start_training(self):
         self.to(self.device)
