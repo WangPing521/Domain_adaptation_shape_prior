@@ -32,6 +32,10 @@ def meters_registerpointcloud(c):
             "loss", AverageValueMeter()
         )
         meters.register_meter(
+            "loss_adv", AverageValueMeter()
+        )
+
+        meters.register_meter(
             "loss_Dis1", AverageValueMeter()
         )
         meters.register_meter(
@@ -257,14 +261,12 @@ class pointCloudUDA_trainer:
         loss_disadv3.backward()
         self.optimizer_3.step()
 
-
         self.meters[f"train_dice"].add(
             pred_S.max(1)[1],
             S_target.squeeze(1),
             group_name=["_".join(x.split("_")[:-1]) for x in S_filename],
         )
-        loss_adv1, loss_adv2, loss_adv3 = 0, 0, 0
-        return s_loss, loss_adv1, loss_adv2, loss_adv3
+        return s_loss, loss_adv, loss_disadv1, loss_disadv2, loss_disadv3
 
 
     def train_loop(
@@ -285,12 +287,13 @@ class pointCloudUDA_trainer:
 
         for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
 
-            loss, dis1_loss, dis2_loss, dis3_loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
+            s_loss, loss_adv, loss_disadv1, loss_disadv2, loss_disadv3 = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
 
-            self.meters['loss'].add(loss.item())
-            self.meters['loss_Dis1'].add(dis1_loss.item())
-            self.meters['loss_Dis2'].add(dis2_loss.item())
-            self.meters['loss_Dis3'].add(dis3_loss.item())
+            self.meters['loss'].add(s_loss.item())
+            self.meters['loss_adv'].add(loss_adv.item())
+            self.meters['loss_Dis1'].add(loss_disadv1.item())
+            self.meters['loss_Dis2'].add(loss_disadv2.item())
+            self.meters['loss_Dis3'].add(loss_disadv3.item())
 
             report_dict = self.meters.statistics()
             batch_indicator.set_postfix_statics(report_dict, cache_time=20)
@@ -319,8 +322,8 @@ class pointCloudUDA_trainer:
                 data_T[0][1].to(self.device),
                 data_T[1]
             )
-
-            preds_T = self.model(imageT).softmax(1)
+            with self.switch_bn(self.model, 1):
+                preds_T = self.model(imageT).softmax(1)
             self.meters[f"valT_dice"].add(
                 preds_T.max(1)[1],
                 targetT.squeeze(1),
@@ -337,7 +340,8 @@ class pointCloudUDA_trainer:
                 data_test[0][1].to(self.device),
                 data_test[1]
             )
-            preds_test = self.model(image_test).softmax(1)
+            with self.switch_bn(self.model, 1):
+                preds_test = self.model(image_test).softmax(1)
             self.meters[f"test_dice"].add(
                 preds_test.max(1)[1],
                 target_test.squeeze(1),

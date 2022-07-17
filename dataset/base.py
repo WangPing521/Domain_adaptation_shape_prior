@@ -383,3 +383,20 @@ class MedicalImageSegmentationDataset(Dataset):
                 print(f"found {len(imgs[subfolder])} images in {subfolder}\t")
         return imgs
 
+class DataLoaderIter:
+
+    def __init__(self, dataloader) -> None:
+        self._dataloader = dataloader
+
+        self._dataloader_iter = iter(dataloader)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        try:
+            return self._dataloader_iter.__next__()
+
+        except StopIteration:
+            self._dataloader_iter = iter(self._dataloader)
+            return self._dataloader_iter.__next__()

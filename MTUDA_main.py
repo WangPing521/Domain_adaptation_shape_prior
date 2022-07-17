@@ -1,6 +1,7 @@
 import torch
 from arch.unet import UNet
 from configure import ConfigManager
+from dataset import DataLoaderIter
 from dataset.mmwhs_fake import mmWHS_T2S2T_Interface, mmWHS_T2S_Interface, mmWHS_S2T2S_Interface, mmWHS_S2T_Interface, \
     mmWHS_T2S_test_Interface, mmWHSMTUDATInterface, Domain_like
 from dataset.prostate import ProstateInterface
@@ -70,8 +71,8 @@ T2S2T_dataset = handlerT2S2T._create_datasets(train_transform=None, val_transfor
 dataset_S = Domain_like(S_dataset, S2T_dataset, S2T2S_dataset)
 dataset_T = Domain_like(T_dataset, T2S_dataset, T2S2T_dataset)
 
-source_like_loader = DataLoader(dataset_S, batch_size=config['DataLoader']['batch_size'], shuffle=True)
-target_like_loader = DataLoader(dataset_T, batch_size=config['DataLoader']['batch_size'], shuffle=True)
+source_like_loader = DataLoaderIter(DataLoader(dataset_S, batch_size=config['DataLoader']['batch_size'], shuffle=True))
+target_like_loader = DataLoaderIter(DataLoader(dataset_T, batch_size=config['DataLoader']['batch_size'], shuffle=True))
 
 test_dataset = handler_test._create_datasets(train_transform=None, val_transform=None)
 with fix_all_seed_within_context(config['Data']['seed']):

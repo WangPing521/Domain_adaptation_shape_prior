@@ -191,7 +191,7 @@ class MTUDA_trainer:
         onehot_targetS = class2one_hot(S_target.squeeze(1), self._config['Data_input']['num_class'])
         sup_loss = 0.5 * (self.crossentropy(pred_s_0, onehot_targetS) + self.dice_loss(pred_s_0, onehot_targetS))
 
-        noise = torch.clamp(torch.randn_like(S_img) * 0.1, -0.2, 0.2)
+        noise = torch.clamp(torch.randn_like(S_img) * 0.1, -0.2, 0.2).to(self.device)
         S_img_noise = S_img + noise
         T2S_img_noise = T2S_img + noise
         with torch.no_grad():
