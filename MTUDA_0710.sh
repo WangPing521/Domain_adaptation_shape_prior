@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=2
 account=def-chdesa
-save_dir=0717_MTUDA_runs
+save_dir=0717_MTUDA_runs1
 declare -a StringArray=(
 #-----------
 #"python MTUDA_main.py seed=10 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=1 weights.consistency.max_value=0.1 Trainer.save_dir=${save_dir}/bs63_lkd1_cons01_seed1"
