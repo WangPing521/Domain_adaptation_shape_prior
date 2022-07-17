@@ -7,7 +7,7 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 
 from arch.pointNet import PointNet
 from arch.utils import FeatureExtractor
-from loss.entropy import SimplexCrossEntropyLoss, Entropy
+from loss.entropy import SimplexCrossEntropyLoss, Entropy, jaccard_loss, batch_NN_loss
 from meters.SummaryWriter import SummaryWriter
 from utils import tqdm
 from utils.rising import RisingWrapper
@@ -95,9 +95,9 @@ class pointCloudUDA_trainer:
             set_environment(config.get("Environment"))
 
         self.model = model
-        self.discriminator_1 = discriminator_1
-        self.discriminator_2 = discriminator_2
-        self.discriminator_3 = discriminator_3
+        self.discriminator_1 = discriminator_1  # output
+        self.discriminator_2 = discriminator_2  # entropy
+        self.discriminator_3 = discriminator_3  # point
 
         self.optimizer = optimizer
         self.optimizer_1 = optimizer_1
@@ -179,26 +179,57 @@ class pointCloudUDA_trainer:
         S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
         T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
 
+        onehot_targetS = class2one_hot(S_target.squeeze(1), C)
+        source_domain_label = 1
+        target_domain_label = 0
+
+        self.optimizer.zero_grad()
+        self.optimizer_1.zero_grad()
+        self.optimizer_2.zero_grad()
+        self.optimizer_3.zero_grad()
+
+        # 1. train the generator (do not update the params in the discriminators)
         with self.switch_bn(self.model, 0), self.extractor.enable_register(True):
             self.extractor.clear()
             pred_S = self.model(S_img).softmax(1)
             feature_S = next(self.extractor.features())
             point_S = self.point_net(feature_S)
 
+        s_loss1 = self.crossentropy(pred_S, onehot_targetS)
+        s_loss2 = jaccard_loss(logits=pred_S, label=S_target.float(), activation=False)
+        s_loss3 = batch_NN_loss(x=point_S, y=torch.from_numpy(vertexA).float().cuda())
+        ent_mapS = self.entropy(pred_S) # entropy on source
+        s_loss = s_loss1 + s_loss2 + s_loss3 + ent_mapS
+        s_loss.backward()
+
+        # 2. train the segmentation model to fool the discriminators
         with self.switch_bn(self.model, 1), self.extractor.enable_register(True):
             self.extractor.clear()
             pred_T = self.model(T_img).softmax(1)
             feature_T = next(self.extractor.features())
             point_T = self.point_net(feature_T)
 
-        onehot_targetS = class2one_hot(S_target.squeeze(1), C)
-        source_domain_label = 1
-        target_domain_label = 0
-
-        s_loss = self.crossentropy(pred_S, onehot_targetS)
-
-        ent_mapS = self.entropy(pred_S) # entropy on source
         ent_mapT = self.entropy(pred_T) # entropy on target
+
+        out_disPred = self.discriminator_1(pred_T)
+        out_disEnt = self.discriminator_2(ent_mapT)
+        out_disPoint = self.discriminator_3(point_T)
+        loss_adv1 = self._bce_criterion(out_disPred, torch.zeros(out_disPred.shape[0], device=self.device).fill_(source_domain_label))
+        loss_adv2 = self._bce_criterion(out_disEnt, torch.zeros(out_disEnt.shape[0], device=self.device).fill_(source_domain_label))
+        loss_adv3 = self._bce_criterion(out_disPoint, torch.zeros(out_disPoint.shape[0], device=self.device).fill_(source_domain_label))
+
+        loss_adv =  weight1 * loss_adv1 + weight2 * loss_adv2 + weight3 * loss_adv3
+        loss_adv.backward()
+        self.optimizer.step()
+
+        # 3. train the discriminators with images from source domain
+
+
+
+        # 4. train discriminator with images from target domain
+
+
+
 
 
         self.meters[f"train_dice"].add(
@@ -206,8 +237,8 @@ class pointCloudUDA_trainer:
             S_target.squeeze(1),
             group_name=["_".join(x.split("_")[:-1]) for x in S_filename],
         )
-        dis1_loss, dis2_loss, dis3_loss = 0, 0, 0
-        return s_loss, dis1_loss, dis2_loss, dis3_loss
+        loss_adv1, loss_adv2, loss_adv3 = 0, 0, 0
+        return s_loss, loss_adv1, loss_adv2, loss_adv3
 
 
     def train_loop(

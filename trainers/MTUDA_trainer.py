@@ -191,15 +191,23 @@ class MTUDA_trainer:
         onehot_targetS = class2one_hot(S_target.squeeze(1), self._config['Data_input']['num_class'])
         sup_loss = 0.5 * (self.crossentropy(pred_s_0, onehot_targetS) + self.dice_loss(pred_s_0, onehot_targetS))
 
+        noise = torch.clamp(torch.randn_like(S_img) * 0.1, -0.2, 0.2)
+        S_img_noise = S_img + noise
+        T2S_img_noise = T2S_img + noise
         with torch.no_grad():
-            pred_s_ema = self.source_ema_model(S_img).softmax(1)
-            pred_t2s_ema = self.source_ema_model(T2S_img).softmax(1)
+            pred_s_ema = self.source_ema_model(S_img_noise).softmax(1)
+            pred_t2s_ema = self.source_ema_model(T2S_img_noise).softmax(1)
         # semantic
         lkd_loss = self.kl(pred_s_0, pred_s_ema) + self.kl(pred_t2s_0, pred_t2s_ema)
+
+        T_img_noise = T_img + noise
+        S2T_img_noise = S2T_img + noise
+        T2S2T_img_noise = T2S2T_img + noise
+
         with torch.no_grad():
-            pred_t_ema = self.target_ema_model(T_img).softmax(1)
-            pred_s2t_ema = self.target_ema_model(S2T_img).softmax(1)
-            pred_t2s2t_ema = self.target_ema_model(T2S2T_img).softmax(1)
+            pred_t_ema = self.target_ema_model(T_img_noise).softmax(1)
+            pred_s2t_ema = self.target_ema_model(S2T_img_noise).softmax(1)
+            pred_t2s2t_ema = self.target_ema_model(T2S2T_img_noise).softmax(1)
         #structural
         consistency = F.mse_loss(self.entropy(pred_s2t_ema), self.entropy(pred_s_0)) + \
                          F.mse_loss(self.entropy(pred_s2t_ema), self.entropy(pred_s2t2s_1)) + \
