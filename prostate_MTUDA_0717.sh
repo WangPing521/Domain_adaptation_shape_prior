@@ -6,7 +6,7 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 
 source $CC_WRAPPER_PATH
 
-time=2
+time=6
 account=def-chdesa
 save_dir=0717_MTUDA_prostate_new
 declare -a StringArray=(
