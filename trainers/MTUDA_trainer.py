@@ -470,7 +470,7 @@ class MTUDA_prostate_trainer(MTUDA_trainer):
                 group_name=["_".join(x.split("_")[:-1]) for x in filename_val])
 
             report_dict = self.meters.statistics()
-            val_indicator.set_postfix_statics(report_dict, cache_time=20)
+            val_indicator.set_postfix_statics(report_dict, cache_time=60)
         val_indicator.close()
 
         for batch_id_test, data_test in enumerate(test_indicator):
@@ -486,9 +486,10 @@ class MTUDA_prostate_trainer(MTUDA_trainer):
                 group_name=["_".join(x.split("_")[:-1]) for x in filename_test])
 
             report_dict = self.meters.statistics()
-            test_indicator.set_postfix_statics(report_dict, cache_time=20)
+            test_indicator.set_postfix_statics(report_dict, cache_time=60)
         test_indicator.close()
 
+        report_dict = self.meters.statistics()
         assert report_dict is not None
         return dict(report_dict), self.meters["test_dice"].summary()["DSC_mean"]
 
