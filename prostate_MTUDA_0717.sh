@@ -67,6 +67,27 @@ declare -a StringArray=(
 "python MTUDA_main.py seed=10 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.000001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=1 Trainer.save_dir=${save_dir}/501_bs63_lkd2_cons1_seed1"
 "python MTUDA_main.py seed=20 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.000001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=1 Trainer.save_dir=${save_dir}/501_bs63_lkd2_cons1_seed2"
 "python MTUDA_main.py seed=30 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.000001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=1 Trainer.save_dir=${save_dir}/501_bs63_lkd2_cons1_seed3"
+
+####
+"python MTUDA_main.py seed=10 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=0.01 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons101_seed1"
+"python MTUDA_main.py seed=20 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=0.01 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons101_seed2"
+"python MTUDA_main.py seed=30 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=0.01 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons101_seed3"
+
+"python MTUDA_main.py seed=10 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=0.1 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons01_seed1"
+"python MTUDA_main.py seed=20 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=0.1 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons01_seed2"
+"python MTUDA_main.py seed=30 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=0.1 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons01_seed3"
+
+"python MTUDA_main.py seed=10 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=0.5 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons05_seed1"
+"python MTUDA_main.py seed=20 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=0.5 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons05_seed2"
+"python MTUDA_main.py seed=30 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=0.5 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons05_seed3"
+
+"python MTUDA_main.py seed=10 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=1 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons1_seed1"
+"python MTUDA_main.py seed=20 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=1 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons1_seed2"
+"python MTUDA_main.py seed=30 Data_input.dataset=prostate Data_input.num_class=2 Optim.lr=0.00001 DataLoader.batch_size=63 weights.lkd_weight.max_value=2 weights.consistency.max_value=1 Trainer.save_dir=${save_dir}/401_bs63_lkd2_cons1_seed3"
+
+
+
+
 )
 
 for cmd in "${StringArray[@]}"; do
