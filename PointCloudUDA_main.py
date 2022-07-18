@@ -3,6 +3,7 @@ from torch.optim import Adam
 from arch.DomainSpecificBNUnet import convert2TwinBN, switch_bn as _switch_bn
 
 from arch.disc import OfficialDiscriminator
+from arch.pointNet import PointNetCls
 from arch.unet import UNet
 from configure import ConfigManager
 from dataset.prostate import ProstateInterface, PromiseInterface
@@ -39,7 +40,7 @@ with fix_all_seed_within_context(config['seed']):
     scheduler_2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_2, T_max=max(90, 1), eta_min=1e-7)
     scheduler_2 = GradualWarmupScheduler(optimizer_2, multiplier=300, total_epoch=10, after_scheduler=scheduler_2)
 
-    discriminator_3 = OfficialDiscriminator(nc=config['Data_input']['num_class'], ndf=64)
+    discriminator_3 = PointNetCls()
     optimizer_3 = Adam(discriminator_3.parameters(), lr=config["Optim"]["disc_lr"], betas=(0.5, 0.999))
     scheduler_3 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_3, T_max=max(90, 1), eta_min=1e-7)
     scheduler_3 = GradualWarmupScheduler(optimizer_3, multiplier=300, total_epoch=10, after_scheduler=scheduler_3)

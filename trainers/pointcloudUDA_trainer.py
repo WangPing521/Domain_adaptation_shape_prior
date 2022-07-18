@@ -2,10 +2,11 @@ from typing import Union, Tuple, Any, Dict
 from pathlib import Path
 
 import torch
+from sklearn.metrics import pairwise_distances
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import _BaseDataLoaderIter
 
-from arch.pointNet import PointNet
+from arch.pointNet import PointNet, getGreedyPerm
 from arch.utils import FeatureExtractor
 from loss.entropy import SimplexCrossEntropyLoss, Entropy, jaccard_loss, batch_NN_loss
 from meters.SummaryWriter import SummaryWriter
@@ -139,7 +140,7 @@ class pointCloudUDA_trainer:
         self.crossentropy = SimplexCrossEntropyLoss()
         self._bce_criterion = nn.BCELoss()
         self.entropy = Entropy(reduction='none')
-
+        self.z = self.compute_z(TrainS_loader)
 
         geometric_transform = rt.Compose(
             rt.BaseAffine(
@@ -183,6 +184,32 @@ class pointCloudUDA_trainer:
         S_target = self._rising_augmentation(S_target.float(), mode="feature", seed=cur_batch)
         T_img = self._rising_augmentation(T_img, mode="image", seed=cur_batch)
 
+        # estimate vertexS
+        S_target = torch.where(S_target == 4, torch.Tensor([0]).to(self.device), S_target)
+        S_target = torch.where(S_target > 0, torch.Tensor([1]).to(self.device), S_target)
+        vertexA = torch.where(S_target > 0)
+        vertexS_index = []
+        for i in range(len(vertexA[0])):
+            point = torch.cat([vertexA[0][i].unsqueeze(0), vertexA[1][i].unsqueeze(0), vertexA[2][i].unsqueeze(0), vertexA[3][i].unsqueeze(0)],0)
+            vertexS_index.append(point)
+        vertexS = torch.stack(vertexS_index)
+        vertexStran = vertexS.transpose(1,0)
+        vertexS_BSindex = []
+        for img_bs in range(S_img.shape[0]):
+            index_img = torch.where(vertexStran[0] == img_bs)[0]
+            ToSamplePoints = vertexS[index_img,:]
+            D = pairwise_distances(ToSamplePoints.squeeze(0).squeeze(0), metric='euclidean')
+            (perm, lambdas) = getGreedyPerm(D)
+            vertexS_BSindex.append(ToSamplePoints[perm,:].unsqueeze(0))
+        vertexS = torch.stack(vertexS_BSindex, dim=0)
+        vertexS = vertexS.squeeze(1)
+
+        # add z
+        # norm to [0-1]
+        self.z
+
+
+
         onehot_targetS = class2one_hot(S_target.squeeze(1), C)
         source_domain_label = 1
         target_domain_label = 0
@@ -197,7 +224,7 @@ class pointCloudUDA_trainer:
 
         s_loss1 = self.crossentropy(pred_S, onehot_targetS)
         s_loss2 = jaccard_loss(logits=pred_S, label=S_target.float(), activation=False)
-        s_loss3 = batch_NN_loss(x=point_S, y=torch.from_numpy(vertexA).float().cuda())
+        s_loss3 = batch_NN_loss(x=point_S, y=vertexS.float())
         ent_mapS = self.entropy(pred_S) # entropy on source
         ent_lossS = ent_mapS.mean()
         s_loss = s_loss1 + s_loss2 + s_loss3 + ent_lossS
@@ -219,7 +246,7 @@ class pointCloudUDA_trainer:
         loss_adv2 = self._bce_criterion(out_disEnt, torch.zeros(out_disEnt.shape[0], device=self.device).fill_(source_domain_label))
         loss_adv3 = self._bce_criterion(out_disPoint, torch.zeros(out_disPoint.shape[0], device=self.device).fill_(source_domain_label))
 
-        loss_adv =  weight1 * loss_adv1 + weight2 * loss_adv2 + weight3 * loss_adv3
+        loss_adv =  0.2 * loss_adv1 + 0.2 * loss_adv2 + 0.2 * loss_adv3
         loss_adv.backward()
         self.optimizer.step()
 
@@ -285,7 +312,7 @@ class pointCloudUDA_trainer:
         batch_indicator = tqdm(range(self._num_batches))
         batch_indicator.set_description(f"Training Epoch {epoch:03d}")
 
-        for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
+        for cur_batch, s_data, t_data in zip(batch_indicator, trainS_loader, trainT_loader):
 
             s_loss, loss_adv, loss_disadv1, loss_disadv2, loss_disadv3 = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
 
@@ -381,6 +408,16 @@ class pointCloudUDA_trainer:
 
             self.schedulerStep()
             self.save_checkpoint(self.state_dict(), self.cur_epoch)
+
+    @torch.no_grad()
+    def compute_z(self, TrainS_loader):
+        patient_Dic = dict()
+        for _, data in zip(range(len(TrainS_loader)), TrainS_loader):
+            file_name = data[1]
+            key_0 = file_name[7:13]
+            if patient_Dic == None or patient_Dic[key_0] == None:
+                patient_Dic[key_0:""]
+        return patient_Dic
 
     def state_dict(self) -> Dict[str, Any]:
         """

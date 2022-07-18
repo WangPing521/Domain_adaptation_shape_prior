@@ -191,8 +191,8 @@ class MTUDA_trainer:
         onehot_targetS = class2one_hot(S_target.squeeze(1), self._config['Data_input']['num_class'])
         sup_loss = 0.5 * (self.crossentropy(pred_s_0, onehot_targetS) + self.dice_loss(pred_s_0, onehot_targetS))
 
-        noiseS = torch.clamp(torch.randn_like(S_img) * 0.1, -0.2, 0.2).to(self.device)
-        noiseT = torch.clamp(torch.randn_like(T_img) * 0.1, -0.2, 0.2).to(self.device)
+        noiseS = torch.clamp(torch.randn_like(S_img) * 0.01, -0.2, 0.2).to(self.device)
+        noiseT = torch.clamp(torch.randn_like(T_img) * 0.01, -0.2, 0.2).to(self.device)
 
         S_img_noise = S_img + noiseS
         T2S_img_noise = T2S_img + noiseT
@@ -241,7 +241,7 @@ class MTUDA_trainer:
         batch_indicator = tqdm(range(self._num_batches))
         batch_indicator.set_description(f"Training Epoch {epoch:03d}")
 
-        for cur_batch, s_data, t_data in zip(batch_indicator, trainS_loader, trainT_loader):
+        for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
 
             self.optimizer.zero_grad()
             sup_loss, lkd_loss, consistency_loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
