@@ -198,7 +198,7 @@ class pointCloudUDA_trainer:
         for img_bs in range(S_img.shape[0]):
             index_img = torch.where(vertexStran[0] == img_bs)[0]
             ToSamplePoints = vertexS[index_img,:]
-            D = pairwise_distances(ToSamplePoints.squeeze(0).squeeze(0), metric='euclidean')
+            D = pairwise_distances(ToSamplePoints.squeeze(0).squeeze(0).cpu().numpy(), metric='euclidean')
             (perm, lambdas) = getGreedyPerm(D)
             vertexS_BSindex.append(ToSamplePoints[perm,:].unsqueeze(0))
         vertexS = torch.stack(vertexS_BSindex, dim=0)
