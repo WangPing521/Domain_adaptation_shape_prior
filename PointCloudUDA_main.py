@@ -30,12 +30,12 @@ with fix_all_seed_within_context(config['seed']):
     scheduler = GradualWarmupScheduler(optimizer, multiplier=300, total_epoch=10, after_scheduler=scheduler)
 
 with fix_all_seed_within_context(config['seed']):
-    discriminator_1 = OfficialDiscriminator(nc=1, ndf=64)
+    discriminator_1 = OfficialDiscriminator(nc=config['Data_input']['num_class'], ndf=64)
     optimizer_1 = Adam(discriminator_1.parameters(), lr=config["Optim"]["disc_lr"], betas=(0.5, 0.999))
     scheduler_1 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_1, T_max=max(90, 1), eta_min=1e-7)
     scheduler_1 = GradualWarmupScheduler(optimizer_1, multiplier=300, total_epoch=10, after_scheduler=scheduler_1)
 
-    discriminator_2 = OfficialDiscriminator(nc=config['Data_input']['num_class'], ndf=64)
+    discriminator_2 = OfficialDiscriminator(nc=1, ndf=64)
     optimizer_2 = Adam(discriminator_2.parameters(), lr=config["Optim"]["disc_lr"], betas=(0.5, 0.999))
     scheduler_2 = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer_2, T_max=max(90, 1), eta_min=1e-7)
     scheduler_2 = GradualWarmupScheduler(optimizer_2, multiplier=300, total_epoch=10, after_scheduler=scheduler_2)

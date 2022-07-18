@@ -26,7 +26,7 @@ def meters_registerpointcloud(c):
     with meters.focus_on("train"):
         meters.register_meter("lr", AverageValueMeter())
         meters.register_meter(
-            f"trainT_dice", UniversalDice(C=c, report_axis=report_axis))
+            f"trainS_dice", UniversalDice(C=c, report_axis=report_axis))
 
         # loss
         meters.register_meter(
@@ -202,12 +202,22 @@ class pointCloudUDA_trainer:
             (perm, lambdas) = getGreedyPerm(D)
             vertexS_BSindex.append(ToSamplePoints[perm,:].unsqueeze(0))
         vertexS = torch.stack(vertexS_BSindex, dim=0)
-        vertexS = vertexS.squeeze(1)
+        vertexS = vertexS.squeeze(1).float()
 
         # add z
-        # norm to [0-1]
-        self.z
-
+        n = S_img.shape[0]
+        xyzvertexS_list = []
+        for zz in range(n):
+            index_name = S_filename[zz]
+            z_position = int(index_name[14:17])
+            z_all = self.z.get(index_name[9:13])
+            norm_z_position = z_position / z_all
+            vvS = vertexS[zz].transpose(1, 0)
+            vvS[1] = norm_z_position
+            vvS[2] = vvS[2] / 300
+            vvS[3] = vvS[3] / 300
+            xyzvertexS_list.append(vvS[1:4].transpose(1, 0).unsqueeze(0))
+        xyzvertexS = torch.stack(xyzvertexS_list, dim=0).squeeze(1)
 
 
         onehot_targetS = class2one_hot(S_target.squeeze(1), C)
@@ -224,7 +234,7 @@ class pointCloudUDA_trainer:
 
         s_loss1 = self.crossentropy(pred_S, onehot_targetS)
         s_loss2 = jaccard_loss(logits=pred_S, label=S_target.float(), activation=False)
-        s_loss3 = batch_NN_loss(x=point_S, y=vertexS.float())
+        s_loss3 = batch_NN_loss(x=point_S, y=xyzvertexS)
         ent_mapS = self.entropy(pred_S) # entropy on source
         ent_lossS = ent_mapS.mean()
         s_loss = s_loss1 + s_loss2 + s_loss3 + ent_lossS
@@ -237,14 +247,14 @@ class pointCloudUDA_trainer:
             feature_T = next(self.extractor.features())
             point_T = self.point_net(feature_T)
 
-        ent_mapT = self.entropy(pred_T) # entropy on target
+        ent_mapT = self.entropy(pred_T).unsqueeze(1) # entropy on target
 
         out_disPred = self.discriminator_1(pred_T)
         out_disEnt = self.discriminator_2(ent_mapT)
-        out_disPoint = self.discriminator_3(point_T)
-        loss_adv1 = self._bce_criterion(out_disPred, torch.zeros(out_disPred.shape[0], device=self.device).fill_(source_domain_label))
-        loss_adv2 = self._bce_criterion(out_disEnt, torch.zeros(out_disEnt.shape[0], device=self.device).fill_(source_domain_label))
-        loss_adv3 = self._bce_criterion(out_disPoint, torch.zeros(out_disPoint.shape[0], device=self.device).fill_(source_domain_label))
+        out_disPoint = self.discriminator_3(point_T.transpose(2,1))[0]
+        loss_adv1 = self._bce_criterion(out_disPred, torch.FloatTensor(out_disPred.data.size()).fill_(source_domain_label).to(self.device))
+        loss_adv2 = self._bce_criterion(out_disEnt, torch.FloatTensor(out_disEnt.data.size()).fill_(source_domain_label).to(self.device))
+        loss_adv3 = self._bce_criterion(out_disPoint, torch.FloatTensor(out_disPoint.data.size()).fill_(source_domain_label).to(self.device))
 
         loss_adv =  0.2 * loss_adv1 + 0.2 * loss_adv2 + 0.2 * loss_adv3
         loss_adv.backward()
@@ -252,11 +262,11 @@ class pointCloudUDA_trainer:
 
         # 3. train the discriminators with images from source domain
         self.optimizer_2.zero_grad()
-        out_disEntS = self.discriminator_2(ent_mapS.detach())
+        out_disEntS = self.discriminator_2(ent_mapS.unsqueeze(1).detach())
         out_disEntT = self.discriminator_2(ent_mapT.detach())
 
-        out_disEntSadv = self._bce_criterion(out_disEntS,  torch.zeros(out_disEntS.shape[0], device=self.device).fill_(source_domain_label))
-        out_disEntTadv = self._bce_criterion(out_disEntT,  torch.zeros(out_disEntT.shape[0], device=self.device).fill_(target_domain_label))
+        out_disEntSadv = self._bce_criterion(out_disEntS, torch.FloatTensor(out_disEntS.data.size()).fill_(source_domain_label).to(self.device))
+        out_disEntTadv = self._bce_criterion(out_disEntT, torch.FloatTensor(out_disEntT.data.size()).fill_(source_domain_label).to(self.device))
         loss_disadv2 = out_disEntSadv + out_disEntTadv
         loss_disadv2.backward()
         self.optimizer_2.step()
@@ -265,30 +275,26 @@ class pointCloudUDA_trainer:
         out_disPredS = self.discriminator_1(pred_S.detach())
         out_disPredT = self.discriminator_1(pred_T.detach())
 
-        out_disPredSadv = self._bce_criterion(out_disPredS, torch.zeros(out_disPredS.shape[0], device=self.device).fill_(
-            source_domain_label))
-        out_disPredTadv = self._bce_criterion(out_disPredT,
-                                              torch.zeros(out_disPredT.shape[0], device=self.device).fill_(
-                                                  target_domain_label))
+        out_disPredSadv = self._bce_criterion(out_disPredS, torch.FloatTensor(out_disPredS.data.size()).fill_(source_domain_label).to(self.device))
+        out_disPredTadv = self._bce_criterion(out_disPredT, torch.FloatTensor(out_disPredT.data.size()).fill_(target_domain_label).to(self.device))
         loss_disadv1 = out_disPredSadv + out_disPredTadv
         loss_disadv1.backward()
         self.optimizer_1.step()
 
         self.optimizer_3.zero_grad()
-        out_disPointS = self.discriminator_3(point_S.detach())
-        out_disPointT = self.discriminator_3(point_T.detach())
-        out_disPointSadv = self._bce_criterion(out_disPointS,
-                                              torch.zeros(out_disPointS.shape[0], device=self.device).fill_(
-                                                  source_domain_label))
-        out_disPointTadv = self._bce_criterion(out_disPointT,
-                                               torch.zeros(out_disPointT.shape[0], device=self.device).fill_(
-                                                   target_domain_label))
+        out_disPointS = self.discriminator_3(point_S.detach().transpose(2,1))[0]
+        out_disPointT = self.discriminator_3(point_T.detach().transpose(2,1))[0]
+        out_disPointSadv = self._bce_criterion(out_disPointS, torch.FloatTensor(out_disPointS.data.size()).fill_(
+            source_domain_label).to(self.device))
+        out_disPointTadv = self._bce_criterion(out_disPointT, torch.FloatTensor(out_disPointT.data.size()).fill_(
+            target_domain_label).to(self.device))
+
         loss_disadv3 = out_disPointSadv + out_disPointTadv
 
         loss_disadv3.backward()
         self.optimizer_3.step()
 
-        self.meters[f"train_dice"].add(
+        self.meters[f"trainS_dice"].add(
             pred_S.max(1)[1],
             S_target.squeeze(1),
             group_name=["_".join(x.split("_")[:-1]) for x in S_filename],
@@ -414,9 +420,12 @@ class pointCloudUDA_trainer:
         patient_Dic = dict()
         for _, data in zip(range(len(TrainS_loader)), TrainS_loader):
             file_name = data[1]
-            key_0 = file_name[7:13]
-            if patient_Dic == None or patient_Dic[key_0] == None:
-                patient_Dic[key_0:""]
+            for p_id in range(len(file_name)):
+                key_0 = file_name[p_id][9:13]
+                if patient_Dic.get(key_0):
+                    patient_Dic[key_0] = patient_Dic[key_0] + 1
+                else:
+                    patient_Dic[key_0] = 1
         return patient_Dic
 
     def state_dict(self) -> Dict[str, Any]:
