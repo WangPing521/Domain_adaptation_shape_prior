@@ -199,8 +199,9 @@ class pointCloudUDA_trainer:
             index_img = torch.where(vertexStran[0] == img_bs)[0]
             ToSamplePoints = vertexS[index_img,:]
             if ToSamplePoints.shape[0] == 0 or ToSamplePoints.shape[0] ==1:
-                remove_img.append(img_bs)
+                pass
             else:
+                remove_img.append(img_bs) # imgs after remove
                 D = pairwise_distances(ToSamplePoints.squeeze(0).squeeze(0).cpu().numpy(), metric='euclidean')
                 (perm, lambdas) = getGreedyPerm(D)
                 vertexS_BSindex.append(ToSamplePoints[perm,:].unsqueeze(0))
@@ -210,20 +211,21 @@ class pointCloudUDA_trainer:
         # add z
         n = S_img.shape[0]
         xyzvertexS_list = []
-        max_item = n - len(remove_img)
+        ver_index = 0
         for zz in range(n):
-            if zz not in remove_img:
+            if zz in remove_img:
                 index_name = S_filename[zz]
                 z_position = int(index_name[14:17])
                 z_all = self.z.get(index_name[9:13])
                 norm_z_position = z_position / z_all
-                vvS = vertexS[zz].transpose(1, 0)
+                vvS = vertexS[zz-ver_index].transpose(1, 0)
                 vvS[1] = norm_z_position
                 vvS[2] = vvS[2] / 300
                 vvS[3] = vvS[3] / 300
                 xyzvertexS_list.append(vvS[1:4].transpose(1, 0).unsqueeze(0))
+            else:
+                ver_index = ver_index + 1
         xyzvertexS = torch.stack(xyzvertexS_list, dim=0).squeeze(1)
-
 
         onehot_targetS = class2one_hot(S_target.squeeze(1), C)
         source_domain_label = 1
@@ -236,6 +238,7 @@ class pointCloudUDA_trainer:
             pred_S = self.model(S_img).softmax(1)
             feature_S = next(self.extractor.features())
             point_S = self.point_net(feature_S)
+            point_S = point_S[[remove_img]]
 
         s_loss1 = self.crossentropy(pred_S, onehot_targetS)
         s_loss2 = jaccard_loss(logits=pred_S, label=S_target.float(), activation=False)

@@ -7,7 +7,7 @@ Optim:
   disc_lr: 0.000001
 
 Data:
-  seed: 12
+  seed: 1
   kfold: 0
 
 DataLoader:
