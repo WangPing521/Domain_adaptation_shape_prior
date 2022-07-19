@@ -110,7 +110,7 @@ class pointCloudUDA_trainer:
         self.optimizer_3 = optimizer_3
 
         with fix_all_seed_within_context(self._config['seed']):
-            self.point_net = PointNet(num_points=300, ext=False)
+            self.point_net = PointNet(num_points=300, ext=False).to(device)
         self.optimizer.add_param_group({'params': self.point_net.parameters()})
 
         self.scheduler = scheduler
