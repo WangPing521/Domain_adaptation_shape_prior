@@ -455,7 +455,6 @@ class MTUDA_prostate_trainer(MTUDA_trainer):
 
         test_indicator = tqdm(test_loader)
         test_indicator.set_description(f"test_Epoch {epoch:03d}")
-        report_dict = {}
 
         for batch_id_val, data_val in enumerate(val_indicator):
             image_val, target_val, filename_val = (

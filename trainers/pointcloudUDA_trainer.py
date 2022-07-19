@@ -194,29 +194,34 @@ class pointCloudUDA_trainer:
             vertexS_index.append(point)
         vertexS = torch.stack(vertexS_index)
         vertexStran = vertexS.transpose(1,0)
-        vertexS_BSindex = []
+        vertexS_BSindex, remove_img = [], []
         for img_bs in range(S_img.shape[0]):
             index_img = torch.where(vertexStran[0] == img_bs)[0]
             ToSamplePoints = vertexS[index_img,:]
-            D = pairwise_distances(ToSamplePoints.squeeze(0).squeeze(0).cpu().numpy(), metric='euclidean')
-            (perm, lambdas) = getGreedyPerm(D)
-            vertexS_BSindex.append(ToSamplePoints[perm,:].unsqueeze(0))
+            if ToSamplePoints.shape[0] == 0 or ToSamplePoints.shape[0] ==1:
+                remove_img.append(img_bs)
+            else:
+                D = pairwise_distances(ToSamplePoints.squeeze(0).squeeze(0).cpu().numpy(), metric='euclidean')
+                (perm, lambdas) = getGreedyPerm(D)
+                vertexS_BSindex.append(ToSamplePoints[perm,:].unsqueeze(0))
         vertexS = torch.stack(vertexS_BSindex, dim=0)
         vertexS = vertexS.squeeze(1).float()
 
         # add z
         n = S_img.shape[0]
         xyzvertexS_list = []
+        max_item = n - len(remove_img)
         for zz in range(n):
-            index_name = S_filename[zz]
-            z_position = int(index_name[14:17])
-            z_all = self.z.get(index_name[9:13])
-            norm_z_position = z_position / z_all
-            vvS = vertexS[zz].transpose(1, 0)
-            vvS[1] = norm_z_position
-            vvS[2] = vvS[2] / 300
-            vvS[3] = vvS[3] / 300
-            xyzvertexS_list.append(vvS[1:4].transpose(1, 0).unsqueeze(0))
+            if zz not in remove_img:
+                index_name = S_filename[zz]
+                z_position = int(index_name[14:17])
+                z_all = self.z.get(index_name[9:13])
+                norm_z_position = z_position / z_all
+                vvS = vertexS[zz].transpose(1, 0)
+                vvS[1] = norm_z_position
+                vvS[2] = vvS[2] / 300
+                vvS[3] = vvS[3] / 300
+                xyzvertexS_list.append(vvS[1:4].transpose(1, 0).unsqueeze(0))
         xyzvertexS = torch.stack(xyzvertexS_list, dim=0).squeeze(1)
 
 
