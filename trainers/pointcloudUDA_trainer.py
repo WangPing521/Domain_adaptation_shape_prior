@@ -206,7 +206,7 @@ class pointCloudUDA_trainer:
                 D = pairwise_distances(ToSamplePoints.squeeze(0).squeeze(0).cpu().numpy(), metric='euclidean')
                 (perm, lambdas) = getGreedyPerm(D)
                 vertexS_BSindex.append(ToSamplePoints[perm,:].unsqueeze(0))
-        vertexS = torch.stack(vertexS_BSindex, dim=0)
+        vertexS = torch.stack(vertexS_BSindex, dim=0).to(self.device)
         vertexS = vertexS.squeeze(1).float()
 
         # add z
