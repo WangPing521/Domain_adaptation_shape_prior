@@ -14,7 +14,7 @@ DataLoader:
   batch_size: 63 # must be 1
   val_batch_size: 40
   shuffle: False # must be false
-  num_workers: 4
+  num_workers: 2
   pin_memory: False
 
 weights: 0.2
