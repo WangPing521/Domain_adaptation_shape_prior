@@ -7,7 +7,7 @@ CC_WRAPPER_PATH="CC_wrapper.sh"
 source $CC_WRAPPER_PATH
 
 time=3
-account=rrg-ebrahimi
+account=def-chdesa
 save_dir=0720_prostate_align
 declare -a StringArray=(
 #disp0
