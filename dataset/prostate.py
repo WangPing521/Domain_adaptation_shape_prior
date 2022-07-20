@@ -31,6 +31,7 @@ class PromiseInterface(MedicalDatasetInterface):
             root_dir=DATA_PATH,
             seed: int = 0,
             verbose: bool = True,
+            kfold: int = 1
     ) -> None:
         super().__init__(
             PromiseDataset,
@@ -38,6 +39,7 @@ class PromiseInterface(MedicalDatasetInterface):
             seed,
             verbose,
         )
+        self.kfold=kfold
 
     def _create_datasets(
             self,
@@ -55,13 +57,6 @@ class PromiseInterface(MedicalDatasetInterface):
             transforms=None,
             patient_pattern=r"Case\d+"
         )
-        val_set = self.DataClass(
-            root_dir=self.root_dir,
-            mode="val",
-            sub_folders=["img", "gt"],
-            transforms=None,
-            patient_pattern=r"Case\d+"
-        )
         test_set = self.DataClass(
             root_dir=self.root_dir,
             mode="test",
@@ -69,13 +64,45 @@ class PromiseInterface(MedicalDatasetInterface):
             transforms=None,
             patient_pattern=r"Case\d+"
         )
+        with fix_all_seed_within_context(self.seed):
+            shuffled_patients = train_set.get_group_list()[:]
+            rest_train, fold1 = train_test_split(shuffled_patients, test_size=0.25)
+            sub_rest_train, fold2 = train_test_split(rest_train, test_size=0.33)
+            fold4, fold3 = train_test_split(sub_rest_train, test_size=0.5)
+            if self.kfold == 0:
+                train_patients = shuffled_patients
+                val_patients = shuffled_patients
+            if self.kfold == 1:
+                train_patients = rest_train
+                val_patients = fold1
+            elif self.kfold ==2:
+                train_patients = sub_rest_train + fold1
+                val_patients = fold2
+            elif self.kfold ==3:
+                train_patients = fold1 + fold2 + fold4
+                val_patients = fold3
+            elif self.kfold == 4:
+                train_patients = fold1 + fold2 + fold3
+                val_patients = fold4
+        training_set = SubMedicalDatasetBasedOnIndex(train_set, train_patients)
+        validation_set = SubMedicalDatasetBasedOnIndex(train_set, val_patients)
+        if self.kfold == 0:
+            assert len(validation_set) + len(training_set) == 2 * len(
+                train_set
+            ), "not full training data."
+            del train_set
+        else:
+            assert len(validation_set) + len(training_set) <= len(
+                train_set
+            ), "wrong on labeled/unlabeled split."
+            del train_set
 
         if train_transform:
-            train_set.set_transform(train_transform)
+            training_set.set_transform(train_transform)
         if val_transform:
-            val_set.set_transform(val_transform)
+            validation_set.set_transform(val_transform)
             test_set.set_transform(val_transform)
-        return train_set, val_set, test_set
+        return training_set, validation_set, test_set
 
 
 class ProstateDataset(MedicalImageSegmentationDataset):

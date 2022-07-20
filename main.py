@@ -37,7 +37,7 @@ if config['Data_input']['dataset'] == 'mmwhs':
     handler2 = mmWHSCTInterface(seed = config["Data"]["seed"], kfold=config["Data"]["kfold"])
 elif config['Data_input']['dataset'] == 'prostate':
     handler1 = ProstateInterface(seed = config["Data"]["seed"])
-    handler2 = PromiseInterface(seed = config["Data"]["seed"])
+    handler2 = PromiseInterface(seed = config["Data"]["seed"], kfold=config["Data"]["kfold"])
 else:
     raise NotImplementedError(config['Data_input']['dataset'])
 
