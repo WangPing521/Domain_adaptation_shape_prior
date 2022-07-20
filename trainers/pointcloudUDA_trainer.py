@@ -111,7 +111,6 @@ class pointCloudUDA_trainer:
 
         with fix_all_seed_within_context(self._config['seed']):
             self.point_net = PointNet(num_points=300, ext=False)
-            self.point_net.to(device)
         self.optimizer.add_param_group({'params': self.point_net.parameters()})
 
         self.scheduler = scheduler
@@ -164,6 +163,7 @@ class pointCloudUDA_trainer:
 
     def to(self, device):
         self.model.to(device=device)
+        self.point_net.to(device=device)
         self.discriminator_1.to(device=device)
         self.discriminator_2.to(device=device)
         self.discriminator_3.to(device=device)
@@ -320,6 +320,7 @@ class pointCloudUDA_trainer:
             **kwargs,
     ):
         self.model.train()
+        self.point_net.train()
         self.discriminator_1.train()
         self.discriminator_2.train()
         self.discriminator_3.train()
