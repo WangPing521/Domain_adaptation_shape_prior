@@ -5,8 +5,8 @@ import torch
 from arch.DomainSpecificBNUnet import convert2TwinBN
 from arch.unet import UNet
 from configure import ConfigManager
-from dataset.prostate import ProstateInterface, PromiseInterface
-from dataset.mmwhs import mmWHSMRInterface, mmWHSCTInterface
+from dataset.prostate import PromiseInterface
+from dataset.mmwhs import mmWHSCTInterface
 from scheduler.warmup_scheduler import GradualWarmupScheduler
 from trainers.psuedo_lableingDA import Pseudo_labelingDATrainer
 from utils.radam import RAdam
@@ -19,7 +19,7 @@ fix_all_seed(config['seed'])
 Smodel = UNet(num_classes=config['Data_input']['num_class'], input_dim=1)
 Smodel = convert2TwinBN(Smodel)
 Smodel = Smodel.eval()
-weight = f'runs/psuedoDA/cv63/last.pth'
+weight = f'runs/psuedoDA/prostate/last.pth'
 new_state_dict = OrderedDict()
 state_dict = torch.load(weight)
 
@@ -34,7 +34,7 @@ with fix_all_seed_within_context(config['seed']):
 if config['Data_input']['dataset'] == 'mmwhs':
     handler2 = mmWHSCTInterface(seed = config["Data"]["seed"], kfold=config["Data"]["kfold"])
 elif config['Data_input']['dataset'] == 'prostate':
-    handler2 = PromiseInterface(seed = config["Data"]["seed"])
+    handler2 = PromiseInterface(seed = config["Data"]["seed"], kfold=config["Data"]["kfold"])
 else:
     raise NotImplementedError(config['Data_input']['dataset'])
 
