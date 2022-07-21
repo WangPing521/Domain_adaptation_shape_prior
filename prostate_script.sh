@@ -25,22 +25,6 @@ declare -a StringArray=(
 #"python main.py seed=20 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000005 Trainer.save_dir=${save_dir}/entDA_605reg_seed2"
 #"python main.py seed=30 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000005 Trainer.save_dir=${save_dir}/entDA_605reg_seed3"
 
-"python main.py seed=10 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.00001 Trainer.save_dir=${save_dir}/entDA_401reg_seed1"
-"python main.py seed=20 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.00001 Trainer.save_dir=${save_dir}/entDA_401reg_seed2"
-"python main.py seed=30 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.00001 Trainer.save_dir=${save_dir}/entDA_401reg_seed3"
-
-"python main.py seed=10 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.000005 Trainer.save_dir=${save_dir}/entDA_505reg_seed1"
-"python main.py seed=20 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.000005 Trainer.save_dir=${save_dir}/entDA_505reg_seed2"
-"python main.py seed=30 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.000005 Trainer.save_dir=${save_dir}/entDA_505reg_seed3"
-
-"python main.py seed=10 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000001 Trainer.save_dir=${save_dir}/entDA_601reg_seed1"
-"python main.py seed=20 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000001 Trainer.save_dir=${save_dir}/entDA_601reg_seed2"
-"python main.py seed=30 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000001 Trainer.save_dir=${save_dir}/entDA_601reg_seed3"
-
-"python main.py seed=10 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.00000005 Trainer.save_dir=${save_dir}/entDA_705reg_seed1"
-"python main.py seed=20 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.00000005 Trainer.save_dir=${save_dir}/entDA_705reg_seed2"
-"python main.py seed=30 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 Trainer.name=entda DA.double_bn=True DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.00000005 Trainer.save_dir=${save_dir}/entDA_705reg_seed3"
-
 
 # ent+ prior
 #"python main.py seed=10 Optim.lr=0.00001 Data_input.dataset=prostate Data.kfold=0 Data_input.num_class=2 DA.double_bn=True Trainer.name=priorbased DA.batchsize_indicator=9 Scheduler.RegScheduler.max_value=0.0000001 Scheduler.ClusterScheduler.max_value=0.000001 Trainer.save_dir=${save_dir}/prior_501Ent_601prior_seed1"
