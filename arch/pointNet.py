@@ -184,7 +184,7 @@ class PointNetfeat(nn.Module):
             return torch.cat([x, pointfeat], 1), trans, trans_feat
 
 class PointNetCls(nn.Module):
-    def __init__(self, feature_transform=False, sample_transform=True, kernel_size=1, stride=1, in_channel=3, dim=3, ext=False, drop=0.3, heinit=False, cvinit=False):
+    def __init__(self, feature_transform=False, sample_transform=True, kernel_size=1, stride=1, in_channel=3, dim=3, ext=False, drop=0.3):
         super(PointNetCls, self).__init__()
         self.feature_transform = feature_transform
         self.feat = PointNetfeat(global_feat=True, feature_transform=feature_transform, sample_transform=sample_transform,
@@ -198,24 +198,6 @@ class PointNetCls(nn.Module):
         self.in1 = nn.InstanceNorm1d(512, track_running_stats=True)
         self.in2 = nn.InstanceNorm1d(256, track_running_stats=True)
         self.relu = nn.ReLU()
-        if heinit or cvinit:
-            self._initialize_weights(heinit=heinit)
-
-    def _initialize_weights(self, heinit=False):
-        if heinit:
-            for m in self.modules():
-                if isinstance(m, nn.Conv2d):
-                    prod = float(np.prod(m.weight.size()[1:]))
-                    prod = np.sqrt(2 / prod)
-                    m.weight.data.normal_(0.0, prod)
-                    if m.bias is not None:
-                        m.bias.data.zero_()
-        else:
-            for m in self.modules():
-                if isinstance(m, nn.Conv2d):
-                    m.weight.data.normal_(0.0, 0.02)
-                    if m.bias is not None:
-                        m.bias.data.zero_()
 
     def forward(self, x):
         x, trans, trans_feat = self.feat(x)
