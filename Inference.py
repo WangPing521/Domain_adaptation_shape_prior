@@ -19,29 +19,36 @@ def save_images(segs: Tensor, names: Iterable[str], root: Union[str, Path], mode
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=UserWarning)
         for seg, name in zip(segs, names):
-            save_path = Path(root, f"iter{iter:03d}", mode, name[4:6], name).with_suffix(".png")
+            # mmwhs: name[9:13]
+            # prostate: name[4:6]
+            save_path = Path(root, f"iter{iter:03d}", mode, name[9:13], name).with_suffix(".png")
 
             save_path.parent.mkdir(parents=True, exist_ok=True)
 
             imsave(str(save_path), seg.cpu().numpy().astype(np.uint8))
 
+
+dataset = 'mmwhs'
 double_bn = True
-Smodel = UNet(num_classes=2, input_dim=1)
+# mmwhs: 5
+# prostate: 2
+Smodel = UNet(num_classes=5, input_dim=1)
 if double_bn:
     Smodel = convert2TwinBN(Smodel)
 Smodel = Smodel.eval()
-weight = f'../../PHD_documents/papers_work/domain_adaptation/redoresults/prostate/seg/last.pth'
+weight = f'../../PHD_documents/papers_work/domain_adaptation/redoresults/check_segs/disp1_401Ent_301MAEregjoint63_seed3/last.pth'
 new_state_dict = OrderedDict()
 state_dict = torch.load(weight, map_location=torch.device('cpu'))
 Smodel.load_state_dict(state_dict.get('model'))
 
-
-CT_handler = PromiseInterface(seed=12)
-
-CT_handler.compile_dataloader_params(batch_size=1, val_batch_size=1,shuffle=False,num_workers=1,pin_memory=False)
+if dataset == 'mmwhs':
+    target_handler = mmWHSCTInterface(seed=12)
+else:
+    target_handler = PromiseInterface(seed=12)
+target_handler.compile_dataloader_params(batch_size=1, val_batch_size=1,shuffle=False,num_workers=1,pin_memory=False)
 
 with fix_all_seed_within_context(seed=12):
-    trainT_loader, valT_loader = CT_handler.DataLoaders(
+    trainT_loader, valT_loader = target_handler.DataLoaders(
         train_transform=None,
         val_transform=None,
         group_val=False,
@@ -62,7 +69,7 @@ for batch_idT, data_T in enumerate(valT_loader):
     else:
         preds_T = Smodel(imageT).softmax(1)
 
-    save_images(preds_T.max(1)[1], names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/redoresults/prostate/seg/segs', mode='predictions',
+    save_images(preds_T.max(1)[1], names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/redoresults/check_segs/disp1_401Ent_301MAEregjoint63_seed3/segs', mode='predictions',
             iter=100)
 
 
