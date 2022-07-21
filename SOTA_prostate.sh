@@ -34,6 +34,22 @@ declare -a StringArray=(
 "python pseudoDA_main.py seed=20 Data_input.dataset=prostate Data_input.num_class=2 Data.kfold=0 Optim.lr=0.00001 DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_seed2"
 "python pseudoDA_main.py seed=30 Data_input.dataset=prostate Data_input.num_class=2 Data.kfold=0 Optim.lr=0.00001 DA.batchsize_indicator=9 Trainer.save_dir=${save_dir}/pseudoDA_seed3"
 
+#todo SIFA
+#"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 Data_input.dataset=prostate Data_input.num_class=2 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0001 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg301_dis201_seed1"
+#"python SIFA_main.py seed=20 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 Data_input.dataset=prostate Data_input.num_class=2 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0001 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg301_dis201_seed2"
+#"python SIFA_main.py seed=30 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 Data_input.dataset=prostate Data_input.num_class=2 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0001 weights.disc_weight=0.001  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg301_dis201_seed3"
+
+#"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 Data_input.dataset=prostate Data_input.num_class=2 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0001 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg301_dis205_seed1"
+#"python SIFA_main.py seed=20 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 Data_input.dataset=prostate Data_input.num_class=2 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0001 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg301_dis205_seed2"
+#"python SIFA_main.py seed=30 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 Data_input.dataset=prostate Data_input.num_class=2 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0001 weights.disc_weight=0.005  Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg301_dis205_seed3"
+
+#"python SIFA_main.py seed=10 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 Data_input.dataset=prostate Data_input.num_class=2 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0005 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg305_dis101_seed1"
+#"python SIFA_main.py seed=20 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 Data_input.dataset=prostate Data_input.num_class=2 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0005 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg305_dis101_seed2"
+#"python SIFA_main.py seed=30 Data.kfold=0 Optim.lr=0.000001 Optim.disc_lr=0.000005 Data_input.dataset=prostate Data_input.num_class=2 DataLoader.batch_size=32 weights.cyc_weight=1 weights.cyc_Tweight=0.5 weights.seg_weight=1 weights.discSeg_weight=0.0005 weights.disc_weight=0.01   Trainer.save_dir=${save_dir}/cyc1_Tcyc05_seg1_disSeg305_dis101_seed3"
+
+#todo MTUDA
+
+
 )
 
 
