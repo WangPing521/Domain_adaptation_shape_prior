@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=6
 account=def-chdesa
-save_dir=0720_SOTA_SIFA_prostate
+save_dir=0721_SOTA_SIFA_prostate
 declare -a StringArray=(
 # cyc_weight: 1 2
 # cyc_Tweight: 0.5  1
