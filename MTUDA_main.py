@@ -6,11 +6,10 @@ from dataset.mmwhs_fake import mmWHS_T2S2T_Interface, mmWHS_T2S_Interface, mmWHS
     mmWHS_T2S_test_Interface, mmWHSMTUDATInterface, Domain_like
 from dataset.prostate import ProstateInterface
 from dataset.mmwhs import mmWHSMRInterface
-from dataset.prostate_fake import prostate_T2S2T_Interface, prostate_T2S_Interface, prostate_S2T2S_Interface, promise_T_Interface, prostate_S2T_Interface, promise_Ttest_Interface, \
-    promise_Tval_Interface
+from dataset.prostate_fake import prostate_T2S2T_Interface, prostate_T2S_Interface, prostate_S2T2S_Interface, promise_T_Interface, prostate_S2T_Interface, promise_Ttest_Interface
 from scheduler.customized_scheduler import RampScheduler
 from scheduler.warmup_scheduler import GradualWarmupScheduler
-from trainers.MTUDA_trainer import MTUDA_trainer, MTUDA_prostate_trainer
+from trainers.MTUDA_trainer import MTUDA_trainer
 from utils.radam import RAdam
 from utils.utils import fix_all_seed_within_context, fix_all_seed
 from torch.utils.data import DataLoader
