@@ -52,8 +52,6 @@ elif config['Data_input']['dataset'] == 'prostate':
     handlerT2S = prostate_T2S_Interface(seed = config["Data"]["seed"])
     handlerS2T2S = prostate_S2T2S_Interface(seed = config["Data"]["seed"])
 
-    handler_val = promise_Tval_Interface(seed = config["Data"]["seed"]) # T2S_val
-
     handler_test = promise_Ttest_Interface(seed = config["Data"]["seed"]) # T2S_test
 
 else:
@@ -78,32 +76,10 @@ test_dataset = handler_test._create_datasets(train_transform=None, val_transform
 with fix_all_seed_within_context(config['Data']['seed']):
     trainT2S_test_loader = DataLoader(test_dataset, batch_size=40)
 
-if config['Data_input']['dataset'] == 'prostate':
-    val_dataset = handler_val._create_datasets(train_transform=None, val_transform=None)
-    with fix_all_seed_within_context(config['Data']['seed']):
-        trainT2S_val_loader = DataLoader(val_dataset, batch_size=40)
-
 lkdScheduler = RampScheduler(**config['weights']["lkd_weight"])
 consScheduler = RampScheduler(**config['weights']["consistency"])
 
-if config['Data_input']['dataset'] == 'prostate':
-    trainer = MTUDA_prostate_trainer(
-        model=model,
-        source_ema_model=source_ema_model,
-        target_ema_model=target_ema_model,
-        optimizer=optimizer,
-        scheduler=scheduler,
-        lkdScheduler=lkdScheduler,
-        consScheduler=consScheduler,
-        TrainS_loader=source_like_loader,
-        TrainT_loader=target_like_loader,
-        val_loader=trainT2S_val_loader,
-        test_loader=trainT2S_test_loader,
-        config=config,
-        **config['Trainer']
-    )
-else:
-    trainer = MTUDA_trainer(
+trainer = MTUDA_trainer(
         model=model,
         source_ema_model=source_ema_model,
         target_ema_model=target_ema_model,
