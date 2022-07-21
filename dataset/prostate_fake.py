@@ -53,52 +53,6 @@ class promise_T_Interface(MedicalDatasetInterface):
 
         return train_set
 
-class promise_Tval_dataset(MedicalImageSegmentationDataset):
-    download_link = "https://drive.google.com/uc?id=1hZISuvq2OGk6MZDhZ-p5ebV0q0IXAlaf"
-    zip_name = "Promise2012.zip"
-    folder_name = "Promise2012"
-    partition_num = 7
-
-    def __init__(self, *, root_dir: str, mode: str, sub_folders: List[str], transforms: SequentialWrapper = None, patient_pattern: str) -> None:
-        path = Path(root_dir, self.folder_name)
-        downloading(path, self.folder_name, self.download_link, root_dir, self.zip_name)
-        super().__init__(root_dir=str(path),mode= mode, sub_folders=sub_folders,
-                         transforms=transforms, patient_pattern=patient_pattern)
-
-class promise_Tval_Interface(MedicalDatasetInterface):
-    def __init__(
-            self,
-            root_dir=DATA_PATH,
-            seed: int = 0,
-            verbose: bool = True,
-    ) -> None:
-        super().__init__(
-            promise_Tval_dataset,
-            root_dir,
-            seed,
-            verbose,
-        )
-
-    def _create_datasets(
-            self,
-            train_transform: SequentialWrapper = None,
-            val_transform: SequentialWrapper = None,
-    ) -> Tuple[
-        MedicalImageSegmentationDataset,
-    ]:
-        train_set = self.DataClass(
-            root_dir=self.root_dir,
-            mode="val",
-            sub_folders=["img", "gt"],
-            transforms=None,
-            patient_pattern=r"Case\d+"
-        )
-
-        if train_transform:
-            train_set.set_transform(train_transform)
-
-        return train_set
-
 class promise_Ttest_dataset(MedicalImageSegmentationDataset):
     download_link = "https://drive.google.com/uc?id=1hZISuvq2OGk6MZDhZ-p5ebV0q0IXAlaf"
     zip_name = "Promise2012.zip"
