@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=4
 account=def-chdesa
-save_dir=0720_prostate_bothlayer
+save_dir=0721_prostate_our
 declare -a StringArray=(
 # disp1
 #---
