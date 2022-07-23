@@ -24,7 +24,7 @@ Trainer:
   device: cuda
   save_dir: runs
   checkpoint_path: runs
-  enable_sampling: true
+#  enable_sampling: true
 
 DA:
   constrastve_sampler: False

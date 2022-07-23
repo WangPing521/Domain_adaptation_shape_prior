@@ -115,6 +115,7 @@ class MTUDA_trainer:
 
         self.lkd_weight = self._config['weights']['lkd_weight']
         self.consistency = self._config['weights']['consistency']
+        self.noise = self._config['noise']
 
         geometric_transform = rt.Compose(
             rt.BaseAffine(
@@ -191,8 +192,8 @@ class MTUDA_trainer:
         onehot_targetS = class2one_hot(S_target.squeeze(1), self._config['Data_input']['num_class'])
         sup_loss = 0.5 * (self.crossentropy(pred_s_0, onehot_targetS) + self.dice_loss(pred_s_0, onehot_targetS))
 
-        noiseS = torch.clamp(torch.randn_like(S_img) * 0.01, -0.2, 0.2).to(self.device)
-        noiseT = torch.clamp(torch.randn_like(T_img) * 0.01, -0.2, 0.2).to(self.device)
+        noiseS = torch.clamp(torch.randn_like(S_img) * self.noise, -0.2, 0.2).to(self.device)
+        noiseT = torch.clamp(torch.randn_like(T_img) * self.noise, -0.2, 0.2).to(self.device)
 
         S_img_noise = S_img + noiseS
         T2S_img_noise = T2S_img + noiseT

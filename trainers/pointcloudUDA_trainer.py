@@ -65,31 +65,34 @@ class pointCloudUDA_trainer:
     wholemeter_filename = "wholeMeter.csv"
     checkpoint_identifier = "last.pth"
 
-    def __init__(self,
-                 model,
-                 discriminator_1,
-                 discriminator_2,
-                 discriminator_3,
-                 optimizer,
-                 optimizer_1,
-                 optimizer_2,
-                 optimizer_3,
-                 scheduler,
-                 scheduler_1,
-                 scheduler_2,
-                 scheduler_3,
-                 TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
-                 TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
-                 valT_loader: Union[DataLoader, _BaseDataLoaderIter],
-                 test_loader: Union[DataLoader, _BaseDataLoaderIter],
-                 switch_bn,
-                 max_epoch: int = 100,
-                 save_dir: str = "base",
-                 checkpoint_path: str = None,
-                 device='cpu',
-                 config: dict = None,
-                 num_batches=200,
-                *args, **kwargs) -> None:
+    def __init__(
+            self,
+            model: nn.Module,
+            discriminator_1: nn.Module,
+            discriminator_2: nn.Module,
+            discriminator_3: nn.Module,
+            optimizer,
+            optimizer_1,
+            optimizer_2,
+            optimizer_3,
+            scheduler,
+            scheduler_1,
+            scheduler_2,
+            scheduler_3,
+            TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
+            TrainT_loader: Union[DataLoader, _BaseDataLoaderIter],
+            valT_loader: Union[DataLoader, _BaseDataLoaderIter],
+            test_loader: Union[DataLoader, _BaseDataLoaderIter],
+            switch_bn,
+            max_epoch: int = 100,
+            save_dir: str = "base",
+            checkpoint_path: str = None,
+            device='cpu',
+            config: dict = None,
+            num_batches=200,
+            *args,
+            **kwargs
+    ) -> None:
         self._save_dir: Path = Path(self.RUN_PATH) / str(save_dir)
         self._save_dir.mkdir(exist_ok=True, parents=True)
         self._start_epoch = 0
@@ -98,6 +101,8 @@ class pointCloudUDA_trainer:
             self._config.pop("Config", None)
             write_yaml(self._config, save_dir=self._save_dir, save_name="config.yaml")
             set_environment(config.get("Environment"))
+        with fix_all_seed_within_context(self._config['seed']):
+            self.point_net = PointNet(num_points=300, ext=False)
 
         self.model = model
         self.discriminator_1 = discriminator_1  # output
@@ -108,9 +113,6 @@ class pointCloudUDA_trainer:
         self.optimizer_1 = optimizer_1
         self.optimizer_2 = optimizer_2
         self.optimizer_3 = optimizer_3
-
-        with fix_all_seed_within_context(self._config['seed']):
-            self.point_net = PointNet(num_points=300, ext=False)
         self.optimizer.add_param_group({'params': self.point_net.parameters()})
 
         self.scheduler = scheduler

@@ -27,6 +27,7 @@ weights:
     min_value: 0
     max_value: 0
 
+noise: 0.001
 
 Trainer:
   device: cuda
