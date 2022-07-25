@@ -29,13 +29,13 @@ def save_images(segs: Tensor, names: Iterable[str], root: Union[str, Path], mode
 
 
 dataset = 'mmwhs'
-double_bn = False
+double_bn = True
 # mmwhs: 5
 # prostate: 2
 Smodel = UNet(num_classes=5, input_dim=1)
 if double_bn:
     Smodel = convert2TwinBN(Smodel)
-weight = f'../../PHD_documents/papers_work/domain_adaptation/MMWHS/SOTA/cyc1_Tcyc05_seg2_disSeg305_dis101_seed1/last.pth'
+weight = f'../../PHD_documents/papers_work/domain_adaptation/MMWHS/0607_EntPrior/EntPrior_401Ent_505prior_seed3/last.pth'
 new_state_dict = OrderedDict()
 state_dict = torch.load(weight, map_location=torch.device('cpu'))
 Smodel.load_state_dict(state_dict.get('model'))
@@ -43,6 +43,7 @@ Smodel = Smodel.eval()
 
 if dataset == 'mmwhs':
     target_handler = mmWHSCTInterface(seed=12)
+
 else:
     target_handler = PromiseInterface(seed=12)
 target_handler.compile_dataloader_params(batch_size=10, val_batch_size=10,shuffle=False,num_workers=1,pin_memory=False)
@@ -72,7 +73,7 @@ for batch_idT, data_T in enumerate(test_loader):
     # save_images(targetT.squeeze(1), names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/test_mmwhs',
     #             mode='gt',
     #             iter=100)
-    save_images(preds_T.max(1)[1], names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/test_mmwhs/sifa', mode='predictions',
+    save_images(preds_T.max(1)[1], names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/test_mmwhs/point', mode='predictions',
             iter=100)
 
 
