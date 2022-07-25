@@ -1,6 +1,6 @@
 Data_input:
-  dataset: prostate
-  num_class: 2
+  dataset: mmwhs
+  num_class: 5
 
 Optim:
   lr: 0.000001
@@ -36,7 +36,7 @@ Trainer:
   enable_sampling: true
 
 DA:
-  constrastve_sampler: False
+  constrastve_sampler: True
   batchsize_indicator: 1
 
 seed: 123
