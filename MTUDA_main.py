@@ -92,7 +92,7 @@ trainer = MTUDA_trainer(
         config=config,
         **config['Trainer']
     )
-trainer.inference(identifier='last.pth')
+# trainer.inference(identifier='last.pth')
 trainer.start_training()
 
 # import os
