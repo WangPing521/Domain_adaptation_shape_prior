@@ -177,7 +177,7 @@ def batch_NN_loss(x, y):
         xx = torch.bmm(x, x.transpose(2, 1))
         yy = torch.bmm(y, y.transpose(2, 1))
         zz = torch.bmm(x, y.transpose(2, 1))
-        diag_ind = torch.arange(0, num_points).type(torch.cuda.LongTensor)
+        diag_ind = torch.arange(0, num_points).type(torch.LongTensor)
         rx = xx[:, diag_ind, diag_ind]
         rx = rx.unsqueeze(1)
         rx = rx.expand_as(xx)

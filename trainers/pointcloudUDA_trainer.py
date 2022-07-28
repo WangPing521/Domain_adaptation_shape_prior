@@ -257,12 +257,13 @@ class pointCloudUDA_trainer:
             pred_T = self.model(T_img).softmax(1)
             feature_T = next(self.extractor.features())
             point_T = self.point_net(feature_T)
+            point_T = point_T[[remove_img]]
 
         ent_mapT = self.entropy(pred_T).unsqueeze(1) # entropy on target
 
         out_disPred = self.discriminator_1(pred_T)
         out_disEnt = self.discriminator_2(ent_mapT)
-        out_disPoint = self.discriminator_3(point_T.transpose(2,1))[0]
+        out_disPoint = self.discriminator_3(point_T.transpose(2,1))[0].unsqueeze(2).unsqueeze(3)
         loss_adv1 = self._bce_criterion(out_disPred, torch.FloatTensor(out_disPred.data.size()).fill_(source_domain_label).to(self.device))
         loss_adv2 = self._bce_criterion(out_disEnt, torch.FloatTensor(out_disEnt.data.size()).fill_(source_domain_label).to(self.device))
         loss_adv3 = self._bce_criterion(out_disPoint, torch.FloatTensor(out_disPoint.data.size()).fill_(source_domain_label).to(self.device))

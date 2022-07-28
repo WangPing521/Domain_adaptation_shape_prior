@@ -11,8 +11,8 @@ class TwinBatchNorm2d(nn.Module):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True, track_running_stats=True, device=None,
                  dtype=None):
         super(TwinBatchNorm2d, self).__init__()
-        self.bn1 = nn.BatchNorm2d(num_features, eps, momentum, affine, track_running_stats, device, dtype)
-        self.bn2 = nn.BatchNorm2d(num_features, eps, momentum, affine, track_running_stats, device, dtype)
+        self.bn1 = nn.BatchNorm2d(num_features, eps, momentum, affine, track_running_stats)
+        self.bn2 = nn.BatchNorm2d(num_features, eps, momentum, affine, track_running_stats)
         self._indicator = 0
 
     def forward(self, x):
