@@ -1,7 +1,6 @@
 import torch
 
 from arch.DomainSpecificBNUnet import convert2TwinBN, switch_bn as _switch_bn
-from arch.unet import UNet
 from configure import ConfigManager
 from dataset.prostate import ProstateInterface, PromiseInterface
 from dataset.mmwhs import mmWHSMRInterface, mmWHSCTInterface
@@ -20,10 +19,14 @@ from utils.utils import fix_all_seed_within_context, fix_all_seed
 cmanager = ConfigManager("configs/config.yaml", strict=True)
 config = cmanager.config
 fix_all_seed(config['seed'])
-
+not_norm = config['not_norm']
 switch_bn = _switch_bn if config['DA']['double_bn'] else nullcontext
 
 with fix_all_seed_within_context(config['seed']):
+    if not_norm:
+        from arch.unet import UNet
+    else:
+        from arch.myunet import UNet
     model = UNet(num_classes=config['Data_input']['num_class'], input_dim=1)
 with fix_all_seed_within_context(config['seed']):
     if config['DA']['double_bn']:

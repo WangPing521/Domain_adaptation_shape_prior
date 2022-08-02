@@ -294,8 +294,8 @@ class pointCloudUDA_trainer:
         self.optimizer_1.step()
 
         self.optimizer_3.zero_grad()
-        out_disPointS = self.discriminator_3(point_S.detach().transpose(2,1))[0]
-        out_disPointT = self.discriminator_3(point_T.detach().transpose(2,1))[0]
+        out_disPointS = self.discriminator_3(point_S.detach().transpose(2,1))[0].unsqueeze(2).unsqueeze(3)
+        out_disPointT = self.discriminator_3(point_T.detach().transpose(2,1))[0].unsqueeze(2).unsqueeze(3)
         out_disPointSadv = self._bce_criterion(out_disPointS, torch.FloatTensor(out_disPointS.data.size()).fill_(
             source_domain_label).to(self.device))
         out_disPointTadv = self._bce_criterion(out_disPointT, torch.FloatTensor(out_disPointT.data.size()).fill_(

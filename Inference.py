@@ -4,10 +4,14 @@ import torch
 from imageio import imsave
 from torch import Tensor
 from typing import Union, Iterable
+
+from torch.utils.data import DataLoader
+
 from arch.DomainSpecificBNUnet import switch_bn as _switch_bn, convert2TwinBN
 from arch.unet import UNet
 from dataset import PromiseInterface
 from dataset.mmwhs import mmWHSCTInterface
+from dataset.mmwhs_fake import mmWHS_T2S_test_Interface
 from demo.criterions import nullcontext
 from pathlib import Path
 import numpy as np
@@ -29,33 +33,39 @@ def save_images(segs: Tensor, names: Iterable[str], root: Union[str, Path], mode
 
 
 dataset = 'mmwhs'
-double_bn = True
+double_bn = False
 # mmwhs: 5
 # prostate: 2
 Smodel = UNet(num_classes=5, input_dim=1)
 if double_bn:
     Smodel = convert2TwinBN(Smodel)
-weight = f'../../PHD_documents/papers_work/domain_adaptation/MMWHS/0607_EntPrior/EntPrior_401Ent_505prior_seed3/last.pth'
+weight = f'../../PHD_documents/papers_work/domain_adaptation/MMWHS/SOTA_mmwhs_MTUDA/bs63_lkd1_cons05_seed3/last.pth'
 new_state_dict = OrderedDict()
 state_dict = torch.load(weight, map_location=torch.device('cpu'))
 Smodel.load_state_dict(state_dict.get('model'))
 Smodel = Smodel.eval()
 
 if dataset == 'mmwhs':
-    target_handler = mmWHSCTInterface(seed=12)
+    # target_handler = mmWHSCTInterface(seed=12)
+    target_handler = mmWHS_T2S_test_Interface(seed=12) # T2S_test
 
 else:
     target_handler = PromiseInterface(seed=12)
 target_handler.compile_dataloader_params(batch_size=10, val_batch_size=10,shuffle=False,num_workers=1,pin_memory=False)
 
-with fix_all_seed_within_context(seed=12):
-    trainT_loader, valT_loader, test_loader = target_handler.DataLoaders(
-        train_transform=None,
-        val_transform=None,
-        group_val=False,
-        use_infinite_sampler=True,
-        batchsize_indicator=9
-    )
+# with fix_all_seed_within_context(seed=12):
+#     trainT_loader, valT_loader, test_loader = target_handler.DataLoaders(
+#         train_transform=None,
+#         val_transform=None,
+#         group_val=False,
+#         use_infinite_sampler=True,
+#         batchsize_indicator=9
+#     )
+
+test_dataset = target_handler._create_datasets(train_transform=None, val_transform=None)
+with fix_all_seed_within_context(12):
+    test_loader = DataLoader(test_dataset, batch_size=40)
+
 
 switch_bn = _switch_bn if True else nullcontext
 for batch_idT, data_T in enumerate(test_loader):
@@ -70,10 +80,10 @@ for batch_idT, data_T in enumerate(test_loader):
     else:
         preds_T = Smodel(imageT).softmax(1)
 
-    # save_images(targetT.squeeze(1), names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/test_mmwhs',
-    #             mode='gt',
-    #             iter=100)
-    save_images(preds_T.max(1)[1], names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/test_mmwhs/point', mode='predictions',
+    save_images(imageT.squeeze(1), names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/test_mmwhs',
+                mode='img',
+                iter=100)
+    save_images(preds_T.max(1)[1], names=filenameT, root='../../PHD_documents/papers_work/domain_adaptation/test_mmwhs/mtuda', mode='predictions',
             iter=100)
 
 
