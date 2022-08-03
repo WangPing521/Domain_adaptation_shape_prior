@@ -88,6 +88,9 @@ class align_IBNtrainer(SourcebaselineTrainer):
             # projector cluster --->joint
             if self.cc_based:
                 # cross_correlation
+                feature_S = (feature_S - feature_S.mean(1).unsqueeze(1)) / feature_S.std([1,2,3]).unsqueeze(1).unsqueeze(1).unsqueeze(1)
+                feature_T = (feature_T - feature_T.mean(1).unsqueeze(1)) / feature_T.std([1,2,3]).unsqueeze(1).unsqueeze(1).unsqueeze(1)
+
                 clusters_S = [feature_S]
                 clusters_T = [feature_T]
                 if cur_batch == 0 and extracted_layer == 'Up_conv2':
