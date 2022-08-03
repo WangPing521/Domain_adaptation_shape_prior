@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=4
 account=def-chdesa
-save_dir=mmwhs_our_upconv2_cc_norm
+save_dir=mmwhs_our_upconv2_cc_normalization
 declare -a StringArray=(
 # todo: cross-validation for tesing the alignment loss weight (Table1)
 #"python main.py seed=10 Optim.lr=0.00001 Data_input.dataset=mmwhs Data.kfold=1 Trainer.name=align_IndividualBN DA.double_bn=True DA.batchsize_indicator=9 DA.statistic=True DA.align_layer.name=Deconv_1x1 DA.multi_scale=1 DA.displacement=False Scheduler.RegScheduler.max_value=0.0005 Scheduler.ClusterScheduler.max_value=0.00005 Trainer.save_dir=${save_dir}/disp0_405Ent_305joint_fold1"
