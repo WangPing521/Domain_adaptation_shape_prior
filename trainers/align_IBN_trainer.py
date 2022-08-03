@@ -88,8 +88,8 @@ class align_IBNtrainer(SourcebaselineTrainer):
             # projector cluster --->joint
             if self.cc_based:
                 # cross_correlation
-                feature_S = (feature_S - feature_S.min(1).unsqueeze(1)) / (feature_S.max(1).unsqueeze(1) - feature_S.min(1).unsqueeze(1))
-                feature_T = (feature_T - feature_T.min(1).unsqueeze(1)) / (feature_T.max(1).unsqueeze(1) - feature_T.min(1).unsqueeze(1))
+                feature_S = (feature_S - feature_S.min()) / (feature_S.max() - feature_S.min())
+                feature_T = (feature_T - feature_T.min()) / (feature_T.max() - feature_T.min())
 
                 clusters_S = [feature_S]
                 clusters_T = [feature_T]
