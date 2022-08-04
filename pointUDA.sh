@@ -8,7 +8,7 @@ source $CC_WRAPPER_PATH
 
 time=4
 account=def-chdesa
-save_dir=0722_pointUDA_mmwhs
+save_dir=0804_pointUDA_mmwhs
 declare -a StringArray=(
 #-----------
 
