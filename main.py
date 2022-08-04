@@ -20,7 +20,6 @@ from arch.unet import UNet
 cmanager = ConfigManager("configs/config.yaml", strict=True)
 config = cmanager.config
 fix_all_seed(config['seed'])
-not_norm = config['not_norm']
 switch_bn = _switch_bn if config['DA']['double_bn'] else nullcontext
 
 with fix_all_seed_within_context(config['seed']):

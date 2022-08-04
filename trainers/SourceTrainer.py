@@ -78,7 +78,14 @@ class SourcebaselineTrainer:
         self.displacement = self._config['DA']['displacement']
         if self.displacement:
             s = self._config['DA']['displace_scale']
-            self.displacement_map_list = [(0, 0), (-s, -s), (s, s), (-s, 0), (s, 0), (0, s), (0, -s), (-s, s), (s, -s)]
+            self.displacement_map_list = [[(0, 0)]]
+            for scale in s:
+                self.displacement_map_list.append([(-scale, -scale), (scale, scale), (-scale, 0), (scale, 0),
+                                                  (0, scale), (0, -scale), (-scale, scale), (scale, -scale)])
+            for s_idx in range(1, len(s)+1):
+                for i in range(8):
+                    self.displacement_map_list[0].append(self.displacement_map_list[s_idx][i])
+
         else:
             self.displacement_map_list = [(0, 0)]
 
