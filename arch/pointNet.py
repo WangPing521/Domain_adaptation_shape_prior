@@ -210,6 +210,7 @@ class PointNetCls(nn.Module):
             x = F.relu(self.in2(self.dropout(self.fc2(x))))
         x = self.fc3(x)
         x = F.relu(x)
+        x = torch.min(x, torch.FloatTensor(x.data.size()).fill_(1).to(x.device.type))
         return x, trans, trans_feat
 
 
