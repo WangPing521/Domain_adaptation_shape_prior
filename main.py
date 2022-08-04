@@ -15,6 +15,7 @@ from trainers.entropy_DA_trainer import EntropyDA
 from trainers.upper_supervised_Trainer import UpperbaselineTrainer
 from utils.radam import RAdam
 from utils.utils import fix_all_seed_within_context, fix_all_seed
+from arch.unet import UNet
 
 cmanager = ConfigManager("configs/config.yaml", strict=True)
 config = cmanager.config
@@ -23,10 +24,6 @@ not_norm = config['not_norm']
 switch_bn = _switch_bn if config['DA']['double_bn'] else nullcontext
 
 with fix_all_seed_within_context(config['seed']):
-    if not_norm:
-        from arch.unet import UNet
-    else:
-        from arch.myunet import UNet
     model = UNet(num_classes=config['Data_input']['num_class'], input_dim=1)
 with fix_all_seed_within_context(config['seed']):
     if config['DA']['double_bn']:
