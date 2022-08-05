@@ -85,6 +85,7 @@ class SourcebaselineTrainer:
             for s_idx in range(1, len(s)+1):
                 for i in range(8):
                     self.displacement_map_list[0].append(self.displacement_map_list[s_idx][i])
+            self.displacement_map_list = self.displacement_map_list[0]
 
         else:
             self.displacement_map_list = [(0, 0)]
