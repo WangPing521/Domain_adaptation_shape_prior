@@ -33,13 +33,13 @@ Trainer:
   device: cuda
   save_dir: runs
   checkpoint_path: runs
-  enable_sampling: true
+  enable_sampling: True
 
 DA:
   constrastve_sampler: True
   batchsize_indicator: 2 # partition=7, bs=batchsize_indicator * 7
   double_bn: False
-  displacement: Fasle
+  displacement: True
   displace_scale: [1,3]
   statistic: True
   multi_scale: 1 # 1, 2, 3, 4, 5, 6 Note: 1 refers to without multi_scale resilution

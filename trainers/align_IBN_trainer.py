@@ -192,12 +192,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
         )
 
         if cur_batch == 0:
-            # source_joint_fig = plot_joint_matrix(p_joint_S)
-            # target_joint_fig = plot_joint_matrix(p_joint_T)
-            # self.writer.add_figure(tag=f"source_joint", figure=source_joint_fig, global_step=self.cur_epoch,
-            #                        close=True, )
-            # self.writer.add_figure(tag=f"target_joint", figure=target_joint_fig, global_step=self.cur_epoch,
-            #                        close=True, )
             joint_error_fig = plot_joint_matrix1(joint_error, indicator="error")
             joint_error_percent_fig = plot_joint_matrix1(joint_error_percent, indicator="percenterror")
             self.writer.add_figure(tag=f"error_joint", figure=joint_error_fig, global_step=self.cur_epoch,
