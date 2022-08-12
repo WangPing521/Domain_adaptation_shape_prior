@@ -91,7 +91,7 @@ class mutli_aligntrainer(SourcebaselineTrainer):
                 zip(*[single_head_loss(clusters1, clustert1, displacement_maps=self.displacement_map_list, cc_based=self.cc_based, cur_batch=cur_batch, cur_epoch=self.cur_epoch, vis=self.writer) for
                       clusters1, clustert1 in zip(clusters_S1, clusters_T1)])
             align_losses2, p_joint_Ss2, p_joint_Ts2 = \
-                zip(*[single_head_loss(clusters2, clustert2, displacement_maps=[(3, 3)], cc_based=self.cc_based, cur_batch=cur_batch, cur_epoch=self.cur_epoch, vis=self.writer) for
+                zip(*[single_head_loss(clusters2, clustert2, displacement_maps=self.displacement_map_list, cc_based=self.cc_based, cur_batch=cur_batch, cur_epoch=self.cur_epoch, vis=self.writer) for
                       clusters2, clustert2 in zip(clusters_S2, clusters_T2)])
 
             align_loss1 = sum(align_losses1) / len(align_losses1)
