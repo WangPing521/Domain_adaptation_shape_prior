@@ -1,14 +1,14 @@
 # Domain_adaptation_shape_prior
 -----
-*Dataset:
+* Dataset:
 
 MMWHS (MRI(Source) and CT(Target))
 
-*Network: 
+* Network: 
 
 Unet
 
-*Trainers:
+* Trainers:
 
 align_IBN_trainer.py----->alignment from output layer or Upconv2
 
@@ -16,11 +16,7 @@ align_combinationlayer_trainer.py------->alignment from both output layer and Up
 
 Other trainers correspond to SOTA.
 
-scripts:
-
-mmwhs_our_1.sh
-
-mmwhs_our_2.sh
+* Reproduce our results:
 
 ```bash
 bash mmwhs_our_1.sh
