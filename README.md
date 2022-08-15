@@ -1,16 +1,12 @@
 # Domain_adaptation_shape_prior
 -----
-* Dataset:
+* Dataset: MMWHS (MRI(Source) and CT(Target))
 
-MMWHS (MRI(Source) and CT(Target))
-
-* Network: 
-
-Unet
+* Network:  Unet
 
 * Trainers:
 
-align_IBN_trainer.py----->alignment from output layer or Upconv2
+align_IBN_trainer.py             ------->alignment from output layer or Upconv2
 
 align_combinationlayer_trainer.py------->alignment from both output layer and Upconv2 layer
 
