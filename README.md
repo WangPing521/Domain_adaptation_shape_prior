@@ -23,5 +23,8 @@ mmwhs_our_1.sh
 mmwhs_our_2.sh
 
 ```bash
-python main_nd.py -o Trainer.name=ft -p config/base.yaml
+bash mmwhs_our_1.sh
+```
+```bash
+bash mmwhs_our_2.sh
 ```
