@@ -6,9 +6,9 @@
 
 * Trainers:
 
-align_IBN_trainer.py             ------->alignment from output layer or Upconv2
+align_IBN_trainer.py # alignment from output layer or Upconv2             
 
-align_combinationlayer_trainer.py------->alignment from both output layer and Upconv2 layer
+align_combinationlayer_trainer.py # alignment from both output layer and Upconv2 layer
 
 Other trainers correspond to SOTA.
 
