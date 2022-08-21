@@ -7,6 +7,7 @@ from torch.utils.data.dataloader import _BaseDataLoaderIter
 from arch.projectors import DenseClusterHead
 from arch.utils import FeatureExtractor
 from loss.IIDSegmentations import single_head_loss, multi_resilution_cluster
+from loss.entropy import KL_div
 from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot, average_list, simplex
@@ -34,7 +35,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
                 num_clusters=self._config['DA']['align_layer']['clusters'], T=0.5)
         self.optimizer.add_param_group({'params': self.projector.parameters(),
                                         })
-
         self.extractor = FeatureExtractor(self.model, feature_names=self._config['DA']['align_layer']['name'])
         self.extractor.bind()
         self.cc_based = self._config['DA']['align_layer']['cc_based']

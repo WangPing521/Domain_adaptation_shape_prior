@@ -49,6 +49,7 @@ def single_head_loss(clusters: Tensor, clustert: Tensor, *, displacement_maps: t
             cc_relation=cc_based)
         # align
         align_1disp_loss = torch.mean(torch.abs((p_joint_S.detach() - p_joint_T)))
+        # align_1disp_loss = KL_loss(p_joint_T, p_joint_S.detach())
         align_loss_list.append(align_1disp_loss)
         if cur_batch == 0:
             p_joint_S_fig = plot_joint_matrix1(p_joint_S, indicator="error")
