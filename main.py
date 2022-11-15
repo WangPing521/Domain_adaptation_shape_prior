@@ -25,8 +25,8 @@ fix_all_seed(config['seed'])
 switch_bn = _switch_bn if config['DA']['double_bn'] else nullcontext
 
 with fix_all_seed_within_context(config['seed']):
-    # model = UNet(num_classes=config['Data_input']['num_class'], input_dim=1)
-    model = Enet(num_classes=config['Data_input']['num_class'], input_dim=1)
+    model = UNet(num_classes=config['Data_input']['num_class'], input_dim=1)
+    # model = Enet(num_classes=config['Data_input']['num_class'], input_dim=1)
 
 with fix_all_seed_within_context(config['seed']):
     if config['DA']['double_bn']:
