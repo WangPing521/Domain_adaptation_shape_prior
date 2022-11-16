@@ -87,14 +87,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
                 feature_T = next(self.extractor.features())
             # projector cluster --->joint
             if self.cc_based:
-                # cross_correlation
-                # standardization
-                # feature_S = (feature_S - feature_S.mean(1).unsqueeze(1)) / (feature_S.std(1).unsqueeze(1) + 0.00000001)
-                # feature_T = (feature_T - feature_T.mean(1).unsqueeze(1)) / (feature_T.std(1).unsqueeze(1) + 0.00000001)
-                #normailization -->[0,1]
-                # feature_S = (feature_S - feature_S.min()) / (feature_S.max() - feature_S.min())
-                # feature_T = (feature_T - feature_T.min()) / (feature_T.max() - feature_T.min())
-
                 clusters_S = [feature_S]
                 clusters_T = [feature_T]
                 if cur_batch == 0 and extracted_layer == 'Up_conv2':
@@ -146,7 +138,6 @@ class align_IBNtrainer(SourcebaselineTrainer):
                     self.writer.add_figure(tag=f"train_target_feature9", figure=target_f9, global_step=self.cur_epoch, close=True)
                     self.writer.add_figure(tag=f"train_target_feature10", figure=target_f10, global_step=self.cur_epoch, close=True)
                     self.writer.add_figure(tag=f"train_target_feature11", figure=target_f11, global_step=self.cur_epoch, close=True)
-
 
             else:
                 clusters_S = self.projector(feature_S)

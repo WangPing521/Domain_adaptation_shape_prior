@@ -11,7 +11,8 @@ import torch
 from meters.SummaryWriter import get_tb_writer
 from utils.utils import switch_plt_backend
 from skimage.io import imsave
-
+import os
+from MulticoreTSNE import MulticoreTSNE as TSNE
 
 def save_joint_distribution(images: np.ndarray, root, mode, iter):
     assert images.ndim == 2
@@ -420,3 +421,18 @@ def save_images(segs: Tensor, names: Iterable[str], root: Union[str, Path], mode
             save_path.parent.mkdir(parents=True, exist_ok=True)
 
             imsave(str(save_path), seg.detach().numpy())
+
+
+def draw_pictures(input_data, input_target, save_name, show_legend=False):
+    tsne = TSNE(n_jobs=8, n_components=2, verbose=1, perplexity=40, n_iter=300)
+    tsne_results = tsne.fit_transform(input_data, None)
+    label = ["Background", "LVM", "LAC", "LVC", "AA"]
+    colors = ["tab:gray", 'tab:blue', 'tab:orange', 'tab:green', 'tab:red']
+    plt.figure(figsize=(4, 4))
+    for i, (l, c) in enumerate(zip(label, colors)):
+        index = input_target == i
+        plt.scatter(*tsne_results[index].transpose(), c=c, label=l, linewidth=0)
+    if show_legend:
+        plt.legend()
+    plt.savefig(save_name, bbox_inches="tight", dpi=180)
+    plt.close()

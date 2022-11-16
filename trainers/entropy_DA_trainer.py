@@ -10,7 +10,6 @@ from scheduler.customized_scheduler import RampScheduler
 from trainers.SourceTrainer import SourcebaselineTrainer
 from utils.general import class2one_hot
 
-
 class EntropyDA(SourcebaselineTrainer):
 
     def __init__(self, TrainS_loader: Union[DataLoader, _BaseDataLoaderIter],
@@ -53,6 +52,7 @@ class EntropyDA(SourcebaselineTrainer):
             pred_T = self.model(T_img).softmax(1)
 
         align_loss = self.ent_loss(pred_T)
+
         self.meters[f"train_dice"].add(
             pred_S.max(1)[1],
             S_target.squeeze(1),
