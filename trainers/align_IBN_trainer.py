@@ -166,7 +166,7 @@ class align_IBNtrainer(SourcebaselineTrainer):
 
         for rs in range(self._config['DA']['multi_scale']):
             if rs:
-                clusters_S, clusters_T = multi_resilution_cluster(clusters_S, clusters_T, cc_based=self.cc_based)
+                clusters_S, clusters_T = multi_resilution_cluster(clusters_S, clusters_T, cc_based=self.cc_based, pool_size=self._config['DA']['pool_size'])
             align_losses, p_joint_Ss, p_joint_Ts = \
                 zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list, cc_based=self.cc_based, cur_batch=cur_batch, cur_epoch=self.cur_epoch, vis=self.writer) for
                       clusters, clustert in zip(clusters_S, clusters_T)])
