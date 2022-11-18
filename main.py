@@ -1,14 +1,13 @@
 import torch
 
 from arch.DomainSpecificBNUnet import convert2TwinBN, switch_bn as _switch_bn
-from arch.enet import Enet
 from configure import ConfigManager
 from dataset.prostate import ProstateInterface, PromiseInterface
 from dataset.mmwhs import mmWHSMRInterface, mmWHSCTInterface
 from demo.criterions import nullcontext
 from scheduler.customized_scheduler import RampScheduler
 from scheduler.warmup_scheduler import GradualWarmupScheduler
-from trainers.Enet_align_IBN_trainer import Enet_align_IBNtrainer
+# from trainers.Enet_align_IBN_trainer import Enet_align_IBNtrainer
 from trainers.SourceTrainer import SourcebaselineTrainer
 from trainers.align_IBN_trainer import align_IBNtrainer
 from trainers.align_combinationlayer_trainer import mutli_aligntrainer
@@ -73,7 +72,7 @@ Trainer_container = {
     "align_IndividualBN": align_IBNtrainer,
     "combinationlayer": mutli_aligntrainer,
     "priorbased": entPlusPriorTrainer,
-    "ent_our_trainer": Enet_align_IBNtrainer
+    # "ent_our_trainer": Enet_align_IBNtrainer
 }
 trainer_name = Trainer_container.get(config['Trainer'].get('name'))
 

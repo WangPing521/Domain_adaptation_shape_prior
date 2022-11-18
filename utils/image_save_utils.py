@@ -436,3 +436,18 @@ def draw_pictures(input_data, input_target, save_name, show_legend=False):
         plt.legend()
     plt.savefig(save_name, bbox_inches="tight", dpi=180)
     plt.close()
+
+def tsne16(input_data, input_target, save_name, show_legend=False):
+    tsne = TSNE(n_jobs=8, n_components=2, verbose=1, perplexity=40, n_iter=300)
+    tsne_results = tsne.fit_transform(input_data, None)
+    label = ["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12", "f13", "f14", "f15", "f16"]
+    colors = ["tab:gray", 'tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'yellow', 'lime', 'tab:purple',
+              'tab:brown', 'tab:pink', 'tab:cyan','tab:olive', 'magenta', 'darkred', 'coral', 'teal']
+    plt.figure(figsize=(4, 4))
+    for i, (l, c) in enumerate(zip(label, colors)):
+        index = input_target == i
+        plt.scatter(*tsne_results[index].transpose(), c=c, label=l, linewidth=0)
+    if show_legend:
+        plt.legend()
+    plt.savefig(save_name, bbox_inches="tight", dpi=180)
+    plt.close()

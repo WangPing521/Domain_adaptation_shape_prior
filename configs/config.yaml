@@ -42,11 +42,11 @@ DA:
   displacement: True
   displace_scale: [1]
   statistic: True
-  multi_scale: 1 # 1, 2, 3, 4, 5, 6 Note: 1 refers to without multi_scale resilution
+  multi_scale: 3 # 1, 2, 3, 4, 5, 6 Note: 1 refers to without multi_scale resilution
   pool_size: 2
   weight1: 1 # 10, 100
   align_layer:
-    name: Deconv_1x1 # Up_conv4, Up_conv3, Up_conv2, Deconv_1x1
+    name: Up_conv2 # Up_conv4, Up_conv3, Up_conv2, Deconv_1x1
     cc_based: True
     clusters: 5
 
