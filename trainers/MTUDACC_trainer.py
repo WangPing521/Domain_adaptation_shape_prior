@@ -142,32 +142,17 @@ class MTUDACCtrainer(MTUDA_trainer):
         CC_t2s = [feature_t2s]
         assert len(CC_S) == len(CC_s2t2s)
 
-        align_loss_multires1,  align_loss_multires2= [], []
-        for rs in range(self._config['DA']['multi_scale']):
-            if rs:
-                clusters_S, clusters_s2t2s = multi_resilution_cluster(CC_S, CC_s2t2s, cc_based=True, pool_size=2)
-            align_losses, p_joint_Ss, p_joint_s2t2ss = \
-                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list,
-                                       cc_based=True, cur_batch=cur_batch, cur_epoch=self.cur_epoch,
-                                       vis=self.writer) for
-                      clusters, clustert in zip(clusters_S, clusters_s2t2s)])
+        align_losses1, p_joint_Ss, p_joint_s2t2ss = \
+            zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list,
+                                   cc_based=True, cur_batch=cur_batch, cur_epoch=self.cur_epoch, vis=self.writer) for clusters, clustert in zip(CC_S, CC_s2t2s)])
 
-            align_loss = sum(align_losses) / len(align_losses)
-            align_loss_multires1.append(align_loss)
-            align_loss1 = average_list(align_loss_multires1)
+        align_loss1 = sum(align_losses1) / len(align_losses1)
 
-        for rs in range(self._config['DA']['multi_scale']):
-            if rs:
-                clusters_S, clusters_T2S = multi_resilution_cluster(CC_S, CC_t2s, cc_based=True, pool_size=2)
-            align_losses, p_joint_Ss, p_joint_T2Ss = \
-                zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list,
-                                       cc_based=True, cur_batch=cur_batch, cur_epoch=self.cur_epoch,
-                                       vis=self.writer) for
-                      clusters, clustert in zip(clusters_S, clusters_T2S)])
+        align_losses2, p_joint_Ss, p_joint_T2Ss = \
+            zip(*[single_head_loss(clusters, clustert, displacement_maps=self.displacement_map_list,
+                                   cc_based=True, cur_batch=cur_batch, cur_epoch=self.cur_epoch, vis=self.writer) for clusters, clustert in zip(CC_S, CC_t2s)])
 
-            align_loss = sum(align_losses) / len(align_losses)
-            align_loss_multires2.append(align_loss)
-        align_loss2 = average_list(align_loss_multires2)
+        align_loss2 = sum(align_losses2) / len(align_losses2)
 
         ccalign = 0.5 * (align_loss1 + align_loss2)
 
