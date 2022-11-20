@@ -26,10 +26,16 @@ weights:
     max_epoch: 50
     min_value: 0
     max_value: 0
+  ccalignScheduler:
+    begin_epoch: 5
+    max_epoch: 50
+    min_value: 0
+    max_value: 0
 
 noise: 0.01
 
 Trainer:
+  name: MTUDAplugCCtrainer # MTUDAtrainer  MTUDAplugCCtrainer
   device: cuda
   save_dir: runs
   checkpoint_path: runs
@@ -38,5 +44,7 @@ Trainer:
 DA:
   constrastve_sampler: True
   batchsize_indicator: 1
+  displacement: True
+  dis_scale: 1
 
 seed: 123

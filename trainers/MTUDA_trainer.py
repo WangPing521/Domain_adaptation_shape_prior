@@ -245,11 +245,16 @@ class MTUDA_trainer:
         for cur_batch, (batch_id, s_data, t_data) in enumerate(zip(batch_indicator, trainS_loader, trainT_loader)):
 
             self.optimizer.zero_grad()
-            sup_loss, lkd_loss, consistency_loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
-
-            loss = sup_loss + self.lkdScheduler.value * lkd_loss + self.consScheduler.value * consistency_loss
-            loss.backward()
-            self.optimizer.step()
+            if self._config['Trainer']['name'] in ['MTUDAtrainer']:
+                sup_loss, lkd_loss, consistency_loss = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
+                loss = sup_loss + self.lkdScheduler.value * lkd_loss + self.consScheduler.value * consistency_loss
+                loss.backward()
+                self.optimizer.step()
+            elif self._config['Trainer']['name'] in ['MTUDAplugCCtrainer']:
+                sup_loss, lkd_loss, consistency_loss, CC_align = self.run_step(s_data=s_data, t_data=t_data, cur_batch=cur_batch)
+                loss = sup_loss + self.lkdScheduler.value * lkd_loss + self.consScheduler.value * consistency_loss + self.ccalignScheduler.value * CC_align
+                loss.backward()
+                self.optimizer.step()
 
             for ema_param_s, param in zip(self.source_ema_model.parameters(), self.model.parameters()):
                 ema_param_s.data.mul_(s_co).add_(1 - s_co, param.data)
@@ -305,6 +310,8 @@ class MTUDA_trainer:
         self.scheduler.step()
         self.lkdScheduler.step()
         self.consScheduler.step()
+        if self._config['Trainer']['name'] in ['MTUDAplugCCtrainer']:
+            self.ccalignScheduler.step()
 
     def start_training(self):
         self.to(self.device)

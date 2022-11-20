@@ -9,6 +9,7 @@ from dataset.mmwhs import mmWHSMRInterface
 from dataset.prostate_fake import prostate_T2S2T_Interface, prostate_T2S_Interface, prostate_S2T2S_Interface, promise_T_Interface, prostate_S2T_Interface, promise_Ttest_Interface
 from scheduler.customized_scheduler import RampScheduler
 from scheduler.warmup_scheduler import GradualWarmupScheduler
+from trainers.MTUDACC_trainer import MTUDACCtrainer
 from trainers.MTUDA_trainer import MTUDA_trainer
 from utils.radam import RAdam
 from utils.utils import fix_all_seed_within_context, fix_all_seed
@@ -78,7 +79,14 @@ with fix_all_seed_within_context(config['Data']['seed']):
 lkdScheduler = RampScheduler(**config['weights']["lkd_weight"])
 consScheduler = RampScheduler(**config['weights']["consistency"])
 
-trainer = MTUDA_trainer(
+Trainer_container = {
+    "MTUDAtrainer": MTUDA_trainer,
+    "MTUDAplugCCtrainer": MTUDACCtrainer
+}
+
+trainer_name = Trainer_container.get(config['Trainer'].get('name'))
+
+trainer = trainer_name(
         model=model,
         source_ema_model=source_ema_model,
         target_ema_model=target_ema_model,
@@ -92,7 +100,7 @@ trainer = MTUDA_trainer(
         config=config,
         **config['Trainer']
     )
-trainer.inference(identifier='last.pth')
+# trainer.inference(identifier='last.pth')
 trainer.start_training()
 
 # import os
