@@ -142,7 +142,7 @@ class MTUDACCtrainer(MTUDA_trainer):
         CC_t2s = [feature_t2s]
         assert len(CC_S) == len(CC_s2t2s)
 
-        align_loss_multires1,  align_loss_multires2= []
+        align_loss_multires1,  align_loss_multires2= [], []
         for rs in range(self._config['DA']['multi_scale']):
             if rs:
                 clusters_S, clusters_s2t2s = multi_resilution_cluster(CC_S, CC_s2t2s, cc_based=True, pool_size=2)
